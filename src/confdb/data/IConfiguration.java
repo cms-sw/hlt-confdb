@@ -53,23 +53,29 @@ public interface IConfiguration extends Serializable {
 	/** total number of unset tracked parameters */
 	public int unsetTrackedParameterCount();
 
-	/** number of unsert tracked global pset parameters */
+	/** number of unset tracked global pset parameters */
 	public int unsetTrackedPSetParameterCount();
 
-	/** number of unsert tracked edsource parameters */
+	/** number of unset tracked edsource parameters */
 	public int unsetTrackedEDSourceParameterCount();
 
-	/** number of unsert tracked essource parameters */
+	/** number of unset tracked essource parameters */
 	public int unsetTrackedESSourceParameterCount();
 
-	/** number of unsert tracked esmodule parameters */
+	/** number of unset tracked esmodule parameters */
 	public int unsetTrackedESModuleParameterCount();
 
-	/** number of unsert tracked service parameters */
+	/** number of unset tracked service parameters */
 	public int unsetTrackedServiceParameterCount();
 
-	/** number of unsert tracked module parameters */
+	/** number of unset tracked module parameters */
 	public int unsetTrackedModuleParameterCount();
+
+	/** number of unset tracked EDAlias parameters */
+	public int unsetTrackedEDAliasParameterCount();
+
+	/** number of unset global tracked EDAlias parameters */
+	public int unsetTrackedGlobalEDAliasParameterCount();
 
 	/** number of output modules not assigned to any path */
 	public int unassignedOutputModuleCount();
@@ -100,6 +106,21 @@ public interface IConfiguration extends Serializable {
 
 	/** insert a global pset */
 	public void insertPSet(PSetParameter pset);
+
+	/** number of global EDAliases */
+	public int globalEDAliasCount();
+
+	/** get i-th global EDAlias */
+	public EDAliasInstance globalEDAlias(int i);
+
+	/** get global EDAlias by name (name) */
+	public EDAliasInstance globalEDAlias(String globalEDAliasName);
+
+	/** index of a certain global EDAlias */
+	public int indexOfGlobalEDAlias(EDAliasInstance globalEDAlias);
+
+	/** retrieve global EDAlias iterator */
+	public Iterator<EDAliasInstance> globalEDAliasIterator();
 
 	/** number of EDSources */
 	public int edsourceCount();
@@ -176,6 +197,21 @@ public interface IConfiguration extends Serializable {
 	/** retrieve module iterator */
 	public Iterator<ModuleInstance> moduleIterator();
 
+	/** number of EDAliases */
+	public int edAliasCount();
+
+	/** get i-th EDAlias */
+	public EDAliasInstance edAlias(int i);
+
+	/** get EDAlias by name (name) */
+	public EDAliasInstance edAlias(String edAliasName);
+
+	/** index of a certain EDAlias */
+	public int indexOfEDAlias(EDAliasInstance edAlias);
+
+	/** retrieve EDAlias iterator */
+	public Iterator<EDAliasInstance> edAliasIterator();
+
 	/** number of OutputModules */
 	public int outputCount();
 
@@ -223,6 +259,42 @@ public interface IConfiguration extends Serializable {
 
 	/** retrieve sequence iterator */
 	public Iterator<Sequence> orderedSequenceIterator();
+
+	/** number of Tasks */
+	public int taskCount();
+
+	/** get i-th Task */
+	public Task task(int i);
+
+	/** get task by name */
+	public Task task(String taskName);
+
+	/** index of a certain Task */
+	public int indexOfTask(Task task);
+
+	/** retrieve task iterator */
+	public Iterator<Task> taskIterator();
+
+	/** retrieve task iterator */
+	public Iterator<Task> orderedTaskIterator();
+
+	/** number of switch producers */
+	public int switchProducerCount();
+
+	/** get i-th switch producer */
+	public SwitchProducer switchProducer(int i);
+
+	/** get switch producer by name */
+	public SwitchProducer switchProducer(String switchProducerName);
+
+	/** index of a certain switch producer */
+	public int indexOfSwitchProducer(SwitchProducer switchProducer);
+
+	/** retrieve switch producer iterator */
+	public Iterator<SwitchProducer> switchProducerIterator();
+
+	/** retrieve switch producer iterator */
+	public Iterator<SwitchProducer> orderedSwitchProducerIterator();
 
 	/** number of event contents */
 	public int contentCount();

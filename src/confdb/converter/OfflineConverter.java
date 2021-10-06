@@ -39,7 +39,13 @@ public class OfflineConverter extends ConverterBase
 	super(format,dbType,dbUrl,dbUser,dbPwrd);
     }
 
-    
+    /** destructor  */
+	protected void finalize() throws Throwable
+	{
+	super.finalize();
+	disconnect();
+	}
+			
     //
     // member functions
     //
@@ -238,23 +244,24 @@ public class OfflineConverter extends ConverterBase
 	System.err.println("dbURl  = " + dbUrl);
 	System.err.println("dbUser = " + dbUser);
 	System.err.println("dbPwrd = " + dbPwrd);
-
+	
 	try {
 	    ModifierInstructions modifications = new ModifierInstructions();
 	    modifications.interpretArgs(cnvArgs);
 	    OfflineConverter cnv = 
 		new OfflineConverter(format,dbType,dbUrl,dbUser,dbPwrd);
-	    if (configId.length()>0)
+	    configId="";
+	    if (configId.length()>0){
 		System.out.println(cnv.getConfigString(Integer.parseInt(configId),
 						       format,
 						       modifications,
 						       asFragment));
-	    else
+	    }else{
 		System.out.println(cnv.getConfigString(configName,
 						       format,
 						       modifications,
 						       asFragment));
-	    
+	    }
 	}
 	catch(Exception e) {
 	    System.err.println("ERROR: " + e.getMessage());

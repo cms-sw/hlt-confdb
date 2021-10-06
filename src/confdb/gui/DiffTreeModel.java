@@ -28,13 +28,17 @@ public class DiffTreeModel extends AbstractTreeModel {
 
 	/** top-level nodes */
 	private StringBuffer psetsNode = new StringBuffer();
+	private StringBuffer globalEDAliasNode = new StringBuffer(); //on diff we can have 2 EDAlias nodes
 	private StringBuffer edsourcesNode = new StringBuffer();
 	private StringBuffer essourcesNode = new StringBuffer();
 	private StringBuffer esmodulesNode = new StringBuffer();
 	private StringBuffer servicesNode = new StringBuffer();
 	private StringBuffer pathsNode = new StringBuffer();
 	private StringBuffer sequencesNode = new StringBuffer();
+	private StringBuffer tasksNode = new StringBuffer();
+	private StringBuffer switchProducersNode = new StringBuffer();
 	private StringBuffer modulesNode = new StringBuffer();
+	private StringBuffer edAliasNode = new StringBuffer();
 	private StringBuffer outputsNode = new StringBuffer();
 	private StringBuffer contentsNode = new StringBuffer();
 	private StringBuffer streamsNode = new StringBuffer();
@@ -76,6 +80,17 @@ public class DiffTreeModel extends AbstractTreeModel {
 			Iterator<Comparison> it = diff.psetIterator();
 			while (it.hasNext())
 				it.next().setParent(psetsNode);
+		}
+		
+		// global EDAlias node
+		int globlaEDAliasCount = diff.globalEDAliasCount();
+		if (globlaEDAliasCount > 0) {
+			globalEDAliasNode.delete(0, globalEDAliasNode.length());
+			globalEDAliasNode.append("<html><b>Global EDAliases</b> (").append(globlaEDAliasCount).append(")</html>");
+			topNodes.add(globalEDAliasNode);
+			Iterator<Comparison> it = diff.globalEDAliasIterator();
+			while (it.hasNext())
+				it.next().setParent(globalEDAliasNode);
 		}
 
 		// EDSources node
@@ -144,6 +159,28 @@ public class DiffTreeModel extends AbstractTreeModel {
 				it.next().setParent(sequencesNode);
 		}
 
+		// Tasks node
+		int taskCount = diff.taskCount();
+		if (taskCount > 0) {
+			tasksNode.delete(0, tasksNode.length());
+			tasksNode.append("<html><b>Tasks</b> (").append(taskCount).append(")</html>");
+			topNodes.add(tasksNode);
+			Iterator<Comparison> it = diff.taskIterator();
+			while (it.hasNext())
+				it.next().setParent(tasksNode);
+		}
+		
+		// SwitchProducers node
+		int switchProducerCount = diff.switchProducerCount();
+		if (switchProducerCount > 0) {
+			switchProducersNode.delete(0, switchProducersNode.length());
+			switchProducersNode.append("<html><b>SwitchProducers</b> (").append(switchProducerCount).append(")</html>");
+			topNodes.add(switchProducersNode);
+			Iterator<Comparison> it = diff.switchProducerIterator();
+			while (it.hasNext())
+				it.next().setParent(switchProducersNode);
+		}
+
 		// Module node
 		int moduleCount = diff.moduleCount();
 		if (moduleCount > 0) {
@@ -153,6 +190,17 @@ public class DiffTreeModel extends AbstractTreeModel {
 			Iterator<Comparison> it = diff.moduleIterator();
 			while (it.hasNext())
 				it.next().setParent(modulesNode);
+		}
+		
+		// EDAlias node
+		int edAliasCount = diff.edAliasCount();
+		if (edAliasCount > 0) {
+			edAliasNode.delete(0, edAliasNode.length());
+			edAliasNode.append("<html><b>EDAliases</b> (").append(edAliasCount).append(")</html>");
+			topNodes.add(edAliasNode);
+			Iterator<Comparison> it = diff.edAliasIterator();
+			while (it.hasNext())
+				it.next().setParent(edAliasNode);
 		}
 
 		// OutputModule node
@@ -226,6 +274,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 		else if (node instanceof StringBuffer) {
 			if (node.equals(psetsNode))
 				return diff.psetCount();
+			if (node.equals(globalEDAliasNode))
+				return diff.globalEDAliasCount();
 			if (node.equals(edsourcesNode))
 				return diff.edsourceCount();
 			if (node.equals(essourcesNode))
@@ -238,8 +288,14 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.pathCount();
 			if (node.equals(sequencesNode))
 				return diff.sequenceCount();
+			if (node.equals(tasksNode))
+				return diff.taskCount();
+			if (node.equals(switchProducersNode))
+				return diff.switchProducerCount();
 			if (node.equals(modulesNode))
 				return diff.moduleCount();
+			if (node.equals(edAliasNode))
+				return diff.edAliasCount();
 			if (node.equals(outputsNode))
 				return diff.outputCount();
 			if (node.equals(contentsNode))
@@ -261,6 +317,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 		else if (parent instanceof StringBuffer) {
 			if (parent.equals(psetsNode))
 				return diff.pset(i);
+			if (parent.equals(globalEDAliasNode))
+				return diff.globalEDAlias(i);
 			if (parent.equals(edsourcesNode))
 				return diff.edsource(i);
 			if (parent.equals(essourcesNode))
@@ -273,8 +331,14 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.path(i);
 			if (parent.equals(sequencesNode))
 				return diff.sequence(i);
+			if (parent.equals(tasksNode))
+				return diff.task(i);
+			if (parent.equals(switchProducersNode))
+				return diff.switchProducer(i);
 			if (parent.equals(modulesNode))
 				return diff.module(i);
+			if (parent.equals(edAliasNode))
+				return diff.edAlias(i);
 			if (parent.equals(outputsNode))
 				return diff.output(i);
 			if (parent.equals(contentsNode))
@@ -297,6 +361,8 @@ public class DiffTreeModel extends AbstractTreeModel {
 		else if (parent instanceof StringBuffer) {
 			if (parent.equals(psetsNode))
 				return diff.indexOfPSet((Comparison) child);
+			if (parent.equals(globalEDAliasNode))
+				return diff.indexOfGlobalEDAlias((Comparison) child);
 			if (parent.equals(edsourcesNode))
 				return diff.indexOfEDSource((Comparison) child);
 			if (parent.equals(essourcesNode))
@@ -309,8 +375,14 @@ public class DiffTreeModel extends AbstractTreeModel {
 				return diff.indexOfPath((Comparison) child);
 			if (parent.equals(sequencesNode))
 				return diff.indexOfSequence((Comparison) child);
+			if (parent.equals(tasksNode))
+				return diff.indexOfTask((Comparison) child);
+			if (parent.equals(switchProducersNode))
+				return diff.indexOfSwitchProducer((Comparison) child);
 			if (parent.equals(modulesNode))
 				return diff.indexOfModule((Comparison) child);
+			if (parent.equals(edAliasNode))
+				return diff.indexOfEDAlias((Comparison) child);
 			if (parent.equals(outputsNode))
 				return diff.indexOfOutput((Comparison) child);
 			if (parent.equals(contentsNode))

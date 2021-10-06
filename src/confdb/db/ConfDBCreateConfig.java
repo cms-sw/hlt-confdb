@@ -163,6 +163,30 @@ public class ConfDBCreateConfig {
 			while (itRmv.hasNext())
 				masterConfig.removeSequence(itRmv.next());
 
+			// remove unreferenced tasks
+			ArrayList<Task> tasksToBeRemoved = new ArrayList<Task>();
+			Iterator<Task> itTas = masterConfig.taskIterator();
+			while (itTas.hasNext()) {
+				Task task = itTas.next();
+				if (task.parentPaths().length == 0)
+					tasksToBeRemoved.add(task);
+			}
+			Iterator<Task> itTasRmv = tasksToBeRemoved.iterator();
+			while (itTasRmv.hasNext())
+				masterConfig.removeTask(itTasRmv.next());
+			
+			// remove unreferenced switch producers
+			ArrayList<SwitchProducer> switchProducersToBeRemoved = new ArrayList<SwitchProducer>();
+			Iterator<SwitchProducer> itSwitchProducer = masterConfig.switchProducerIterator();
+			while (itSwitchProducer.hasNext()) {
+				SwitchProducer switchProducer = itSwitchProducer.next();
+				if (switchProducer.parentPaths().length == 0)
+					switchProducersToBeRemoved.add(switchProducer);
+			}
+			Iterator<SwitchProducer> itSwitchProducerRmv = switchProducersToBeRemoved.iterator();
+			while (itSwitchProducerRmv.hasNext())
+				masterConfig.removeSwitchProducer(itSwitchProducerRmv.next());
+
 			// save the configuration under the new name
 			String configName = newConfigName.substring(dirName.length() + 1);
 			String processName = masterConfig.processName();

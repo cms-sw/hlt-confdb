@@ -9,10 +9,13 @@ import confdb.converter.IEDSourceWriter;
 import confdb.converter.IESSourceWriter;
 import confdb.converter.IESModuleWriter;
 import confdb.converter.IModuleWriter;
+import confdb.converter.IEDAliasWriter;
 import confdb.converter.IOutputWriter;
 import confdb.converter.IParameterWriter;
 import confdb.converter.IPathWriter;
 import confdb.converter.ISequenceWriter;
+import confdb.converter.ITaskWriter;
+import confdb.converter.ISwitchProducerWriter;
 import confdb.converter.IServiceWriter;
 import confdb.data.Block;
 import confdb.data.ESPreferable;
@@ -21,10 +24,13 @@ import confdb.data.EDSourceInstance;
 import confdb.data.ESSourceInstance;
 import confdb.data.ESModuleInstance;
 import confdb.data.ModuleInstance;
+import confdb.data.EDAliasInstance;
 import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.Sequence;
+import confdb.data.Task;
+import confdb.data.SwitchProducer;
 import confdb.data.ServiceInstance;
 
 public class PythonConfigurationWriter implements IConfigurationWriter {
@@ -40,6 +46,10 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 				+ converterEngine.getNewline());
 
 		str.append("import FWCore.ParameterSet.Config as cms\n\n");
+		if(conf.switchProducerCount() > 0) {
+		    str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
+		}
+
 
 		String object = "";
 		if (writeProcess == WriteProcess.YES) {
@@ -57,6 +67,16 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 				String psetStr = parameterWriter.toString(pset, converterEngine, "");
 				if (psetStr != null && psetStr.length() > 0)
 					str.append(object + psetStr);
+			}
+			str.append("\n");
+		}
+		
+		if (conf.globalEDAliasCount() > 0) {
+			IEDAliasWriter globalEDAliasWriter = converterEngine.getGlobalEDAliasWriter();
+			for (int i = 0; i < conf.globalEDAliasCount(); i++) {
+				EDAliasInstance globalEDAlias = conf.globalEDAlias(i);
+				str.append(object);
+				str.append(globalEDAliasWriter.toString(globalEDAlias));
 			}
 			str.append("\n");
 		}
@@ -123,8 +143,21 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			IModuleWriter moduleWriter = converterEngine.getModuleWriter();
 			for (int i = 0; i < conf.moduleCount(); i++) {
 				ModuleInstance module = conf.module(i);
-				str.append(object);
-				str.append(moduleWriter.toString(module));
+				//do not write out switch producer modules
+				if (module.moduleType()!=1) {
+					str.append(object);
+					str.append(moduleWriter.toString(module));
+				}
+			}
+			str.append("\n");
+		}
+		
+		if (conf.switchProducerCount() > 0) {
+			ISwitchProducerWriter switchProducerWriter = converterEngine.getSwitchProducerWriter();
+			Iterator<SwitchProducer> switchProducerIterator = conf.orderedSwitchProducerIterator();
+			while (switchProducerIterator.hasNext()) {
+				SwitchProducer switchProducer = switchProducerIterator.next();
+				str.append(switchProducerWriter.toString(switchProducer, converterEngine, object));
 			}
 			str.append("\n");
 		}
@@ -139,6 +172,16 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			str.append("\n");
 		}
 
+		if (conf.taskCount() > 0) {
+			ITaskWriter taskWriter = converterEngine.getTaskWriter();
+			Iterator<Task> taskIterator = conf.orderedTaskIterator();
+			while (taskIterator.hasNext()) {
+				Task task = taskIterator.next();
+				str.append(taskWriter.toString(task, converterEngine, object));
+			}
+			str.append("\n");
+		}
+
 		if (conf.sequenceCount() > 0) {
 			ISequenceWriter sequenceWriter = converterEngine.getSequenceWriter();
 			Iterator<Sequence> sequenceIterator = conf.orderedSequenceIterator();
@@ -147,8 +190,8 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 				str.append(sequenceWriter.toString(sequence, converterEngine, object));
 			}
 			str.append("\n");
-		}
-
+		}		
+				
 		if (conf.pathCount() > 0) {
 			IPathWriter pathWriter = converterEngine.getPathWriter();
 			for (int i = 0; i < conf.pathCount(); i++) {
@@ -174,11 +217,10 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 			str.append("\n" + object + "HLTSchedule = cms.Schedule( *(");
 			for (int i = 0; i < conf.pathCount(); i++) {
 				Path path = conf.path(i);
+				//we need the "," when there is just one path
+				//and for multi paths it does no harm to leave it
 				str.append(object + path.name() + ", ");
 			}
-			int length = str.length();
-			str.setCharAt(length - 2, ' ');
-			str.setLength(length - 1);
 			str.append("))\n");
 		}
 

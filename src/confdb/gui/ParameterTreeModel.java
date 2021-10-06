@@ -145,9 +145,10 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 	public boolean isCellEditable(Object node, int column) {
 		if (getColumnClass(column) == TreeTableTreeModel.class)
 			return true;
-		if (column != 2 || node.equals(root))
+		if (node instanceof PSetParameter || node instanceof VPSetParameter) {
 			return false;
-		if (node instanceof PSetParameter || node instanceof VPSetParameter)
+		}
+		if (column != 2 || node.equals(root))
 			return false;
 		return true;
 	}
@@ -159,10 +160,19 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 
 		Parameter p = (Parameter) node;
 		boolean isPSet = (p instanceof PSetParameter || p instanceof VPSetParameter);
-
+		
 		String result = new String();
 		if (column == 0) {
+			boolean ok = true;
 			result = p.name();
+			if (p.type().equals("VPSet")) {
+				if (p.parent() instanceof EDAliasInstance) {
+					ok = (config.module(p.name()) != null);
+				}
+			}
+			
+			if (!ok) result = "___EDALIASRED___" + result;
+			
 			return result;
 		} else if (column == 1) {
 			boolean ok = true;
@@ -171,7 +181,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 				InputTagParameter it = (InputTagParameter) p;
 				label = it.label() == null ? "" : it.label();
 				ok = ((label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source"))
-						|| (config.module(label) != null));
+						|| (config.module(label) != null) || (config.globalEDAlias(label) != null));
 			} else if (p.type().equals("ESInputTag")) {
 				ESInputTagParameter it = (ESInputTagParameter) p;
 				label = it.module() == null ? "" : it.module();
@@ -181,7 +191,7 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 				for (int i = 0; i < vit.vectorSize(); i++) {
 					label = vit.label(i) == null ? "" : vit.label(i);
 					ok = ((label.equals("")) || (label.equals("rawDataCollector")) || (label.equals("source"))
-							|| (config.module(label) != null));
+							|| (config.module(label) != null) || (config.globalEDAlias(label) != null));
 					if (!ok)
 						break;
 				}
@@ -192,6 +202,10 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 					ok = ((label.equals("")) || (config.essource(label) != null) || (config.esmodule(label) != null));
 					if (!ok)
 						break;
+				}
+			} else if (p.type().equals("VPSet")) {
+				if (p.parent() instanceof EDAliasInstance) {
+					ok = (config.module(p.name()) != null);
 				}
 			}
 			result = p.type();
@@ -208,17 +222,38 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 		}
 		return null;
 	}
+	
+
+	/** TreeTableTreeModel: set the value of a parameter */
+	public void setNameAt(Object value, Object node, int col) {
+		//boolean ok = true;
+		if (value == null) return;
+		if (col != 0)
+			return;
+		if (node instanceof Parameter) {
+			Parameter parameter = (Parameter) node;
+			ParameterContainer container = parameter.getParentContainer();
+			if (container != null) {
+				container.updateName(parameter.name(), parameter.type(), value.toString());
+			}
+			else {
+				parameter.setName(value.toString());
+			}
+
+			nodeChanged(parameter);
+		}
+	}
 
 	/** TreeTableTreeModel: set the value of a parameter */
 	public void setValueAt(Object value, Object node, int col) {
 		if (col != 2)
 			return;
-
 		if (node instanceof Parameter) {
 			Parameter parameter = (Parameter) node;
 			ParameterContainer container = parameter.getParentContainer();
-			if (container != null)
+			if (container != null) {
 				container.updateParameter(parameter.fullName(), parameter.type(), value.toString());
+			}
 			else
 				parameter.setValue(value.toString());
 

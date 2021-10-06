@@ -35,8 +35,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	/** reference to the configuration tree-model */
 	private ConfigurationTreeModel treeModel = null;
 
-	/** popup mneu associated with global psets */
+	/** popup menu associated with global psets */
 	private JPopupMenu popupPSets = null;
+
+	/** popup menu associated with global EDAliases */
+	private JPopupMenu popupGlobalEDAliases = null;
 
 	/** popup menu showing all available service templates */
 	private JPopupMenu popupServices = null;
@@ -56,6 +59,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	/** popup menu associated with sequences */
 	private JPopupMenu popupSequences = null;
 
+	/** popup menu associated with tasks */
+	private JPopupMenu popupTasks = null;
+
+	/** popup menu associated with switch producers */
+	private JPopupMenu popupSwitchProducers = null;
+
 	/** popup menu associated with modules */
 	private JPopupMenu popupModules = null;
 
@@ -70,6 +79,9 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** action listener for psets-menu actions */
 	private PSetMenuListener psetListener = null;
+
+	/** action listener for global EDAliases-menu actions */
+	private GlobalEDAliasMenuListener globalEDAliasListener = null;
 
 	/** action listener for services-menu actions */
 	private ServiceMenuListener serviceListener = null;
@@ -88,6 +100,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** action listener for sequences-menu actions */
 	private SequenceMenuListener sequenceListener = null;
+
+	/** action listener for tasks-menu actions */
+	private TaskMenuListener taskListener = null;
+
+	/** action listener for switch producer-menu actions */
+	private SwitchProducerMenuListener switchProducerListener = null;
 
 	/** action listener for modules-menu actions */
 	private ModuleMenuListener moduleListener = null;
@@ -113,27 +131,34 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	 */
 	private TreeTable TreeTableParameters;
 
+	/** reference to the gui application */
+	// private ConfDbGUI app = null;
+
 	//
 	// construction
 	//
 
 	/** standard constructor */
-	public ConfigurationTreeMouseListener(JTree tree, JFrame frame) {
+	public ConfigurationTreeMouseListener(JTree tree, JFrame frame, ConfDbGUI app) {
 
 		this.tree = tree;
 		this.treeModel = (ConfigurationTreeModel) tree.getModel();
 
 		psetListener = new PSetMenuListener(tree, frame);
+		globalEDAliasListener = new GlobalEDAliasMenuListener(tree, frame, app);
 		edsourceListener = new EDSourceMenuListener(tree);
 		essourceListener = new ESSourceMenuListener(tree);
 		esmoduleListener = new ESModuleMenuListener(tree);
 		serviceListener = new ServiceMenuListener(tree);
 		pathListener = new PathMenuListener(tree);
 		sequenceListener = new SequenceMenuListener(tree);
+		taskListener = new TaskMenuListener(tree);
+		switchProducerListener = new SwitchProducerMenuListener(tree, frame, app);
 		moduleListener = new ModuleMenuListener(tree);
 		contentListener = new ContentMenuListener(tree);
 		streamListener = new StreamMenuListener(tree, frame);
 		datasetListener = new DatasetMenuListener(tree, frame);
+
 	}
 
 	//
@@ -195,6 +220,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			return;
 		}
 
+		if (isInTreePath(treePath, treeModel.globalEDAliasesNode()) && depth <= 3) {
+			updateGlobalEDAliasMenu();
+			popupGlobalEDAliases.show(e.getComponent(), e.getX(), e.getY());
+			return;
+		}
+
 		// show the 'EDSources' popup?
 		if (isInTreePath(treePath, treeModel.edsourcesNode()) && depth <= 3) {
 			updateEDSourceMenu();
@@ -234,6 +265,20 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		if (isInTreePath(treePath, treeModel.sequencesNode())/* &&depth<=4 */) {
 			updateSequenceMenu();
 			popupSequences.show(e.getComponent(), e.getX(), e.getY());
+			return;
+		}
+
+		// show the 'Tasks' popup?
+		if (isInTreePath(treePath, treeModel.tasksNode())/* &&depth<=4 */) {
+			updateTaskMenu();
+			popupTasks.show(e.getComponent(), e.getX(), e.getY());
+			return;
+		}
+
+		// show the 'SwitchProducers' popup?
+		if (isInTreePath(treePath, treeModel.switchProducersNode())/* &&depth<=4 */) {
+			updateSwitchProducersMenu();
+			popupSwitchProducers.show(e.getComponent(), e.getX(), e.getY());
 			return;
 		}
 
@@ -304,6 +349,47 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		// menuItem.addActionListener(psetListener);
 		// popupPSets.addComponent(menuItem);
 		// }
+	}
+
+	/** update 'Global EDAliases' menu */
+	public void updateGlobalEDAliasMenu() {
+		JMenuItem menuItem;
+		popupGlobalEDAliases = new JPopupMenu();
+
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		Object node = treePath.getPathComponent(depth - 1);
+
+		menuItem = new JMenuItem("Add EDAlias");
+		menuItem.addActionListener(globalEDAliasListener);
+		popupGlobalEDAliases.add(menuItem);
+
+		if (depth == 3) {
+			menuItem = new JMenuItem("Remove EDAlias");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
+		}
+		
+		menuItem = new JMenuItem("Sort");
+		menuItem.addActionListener(globalEDAliasListener);
+		popupGlobalEDAliases.add(menuItem);
+
+		if (node instanceof EDAliasInstance) {
+			menuItem = new JMenuItem("Rename EDAlias");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
+
+			// CLONE OPTION:
+			menuItem = new JMenuItem("Clone EDAlias");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
+			
+			menuItem = new JMenuItem("Add Module (VPSet)");
+			menuItem.addActionListener(globalEDAliasListener);
+			popupGlobalEDAliases.add(menuItem);
+			
+			//Removing VPSet is done through parameter table
+		}
 	}
 
 	/** update 'EDSource' menu */
@@ -550,7 +636,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		if (depth == 3) {
 			Path path = (Path) node;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
@@ -558,6 +644,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
 			popupPaths.add(addSequenceMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			popupPaths.add(addTaskMenu);
+
+			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
+			popupPaths.add(addSwitchProducerMenu);
 
 			popupPaths.addSeparator();
 
@@ -685,10 +777,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			return;
 		}
 
-		// a specific module/path/sequence reference is selected
+		// a specific module/path/sequence/task reference is selected
 		if (depth == 4) {
 			Path path = (Path) parent;
-			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
@@ -696,6 +788,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
 			popupPaths.add(addSequenceMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			popupPaths.add(addTaskMenu);
+
+			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
+			popupPaths.add(addSwitchProducerMenu);
 
 			popupPaths.addSeparator();
 
@@ -726,6 +824,20 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				menuItem = new JMenuItem("Remove Sequence");
 				menuItem.addActionListener(pathListener);
 				popupPaths.add(menuItem);
+			}
+			if (node instanceof TaskReference) {
+				menuItem = new JMenuItem("Remove Task");
+				menuItem.addActionListener(pathListener);
+				popupPaths.add(menuItem);
+			}
+			if (node instanceof SwitchProducerReference) {
+				menuItem = new JMenuItem("Remove SwitchProducer");
+				menuItem.addActionListener(pathListener);
+				popupPaths.add(menuItem);
+
+				// CLONE OPTION:
+				popupPaths.addSeparator();
+				popupPaths.add(createSetOperatorMenu((Reference) node, pathListener));
 			}
 		}
 
@@ -776,11 +888,18 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 3) {
 			Sequence sequence = (Sequence) node;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true, false);
 			popupSequences.add(addModuleMenu);
+			
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(sequence, sequenceListener, false, true);
 			popupSequences.add(addSequenceMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(sequence, sequenceListener, false, true);
+			popupSequences.add(addTaskMenu);
+
+			JMenu addSwitchProducerMenu = createAddRepSPMenu(sequence, sequenceListener, false, true);
+			popupSequences.add(addSwitchProducerMenu);
 
 			popupSequences.addSeparator();
 
@@ -808,15 +927,19 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 4) {
 			Sequence sequence = (Sequence) parent;
 
-			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true);
+			JMenu addModuleMenu = createAddRepModuleMenu(sequence, null, sequenceListener, true, false);
 			popupSequences.add(addModuleMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(sequence, sequenceListener, true, true);
 			popupSequences.add(addSequenceMenu);
 
-			if (node instanceof ModuleReference) {
-				ModuleReference mr = (ModuleReference) node;
+			JMenu addTaskMenu = createAddRepTaskMenu(sequence, sequenceListener, true, true);
+			popupSequences.add(addTaskMenu);
 
+			JMenu addSwitchProducerMenu = createAddRepSPMenu(sequence, sequenceListener, true, true);
+			popupSequences.add(addSwitchProducerMenu);
+
+			if (node instanceof ModuleReference) {
 				menuItem = new JMenuItem("Remove Module");
 				menuItem.addActionListener(sequenceListener);
 				popupSequences.add(menuItem);
@@ -844,6 +967,19 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				menuItem.addActionListener(sequenceListener);
 				popupSequences.add(menuItem);
 			}
+			if (node instanceof TaskReference) {
+				menuItem = new JMenuItem("Remove Task");
+				menuItem.addActionListener(sequenceListener);
+				popupSequences.add(menuItem);
+			}
+			if (node instanceof SwitchProducerReference) {
+				menuItem = new JMenuItem("Remove SwitchProducer");
+				menuItem.addActionListener(sequenceListener);
+				popupSequences.add(menuItem);
+
+				popupSequences.addSeparator();
+				popupSequences.add(createSetOperatorMenu((Reference) node, sequenceListener));
+			}
 		}
 
 		if (depth == 2 && enableSort) {
@@ -866,6 +1002,266 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	}
 
+	/** update 'Tasks' Menu */
+	public void updateTaskMenu() {
+		JMenuItem menuItem;
+		popupTasks = new JPopupMenu();
+
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		Object node = treePath.getPathComponent(depth - 1);
+		Object parent = treePath.getPathComponent(depth - 2);
+
+		IConfiguration config = (IConfiguration) treeModel.getRoot();
+
+		if (depth == 2) {
+			menuItem = new JMenuItem("Add Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+			popupTasks.addSeparator();
+			menuItem = new JMenuItem("Remove Unreferenced Tasks");
+			menuItem.addActionListener(taskListener);
+			menuItem.setActionCommand("RMUNREFTAS");
+			popupTasks.add(menuItem);
+			menuItem = new JMenuItem("Resolve Unnecessary Tasks");
+			menuItem.addActionListener(taskListener);
+			menuItem.setActionCommand("RESOLVETAS");
+			popupTasks.add(menuItem);
+		} else if (depth == 3) {
+			Task task = (Task) node;
+
+			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true, false);
+			popupTasks.add(addModuleMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(task, taskListener, false, true);
+			popupTasks.add(addTaskMenu);
+
+			JMenu addSwitchProducerMenu = createAddRepSPMenu(task, taskListener, false, true);
+			popupTasks.add(addSwitchProducerMenu);
+
+			popupTasks.addSeparator();
+
+			menuItem = new JMenuItem("Rename Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			menuItem = new JMenuItem("Clone Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			menuItem = new JMenuItem("Deep Clone Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			menuItem = new JMenuItem("Remove Task");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+
+			JMenu repTaskMenu = createAddRepTaskMenu(task, taskListener, false, false);
+			popupTasks.add(repTaskMenu);
+
+		} else if (depth == 4) {
+			Task task = (Task) parent;
+
+			JMenu addModuleMenu = createAddRepModuleMenu(task, null, taskListener, true, false);
+			popupTasks.add(addModuleMenu);
+
+			JMenu addTaskMenu = createAddRepTaskMenu(task, taskListener, true, true);
+			popupTasks.add(addTaskMenu);
+
+			JMenu addSwitchProducerMenu = createAddRepSPMenu(task, taskListener, true, true);
+			popupTasks.add(addSwitchProducerMenu);
+
+			if (node instanceof ModuleReference) {
+				ModuleReference mr = (ModuleReference) node;
+
+				menuItem = new JMenuItem("Remove Module");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+
+				// CLONE OPTION:
+				menuItem = new JMenuItem("Clone Module");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+
+				popupTasks.addSeparator();
+				popupTasks.add(createSetOperatorMenu((Reference) node, taskListener));
+			}
+			if (node instanceof OutputModuleReference) {
+				menuItem = new JMenuItem("Remove OutputModule");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+			}
+			if (node instanceof PathReference) {
+				menuItem = new JMenuItem("Remove Path");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+			}
+			if (node instanceof TaskReference) {
+				menuItem = new JMenuItem("Remove Task");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+			}
+			if (node instanceof SwitchProducerReference) {
+				menuItem = new JMenuItem("Remove SwitchProducer");
+				menuItem.addActionListener(taskListener);
+				popupTasks.add(menuItem);
+				popupTasks.addSeparator();
+				popupTasks.add(createSetOperatorMenu((Reference) node, sequenceListener));
+			}
+		}
+
+		if (depth == 2 && enableSort) {
+			popupTasks.addSeparator();
+			menuItem = new JMenuItem("Sort");
+			menuItem.addActionListener(taskListener);
+			popupTasks.add(menuItem);
+		}
+
+		if (node instanceof Reference) {
+			if (depth == 4)
+				popupTasks.addSeparator();
+			Reference reference = (Reference) node;
+			menuItem = new JMenuItem("GOTO " + reference.name());
+			menuItem.setActionCommand("GOTO");
+			menuItem.addActionListener(taskListener);
+
+			popupTasks.add(menuItem);
+		}
+
+	}
+
+	/** update 'SwitchProducers' Menu */
+	public void updateSwitchProducersMenu() {
+		JMenuItem menuItem;
+		popupSwitchProducers = new JPopupMenu();
+
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		Object node = treePath.getPathComponent(depth - 1);
+		Object parent = treePath.getPathComponent(depth - 2);
+
+		IConfiguration config = (IConfiguration) treeModel.getRoot();
+
+		if (depth == 2) {
+			menuItem = new JMenuItem("Add SwitchProducer");
+			menuItem.addActionListener(switchProducerListener);
+			popupSwitchProducers.add(menuItem);
+			popupSwitchProducers.addSeparator();
+			menuItem = new JMenuItem("Remove Unreferenced SwitchProducers");
+			menuItem.addActionListener(switchProducerListener);
+			menuItem.setActionCommand("RMUNREFSP");
+			popupSwitchProducers.add(menuItem);
+		} else if (depth == 3) {
+			SwitchProducer switchProducer = (SwitchProducer) node;
+
+			if (switchProducer.entryCount() < 2) {
+				JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true, true);
+				popupSwitchProducers.add(addModuleMenu);
+
+				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener);
+				popupSwitchProducers.add(addEDAliasMenu);
+
+				popupSwitchProducers.addSeparator();
+			}
+
+			menuItem = new JMenuItem("Rename SwitchProducer");
+			menuItem.addActionListener(switchProducerListener);
+			popupSwitchProducers.add(menuItem);
+
+			menuItem = new JMenuItem("Deep Clone SwitchProducer");
+			menuItem.addActionListener(switchProducerListener);
+			popupSwitchProducers.add(menuItem);
+
+			menuItem = new JMenuItem("Remove SwitchProducer");
+			menuItem.addActionListener(switchProducerListener);
+			popupSwitchProducers.add(menuItem);
+
+			JMenu repSwitchProducerMenu = createAddRepSPMenu(switchProducer, switchProducerListener, false, false);
+			popupSwitchProducers.add(repSwitchProducerMenu);
+
+		} else if (depth == 4) {
+			SwitchProducer switchProducer = (SwitchProducer) parent;
+
+			if (switchProducer.entryCount() < 2) {
+				JMenu addModuleMenu = createAddRepModuleMenu(switchProducer, null, switchProducerListener, true, true);
+				popupSwitchProducers.add(addModuleMenu);
+
+				JMenu addEDAliasMenu = createAddRepEDAliasMenu(switchProducer, null, switchProducerListener);
+				popupSwitchProducers.add(addEDAliasMenu);
+			}
+
+			if (node instanceof ModuleReference) {
+				menuItem = new JMenuItem("Remove Module");
+				menuItem.addActionListener(switchProducerListener);
+				popupSwitchProducers.add(menuItem);
+
+				// CLONE OPTION:
+				if (switchProducer.entryCount() < 2) {
+					menuItem = new JMenuItem("Clone Module");
+					menuItem.addActionListener(switchProducerListener);
+					popupSwitchProducers.add(menuItem);
+				}
+
+				popupSwitchProducers.addSeparator();
+				popupSwitchProducers.add(createSetOperatorMenu((Reference) node, switchProducerListener));
+			}
+			if (node instanceof EDAliasReference) {
+				menuItem = new JMenuItem("Rename EDAlias");
+				menuItem.addActionListener(switchProducerListener);
+				popupSwitchProducers.add(menuItem);
+
+				menuItem = new JMenuItem("Remove EDAlias");
+				menuItem.addActionListener(switchProducerListener);
+				popupSwitchProducers.add(menuItem);
+
+				// CLONE OPTION:
+				if (switchProducer.entryCount() < 2) {
+					menuItem = new JMenuItem("Clone EDAlias");
+					menuItem.addActionListener(switchProducerListener);
+					popupSwitchProducers.add(menuItem);
+				}
+
+				menuItem = new JMenuItem("Add Module (VPSet)");
+				menuItem.addActionListener(switchProducerListener);
+				popupSwitchProducers.add(menuItem);
+				
+				//Removing VPSets is done through parameter table menu
+
+				popupSwitchProducers.addSeparator();
+				popupSwitchProducers.add(createSetOperatorMenu((Reference) node, switchProducerListener));
+			}
+			if (node instanceof PathReference) {
+				menuItem = new JMenuItem("Remove Path");
+				menuItem.addActionListener(switchProducerListener);
+				popupSwitchProducers.add(menuItem);
+			}
+			if (node instanceof SwitchProducerReference) {
+				menuItem = new JMenuItem("Remove SwitchProducer");
+				menuItem.addActionListener(switchProducerListener);
+				popupSwitchProducers.add(menuItem);
+			}
+		}
+
+		if (depth == 2 && enableSort) {
+			popupSwitchProducers.addSeparator();
+			menuItem = new JMenuItem("Sort");
+			menuItem.addActionListener(switchProducerListener);
+			popupSwitchProducers.add(menuItem);
+		}
+
+		if (node instanceof Reference) {
+			if (depth == 4)
+				popupSwitchProducers.addSeparator();
+			Reference reference = (Reference) node;
+			menuItem = new JMenuItem("GOTO " + reference.name());
+			menuItem.setActionCommand("GOTO");
+			menuItem.addActionListener(switchProducerListener);
+
+			popupSwitchProducers.add(menuItem);
+		}
+	}
+
 	/** update 'Modules' Menu */
 	public void updateModuleMenu() {
 
@@ -882,7 +1278,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupModules.add(menuItem);
 
 			ModuleInstance module = (ModuleInstance) node;
-			JMenu repModuleMenu = createAddRepModuleMenu(null, module, moduleListener, false);
+			JMenu repModuleMenu = createAddRepModuleMenu(null, module, moduleListener, false, false);
 			popupModules.add(repModuleMenu);
 		}
 
@@ -1268,7 +1664,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 	/** create the 'Add/Replace Module' submenu */
 	private JMenu createAddRepModuleMenu(ReferenceContainer container, ModuleInstance module, ActionListener listener,
-			boolean isAdd) {
+			boolean isAdd, boolean isSwitchProducer) {
 		JMenu moduleMenu = null;
 		if (isAdd) {
 			moduleMenu = new JMenu("Add Module");
@@ -1283,19 +1679,25 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		TreeModel model = tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		SoftwareRelease release = config.release();
+		
+		menuItem = new JMenuItem("Open Module Inserter");
+		menuItem.addActionListener(listener);
+		moduleMenu.add(menuItem);
 
-		// explicitely add OutputModule menu
-		JMenu outputMenu = new ScrollableMenu("OutputModule");
-		moduleMenu.add(outputMenu);
-		Iterator<OutputModule> itOM = config.outputIterator();
-		while (itOM.hasNext()) {
-			OutputModule om = itOM.next();
-			menuItem = new JMenuItem(om.name());
-			menuItem.addActionListener(listener);
-			menuItem.setActionCommand("OutputModule");
-			if (om.referenceCount() > 0)
-				menuItem.setEnabled(false);
-			outputMenu.add(menuItem);
+		// Explicitly add OutputModule menu
+		if (!isSwitchProducer) {
+			JMenu outputMenu = new ScrollableMenu("OutputModule");
+			moduleMenu.add(outputMenu);
+			Iterator<OutputModule> itOM = config.outputIterator();
+			while (itOM.hasNext()) {
+				OutputModule om = itOM.next();
+				menuItem = new JMenuItem(om.name());
+				menuItem.addActionListener(listener);
+				menuItem.setActionCommand("OutputModule");
+				if (om.referenceCount() > 0)
+					menuItem.setEnabled(false);
+				outputMenu.add(menuItem);
+			}
 		}
 
 		// dynamically fill menus to add remaining module types
@@ -1318,8 +1720,14 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				moduleTypeAllMenu = new ScrollableMenu("All");
 				menuHashMap.put(moduleType, moduleTypeMenu);
 				menuHashMap.put(moduleTypeAll, moduleTypeAllMenu);
-				moduleMenu.add(moduleTypeMenu);
-				moduleTypeMenu.add(moduleTypeAllMenu);
+				if (!isSwitchProducer) {
+					moduleMenu.add(moduleTypeMenu);
+					moduleTypeMenu.add(moduleTypeAllMenu);
+				} else {
+					if (t.type().equals("EDProducer")) {
+						moduleMenu.add(moduleTypeMenu);
+					}
+				}
 			} else {
 				moduleTypeMenu = menuHashMap.get(moduleType);
 				moduleTypeAllMenu = menuHashMap.get(moduleTypeAll);
@@ -1330,12 +1738,21 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (!menuHashMap.containsKey(moduleTypeAndLetter)) {
 				moduleTypeAndLetterMenu = new ScrollableMenu(moduleLetter);
 				menuHashMap.put(moduleTypeAndLetter, moduleTypeAndLetterMenu);
-				moduleTypeMenu.add(moduleTypeAndLetterMenu);
+				if (!isSwitchProducer)
+					moduleTypeMenu.add(moduleTypeAndLetterMenu);
+				else {
+					if (t.type().equals("EDProducer")) {
+						moduleTypeMenu.add(moduleTypeAndLetterMenu);
+					}
+				}
 			} else {
 				moduleTypeAndLetterMenu = menuHashMap.get(moduleTypeAndLetter);
 			}
 
 			if (t.instanceCount() > 0) {
+				if (isSwitchProducer && !t.type().equals("EDProducer"))
+					continue;
+
 				JMenu instanceMenuAll = new ScrollableMenu(t.name());
 				JMenu instanceMenu = new ScrollableMenu(t.name());
 				menuItemAll = new JMenuItem("New Instance");
@@ -1424,6 +1841,22 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			}
 		}
 		return moduleMenu;
+	}
+
+	/** create the 'Add/Replace EDAlias' submenu */
+	private JMenu createAddRepEDAliasMenu(ReferenceContainer container, EDAliasInstance edAlias,
+			ActionListener listener) {
+		JMenu edAliasMenu = null;
+		JMenuItem menuItem;
+		
+		edAliasMenu = new JMenu("Add EDAlias");
+
+		menuItem = new JMenuItem("New EDAlias");
+		menuItem.addActionListener(listener);
+		menuItem.setActionCommand("NEWEDA");
+		edAliasMenu.add(menuItem);
+	
+		return edAliasMenu;
 	}
 
 	/** create 'Add/Replace Path' submenu */
@@ -1524,6 +1957,104 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		return sequenceMenu;
 	}
 
+	/** create 'Add/Replace Task' Menu */
+	private JMenu createAddRepTaskMenu(ReferenceContainer pathOrTask, ActionListener listener, boolean isTasRef,
+			boolean isAdd) {
+		String actionCmd = null;
+		JMenu taskMenu = null;
+		if (isAdd) {
+			actionCmd = "TASREF";
+			taskMenu = new ScrollableMenu("Add Task");
+		} else {
+			actionCmd = "TASREP";
+			taskMenu = new ScrollableMenu("Replace Task");
+		}
+		JMenuItem menuItem;
+		ArrayList<Task> forbiddenTasks = new ArrayList<Task>();
+
+		if (pathOrTask instanceof Task) {
+			Task task = (Task) pathOrTask;
+			forbiddenTasks.add(task);
+			if (!isTasRef) {
+				menuItem = new JMenuItem("New Task");
+				menuItem.addActionListener(listener);
+				menuItem.setActionCommand("NEWTAS");
+				taskMenu.add(menuItem);
+				taskMenu.addSeparator();
+			}
+		}
+
+		for (int i = 0; i < pathOrTask.entryCount(); i++) {
+			Reference reference = pathOrTask.entry(i);
+			if (reference instanceof TaskReference) {
+				TaskReference tasreference = (TaskReference) reference;
+				Task task = (Task) tasreference.parent();
+				forbiddenTasks.add(task);
+			}
+		}
+
+		IConfiguration config = (IConfiguration) treeModel.getRoot();
+		for (int i = 0; i < config.taskCount(); i++) {
+			Task task = config.task(i);
+			menuItem = new JMenuItem(task.name());
+			menuItem.addActionListener(listener);
+			menuItem.setActionCommand(actionCmd);
+			if (forbiddenTasks.contains(task))
+				menuItem.setEnabled(false);
+			taskMenu.add(menuItem);
+		}
+		return taskMenu;
+	}
+
+	/** create 'Add/Replace SwitchProducer' Menu */
+	private JMenu createAddRepSPMenu(ReferenceContainer pathOrSP, ActionListener listener, boolean isSPRef,
+			boolean isAdd) {
+		String actionCmd = null;
+		JMenu switchProducerMenu = null;
+		if (isAdd) {
+			actionCmd = "SPREF";
+			switchProducerMenu = new ScrollableMenu("Add SwitchProducer");
+		} else {
+			actionCmd = "SPREP";
+			switchProducerMenu = new ScrollableMenu("Replace SwitchProducer");
+		}
+		JMenuItem menuItem;
+		ArrayList<SwitchProducer> forbiddenSwitchProducers = new ArrayList<SwitchProducer>();
+
+		if (pathOrSP instanceof SwitchProducer) {
+			SwitchProducer switchProducer = (SwitchProducer) pathOrSP;
+			forbiddenSwitchProducers.add(switchProducer);
+			if (!isSPRef) {
+				menuItem = new JMenuItem("New SwitchProducer");
+				menuItem.addActionListener(listener);
+				menuItem.setActionCommand("NEWSP");
+				switchProducerMenu.add(menuItem);
+				switchProducerMenu.addSeparator();
+			}
+		}
+
+		for (int i = 0; i < pathOrSP.entryCount(); i++) {
+			Reference reference = pathOrSP.entry(i);
+			if (reference instanceof SwitchProducerReference) {
+				SwitchProducerReference spreference = (SwitchProducerReference) reference;
+				SwitchProducer switchProducer = (SwitchProducer) spreference.parent();
+				forbiddenSwitchProducers.add(switchProducer);
+			}
+		}
+
+		IConfiguration config = (IConfiguration) treeModel.getRoot();
+		for (int i = 0; i < config.switchProducerCount(); i++) {
+			SwitchProducer switchProducer = config.switchProducer(i);
+			menuItem = new JMenuItem(switchProducer.name());
+			menuItem.addActionListener(listener);
+			menuItem.setActionCommand(actionCmd);
+			if (forbiddenSwitchProducers.contains(switchProducer))
+				menuItem.setEnabled(false);
+			switchProducerMenu.add(menuItem);
+		}
+		return switchProducerMenu;
+	}
+
 	/** create 'Set Operator' Menu */
 	private JMenu createSetOperatorMenu(Reference reference, ActionListener listener) {
 		JMenu menu = new ScrollableMenu("Set Operator");
@@ -1539,7 +2070,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 	}
 
 }
-
+	
 /**
  * listen to actions from the 'PSets' popup menu
  */
@@ -1578,6 +2109,59 @@ class PSetMenuListener implements ActionListener {
 						dlg.valueAsString(), dlg.isTracked());
 				ConfigurationTreeActions.insertPSet(tree, pset);
 			}
+		}
+	}
+
+}
+
+/**
+ * listen to actions from the 'Global EDAliases' popup menu
+ */
+class GlobalEDAliasMenuListener implements ActionListener {
+	/** reference to the tree to be manipulated */
+	private JTree tree = null;
+
+	/** reference to the parent frame */
+	private JFrame frame = null;
+	
+	/** reference to the parent GUI */
+	private ConfDbGUI app = null;
+
+	/** standard constructor */
+	public GlobalEDAliasMenuListener(JTree tree, JFrame frame, ConfDbGUI app) {
+		this.tree = tree;
+		this.frame = frame;
+		this.app = app;
+	}
+
+	/** ActionListener interface */
+	public void actionPerformed(ActionEvent e) {
+		JMenuItem source = (JMenuItem) (e.getSource());
+		String cmd = source.getText();
+		TreePath treePath = tree.getSelectionPath();
+		String action = source.getActionCommand();
+		Object node = treePath.getLastPathComponent();
+
+
+		if (cmd.equals("Remove EDAlias")) {
+			EDAliasInstance globalEDAlias = (EDAliasInstance) tree.getSelectionPath().getLastPathComponent();
+			ConfigurationTreeActions.removeGlobalEDAlias(tree, globalEDAlias);
+		} else if (cmd.equals("Add EDAlias")) {
+			ConfigurationTreeActions.insertGlobalEDAlias(tree);
+		} else if (cmd.equals("Rename EDAlias")) {
+			ConfigurationTreeActions.editNodeName(tree);
+		} else if (cmd.equals("Add Module (VPSet)")) {
+			app.addTrackedVPsetParameter();
+		} else if (cmd.equals("Clone EDAlias")) {
+			try {
+				ConfigurationTreeActions.CloneGlobalEDAlias(tree, (EDAliasInstance) node, null);
+			} catch (DataException e1) {
+				e1.printStackTrace();
+			}
+		} else if (cmd.equals("Sort")) {
+			ConfigurationTreeActions.sortGlobalEDAliases(tree);
+		} else {
+			ConfigurationTreeActions.replaceGlobalEDAliasInternally(tree, (EDAliasInstance) node, action);
 		}
 	}
 
@@ -1740,6 +2324,10 @@ class PathMenuListener implements ActionListener {
 			ConfigurationTreeActions.replaceContainerInternally(tree, "Path", (Path) node, cmd);
 		} else if (action.equals("SEQREF")) {
 			ConfigurationTreeActions.insertReference(tree, "Sequence", cmd);
+		} else if (action.equals("TASREF")) {
+			ConfigurationTreeActions.insertReference(tree, "Task", cmd);
+		} else if (action.equals("SPREF")) {
+			ConfigurationTreeActions.insertReference(tree, "SwitchProducer", cmd);
 		} else if (action.equals("GOTO")) {
 			ConfigurationTreeActions.scrollToInstance(tree);
 		} else if (action.startsWith("REMOVEPATH:")) {
@@ -1765,12 +2353,21 @@ class PathMenuListener implements ActionListener {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove Sequence")) {
 			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove Task")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove SwitchProducer")) {
+			ConfigurationTreeActions.removeReference(tree);
 		} else if (action.equals("OutputModule")) {
 			ConfigurationTreeActions.insertReference(tree, "OutputModule", cmd);
 		} else if (action.equals("Set Operator")) {
 			ConfigurationTreeActions.setOperator(tree, cmd);
 		} else if (cmd.equals("Clone Module")) {
 			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
+		}else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
 		}
 		// add a module(-reference) to the currently selected path
 		else {
@@ -1808,6 +2405,10 @@ class SequenceMenuListener implements ActionListener {
 			ConfigurationTreeActions.insertSequence(tree);
 		} else if (action.equals("SEQREF")) {
 			ConfigurationTreeActions.insertReference(tree, "Sequence", cmd);
+		} else if (action.equals("TASREF")) {
+			ConfigurationTreeActions.insertReference(tree, "Task", cmd);
+		} else if (action.equals("SPREF")) {
+			ConfigurationTreeActions.insertReference(tree, "SwitchProducer", cmd);
 		} else if (action.equals("SEQREP")) {
 			ConfigurationTreeActions.replaceContainerInternally(tree, "Sequence", (Sequence) node, cmd);
 		} else if (action.equals("GOTO")) {
@@ -1836,6 +2437,10 @@ class SequenceMenuListener implements ActionListener {
 				ConfigurationTreeActions.removeReferenceContainer(tree);
 			} else if (node instanceof SequenceReference)
 				ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove Task")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove SwitchProducer")) {
+			ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove Module")) {
 			ConfigurationTreeActions.removeReference(tree);
 		} else if (cmd.equals("Remove OutputModule")) {
@@ -1846,13 +2451,203 @@ class SequenceMenuListener implements ActionListener {
 			ConfigurationTreeActions.setOperator(tree, cmd);
 		} else if (cmd.equals("Clone Module")) {
 			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
-		}
+		} else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();	
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+		} 
 		// add a module to the selected sequence
 		else {
+			System.err.println("add module "+action);
 			ConfigurationTreeActions.insertReference(tree, "Module", action);
 		}
 	}
 
+}
+
+/**
+ * listen to actions from the 'Tasks' popup menu x
+ */
+class TaskMenuListener implements ActionListener {
+	/** reference to the tree to be manipulated */
+	private JTree tree = null;
+
+	/** standard constructor */
+	public TaskMenuListener(JTree tree) {
+		this.tree = tree;
+	}
+
+	/** ActionListener interface */
+	public void actionPerformed(ActionEvent e) {
+		JMenuItem source = (JMenuItem) (e.getSource());
+		String cmd = source.getText();
+		String action = source.getActionCommand();
+		TreePath treePath = tree.getSelectionPath();
+		Object node = treePath.getLastPathComponent();
+
+		if (action.equals("RMUNREFTAS")) {
+			ConfigurationTreeActions.removeUnreferencedTasks(tree);
+		} else if (action.equals("RESOLVETAS")) {
+			ConfigurationTreeActions.resolveUnnecessaryTasks(tree);
+		} else if (action.equals("NEWTAS")) {
+			ConfigurationTreeActions.insertTask(tree);
+		} else if (action.equals("TASREF")) {
+			ConfigurationTreeActions.insertReference(tree, "Task", cmd);
+		} else if (action.equals("SPREF")) {
+			ConfigurationTreeActions.insertReference(tree, "SwitchProducer", cmd);
+		} else if (action.equals("TASREP")) {
+			ConfigurationTreeActions.replaceContainerInternally(tree, "Task", (Task) node, cmd);
+		} else if (action.equals("GOTO")) {
+			ConfigurationTreeActions.scrollToInstance(tree);
+		} else if (cmd.equals("Sort")) {
+			ConfigurationTreeActions.sortTasks(tree);
+		} else if (cmd.equals("Add Task")) {
+			ConfigurationTreeActions.insertTask(tree);
+		} else if (cmd.equals("Rename Task")) {
+			ConfigurationTreeActions.editNodeName(tree);
+		} else if (cmd.equals("Deep Clone Task")) {
+			ConfigurationTreeActions.DeepCloneTask(tree, (Task) node, null);
+		} else if (cmd.equals("Clone Task")) {
+			ConfigurationTreeActions.CloneReferenceContainer(tree, (Task) node);
+		} else if (cmd.equals("Remove Task")) {
+			if (node instanceof Task) {
+				Task task = (Task) node;
+				if (task.referenceCount() > 0) {
+					StringBuffer warning = new StringBuffer();
+					warning.append("Do you really want to remove '").append(task.name())
+							.append("', which is referenced ").append(task.referenceCount()).append(" times?");
+					if (JOptionPane.CANCEL_OPTION == JOptionPane.showConfirmDialog(null, warning.toString(), "",
+							JOptionPane.OK_CANCEL_OPTION))
+						return;
+				}
+				ConfigurationTreeActions.removeReferenceContainer(tree);
+			} else if (node instanceof TaskReference)
+				ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove Module")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove SwitchProducer")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove OutputModule")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (action.equals("OutputModule")) {
+			ConfigurationTreeActions.insertReference(tree, "OutputModule", cmd);
+		} else if (action.equals("Set Operator")) {
+			ConfigurationTreeActions.setOperator(tree, cmd);
+		} else if (cmd.equals("Clone Module")) {
+			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
+		} else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();	
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+		} 
+		// add a module to the selected task
+		else {
+			ConfigurationTreeActions.insertReference(tree, "Module", action);
+		}
+	}
+}
+
+/**
+ * listen to actions from the 'Switch producers' popup menu x
+ */
+class SwitchProducerMenuListener implements ActionListener {
+	/** reference to the tree to be manipulated */
+	private JTree tree = null;
+
+	/** reference to the parent frame */
+	private JFrame frame = null;
+
+	/** reference to the parent GUI */
+	private ConfDbGUI app = null;
+
+	/** standard constructor */
+	public SwitchProducerMenuListener(JTree tree, JFrame frame, ConfDbGUI app) {
+		this.tree = tree;
+		this.frame = frame;
+		this.app = app;
+	}
+
+	/** ActionListener interface */
+	public void actionPerformed(ActionEvent e) {
+		JMenuItem source = (JMenuItem) (e.getSource());
+		String cmd = source.getText();
+		String action = source.getActionCommand();
+		TreePath treePath = tree.getSelectionPath();
+		Object node = treePath.getLastPathComponent();
+
+		if (action.equals("RMUNREFSP")) {
+			ConfigurationTreeActions.removeUnreferencedSwitchProducers(tree);
+		} else if (action.equals("RESOLVESP")) {
+			ConfigurationTreeActions.resolveUnnecessarySwitchProducers(tree);
+		} else if (action.equals("NEWSP")) {
+			ConfigurationTreeActions.insertSwitchProducer(tree);
+		} else if (action.equals("NEWEDA")) {
+			ConfigurationTreeActions.insertEDAlias(tree);
+		} else if (action.equals("SPREF")) {
+			ConfigurationTreeActions.insertReference(tree, "SwitchProducer", cmd);
+		} else if (action.equals("SPREP")) {
+			ConfigurationTreeActions.replaceContainerInternally(tree, "SwitchProducer", (SwitchProducer) node, cmd);
+		} else if (action.equals("GOTO")) {
+			ConfigurationTreeActions.scrollToInstance(tree);
+		} else if (cmd.equals("Sort")) {
+			ConfigurationTreeActions.sortSwitchProducers(tree);
+		} else if (cmd.equals("Add SwitchProducer")) {
+			ConfigurationTreeActions.insertSwitchProducer(tree);
+		} else if (cmd.equals("Rename SwitchProducer")) {
+			ConfigurationTreeActions.editNodeName(tree);
+		} else if (cmd.equals("Deep Clone SwitchProducer")) {
+			ConfigurationTreeActions.DeepCloneSwitchProducer(tree, (SwitchProducer) node, null);
+		} else if (cmd.equals("Remove SwitchProducer")) {
+			if (node instanceof SwitchProducer) {
+				SwitchProducer switchProducer = (SwitchProducer) node;
+				if (switchProducer.referenceCount() > 0) {
+					StringBuffer warning = new StringBuffer();
+					warning.append("Do you really want to remove '").append(switchProducer.name())
+							.append("', which is referenced ").append(switchProducer.referenceCount())
+							.append(" times?");
+					if (JOptionPane.CANCEL_OPTION == JOptionPane.showConfirmDialog(null, warning.toString(), "",
+							JOptionPane.OK_CANCEL_OPTION))
+						return;
+				}
+				ConfigurationTreeActions.removeReferenceContainer(tree);
+			} else if (node instanceof SwitchProducerReference)
+				ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove Module")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Remove EDAlias")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (cmd.equals("Rename EDAlias")) {
+			ConfigurationTreeActions.editNodeName(tree);
+		} else if (cmd.equals("Add Module (VPSet)")) {
+			app.addTrackedVPsetParameter();
+		} else if (cmd.equals("Remove OutputModule")) {
+			ConfigurationTreeActions.removeReference(tree);
+		} else if (action.equals("OutputModule")) {
+			ConfigurationTreeActions.insertReference(tree, "OutputModule", cmd);
+		} else if (action.equals("Set Operator")) {
+			ConfigurationTreeActions.setOperator(tree, cmd);
+		} else if (cmd.equals("Clone Module")) {
+			ConfigurationTreeActions.CloneModule(tree, (ModuleReference) node, null);
+		} else if (cmd.equals("Clone EDAlias")) {
+			ConfigurationTreeActions.CloneEDAlias(tree, (EDAliasReference) node, null);
+		} else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();	
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+		} else if (cmd.equals("Open Module Inserter")) {		
+			ModuleInsertDialog dialog = new ModuleInsertDialog(null,tree);
+			dialog.pack();	
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+		} 
+		// add a module to the selected task
+		else {
+			ConfigurationTreeActions.insertReference(tree, "Module", action);
+		} // else here is missing for EDALias see how to do it
+	}
 }
 
 /**
@@ -1878,6 +2673,8 @@ class ModuleMenuListener implements ActionListener {
 		if (cmd.equals("Sort")) {
 			ConfigurationTreeActions.sortModules(tree);
 		} else if (cmd.equals("Rename Module")) {
+
+			String oldModuleName = ((ModuleInstance) node).name();
 			ConfigurationTreeActions.editNodeName(tree);
 		}
 		// replace the module by the selected one

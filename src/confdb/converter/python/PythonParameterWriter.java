@@ -187,18 +187,31 @@ public class PythonParameterWriter  implements IParameterWriter
 		return str.toString();
 	}
 
+	/* an ESInputTag arguments must either be
+	 * 1) a single empty string
+	 * 2) a string containing a : so module:data, module:, :data or :
+	 * 3) two strings either empty or not  
+	 * we will always return two strings as that is the edmConfigDump behaviour
+	 */
 	protected String getESInputTagString( String value )
-	{
-		String[] values = value.split( ":" );
-		if ( value.equals( "\"\"" ) )
-			return value;
-		if ( values.length == 1 )
-			return "\"" + value + "\"";
-		StringBuffer str = new StringBuffer();
-		for ( int i = 0; i < values.length; i++ )
-			str.append( "'" + values[i] + "'," );
-		str.setLength( str.length() - 1 );
-		return str.toString();
+	{		
+		String module = new String("");
+		String data = new String("");
+
+		int sepnr = value.indexOf(":");
+		if(sepnr!=-1){
+			if(sepnr!=0){
+				module = value.substring(0,sepnr);
+			}
+			if(sepnr+1!=value.length()){
+				data = value.substring(sepnr+1);
+			}
+		//so we also disallow the default balue of "\"\"" and leave 
+		//things set as empty otherwise we double up the quotes
+		}else if(value!="\"\""){
+			module = value;
+		}
+		return "\""+module+"\",\""+data+"\"";
 	}
 
 	

@@ -28,6 +28,7 @@ public class ConfigurationTreeActions {
 	//
 	// Parameters
 	//
+	private static boolean globalEDAliasAvailability = false;
 
 	/** copy a parameter into another (v)pset */
 	public static boolean insertParameter(JTree tree, Parameter parameter, ParameterTreeModel parameterTreeModel) {
@@ -234,7 +235,7 @@ public class ConfigurationTreeActions {
 
 		return true;
 	}
-
+	
 	//
 	// EDSources
 	//
@@ -401,7 +402,7 @@ public class ConfigurationTreeActions {
 	}
 
 	//
-	// Paths & Sequences
+	// Paths, Sequences, Tasks
 	//
 
 	/** remove all unreferenced sequences */
@@ -466,9 +467,168 @@ public class ConfigurationTreeActions {
 				} else if (instances[i] instanceof Sequence) {
 					Sequence seq = (Sequence) instances[i];
 					config.insertSequenceReference(container, index + i, seq).setOperator(operators[i]);
+				} else if (instances[i] instanceof Task) {
+					Task tas = (Task) instances[i];
+					config.insertTaskReference(container, index + i, tas).setOperator(operators[i]);
+				} else if (instances[i] instanceof SwitchProducer) {
+					SwitchProducer sp = (SwitchProducer) instances[i];
+					config.insertSwitchProducerReference(container, index + i, sp).setOperator(operators[i]);
 				} else if (instances[i] instanceof Path) {
 					Path path = (Path) instances[i];
 					config.insertPathReference(container, index + i, path).setOperator(operators[i]);
+				}
+			}
+		}
+
+		model.nodeStructureChanged(model.getRoot());
+		model.updateLevel1Nodes();
+	}
+
+	/** remove all unreferenced tasks */
+	public static void removeUnreferencedTasks(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		Object parent = model.tasksNode();
+
+		ArrayList<Task> toBeRemoved = new ArrayList<Task>();
+
+		Iterator<Task> itTas = config.taskIterator();
+		while (itTas.hasNext()) {
+			Task task = itTas.next();
+			if (task.parentPaths().length == 0)
+				toBeRemoved.add(task);
+		}
+
+		Iterator<Task> itRmv = toBeRemoved.iterator();
+		while (itRmv.hasNext()) {
+			Task task = itRmv.next();
+			int index = config.indexOfTask(task);
+			config.removeTask(task);
+			model.nodeRemoved(parent, index, task);
+		}
+		model.nodeStructureChanged(model.modulesNode());
+		model.updateLevel1Nodes();
+	}
+
+	/** resolve unnecessary tasks (those referenced only once) */
+	public static void resolveUnnecessaryTasks(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		Iterator<Task> itT = config.taskIterator();
+		while (itT.hasNext()) {
+			Task task = itT.next();
+			if (task.referenceCount() == 1)
+				tasks.add(task);
+		}
+
+		itT = tasks.iterator();
+		while (itT.hasNext()) {
+			Task task = itT.next();
+			Reference reference = task.reference(0);
+			ReferenceContainer container = reference.container();
+			int index = container.indexOfEntry(reference);
+
+			Operator[] operators = new Operator[task.entryCount()];
+			Referencable[] instances = new Referencable[task.entryCount()];
+			for (int i = 0; i < task.entryCount(); i++) {
+				operators[i] = task.entry(i).getOperator();
+				instances[i] = task.entry(i).parent();
+			}
+			config.removeTask(task);
+			// this is reconnection of task parent container (container), with task child
+			// nodes (instances)
+			for (int i = 0; i < instances.length; i++) {
+				if (instances[i] instanceof ModuleInstance) {
+					ModuleInstance module = (ModuleInstance) instances[i];
+					config.insertModule(config.moduleCount(), module);
+					config.insertModuleReference(container, index + i, module).setOperator(operators[i]);
+				} else if (instances[i] instanceof Task) {
+					Task tas = (Task) instances[i];
+					config.insertTaskReference(container, index + i, tas).setOperator(operators[i]);
+				} else if (instances[i] instanceof SwitchProducer) {
+					SwitchProducer sp = (SwitchProducer) instances[i];
+					config.insertSwitchProducerReference(container, index + i, sp).setOperator(operators[i]);
+				} else if (instances[i] instanceof Path) {
+					Path path = (Path) instances[i];
+					config.insertPathReference(container, index + i, path).setOperator(operators[i]);
+				}
+			}
+		}
+
+		model.nodeStructureChanged(model.getRoot());
+		model.updateLevel1Nodes();
+	}
+
+	/** remove all unreferenced switch producers */
+	public static void removeUnreferencedSwitchProducers(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		Object parent = model.switchProducersNode();
+
+		ArrayList<SwitchProducer> toBeRemoved = new ArrayList<SwitchProducer>();
+
+		Iterator<SwitchProducer> itSP = config.switchProducerIterator();
+		while (itSP.hasNext()) {
+			SwitchProducer switchProducer = itSP.next();
+			if (switchProducer.parentPaths().length == 0)
+				toBeRemoved.add(switchProducer);
+		}
+
+		Iterator<SwitchProducer> itRmv = toBeRemoved.iterator();
+		while (itRmv.hasNext()) {
+			SwitchProducer switchProducer = itRmv.next();
+			int index = config.indexOfSwitchProducer(switchProducer);
+			config.removeSwitchProducer(switchProducer);
+			model.nodeRemoved(parent, index, switchProducer);
+		}
+		model.nodeStructureChanged(model.modulesNode());
+		model.updateLevel1Nodes();
+	}
+
+	/** resolve unnecessary switch producers (those referenced only once) */
+	public static void resolveUnnecessarySwitchProducers(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		ArrayList<SwitchProducer> switchProducers = new ArrayList<SwitchProducer>();
+		Iterator<SwitchProducer> itSP = config.switchProducerIterator();
+		while (itSP.hasNext()) {
+			SwitchProducer switchProducer = itSP.next();
+			if (switchProducer.referenceCount() == 1)
+				switchProducers.add(switchProducer);
+		}
+
+		itSP = switchProducers.iterator();
+		while (itSP.hasNext()) {
+			SwitchProducer switchProducer = itSP.next();
+			Reference reference = switchProducer.reference(0);
+			ReferenceContainer container = reference.container();
+			int index = container.indexOfEntry(reference);
+
+			Operator[] operators = new Operator[switchProducer.entryCount()];
+			Referencable[] instances = new Referencable[switchProducer.entryCount()];
+			for (int i = 0; i < switchProducer.entryCount(); i++) {
+				operators[i] = switchProducer.entry(i).getOperator();
+				instances[i] = switchProducer.entry(i).parent();
+			}
+			config.removeSwitchProducer(switchProducer);
+			// this is reconnection of switch producer parent container (container), with
+			// switch producer child
+			// nodes (instances)
+			for (int i = 0; i < instances.length; i++) {
+				if (instances[i] instanceof ModuleInstance) {
+					ModuleInstance module = (ModuleInstance) instances[i];
+					config.insertModule(config.moduleCount(), module);
+					config.insertModuleReference(container, index + i, module).setOperator(operators[i]);
+				} else if (instances[i] instanceof EDAliasInstance) {
+					EDAliasInstance edAlias = (EDAliasInstance) instances[i];
+					config.insertEDAlias(config.edAliasCount(), edAlias);
+					// this down should not be possible since only Switch Producer can
+					// reference EDAlias
+					// config.insertEDAliasReference(container, index + i,
+					// edAlias).setOperator(operators[i]);
 				}
 			}
 		}
@@ -592,6 +752,331 @@ public class ConfigurationTreeActions {
 		return newName;
 	}
 
+	/** insert a new task */
+	public static boolean insertTask(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		int index = (treePath.getPathCount() == 2) ? 0
+				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+						treePath.getLastPathComponent()) + 1;
+
+		Task task = config.insertTask(index, "<ENTER TASK NAME>");
+
+		model.nodeInserted(model.tasksNode(), index);
+		model.updateLevel1Nodes();
+
+		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath newTreePath = parentPath.pathByAddingChild(task);
+
+		tree.setSelectionPath(newTreePath);
+		editNodeName(tree);
+
+		return true;
+	}
+
+	/**
+	 * insertTaskNamed
+	 * ----------------------------------------------------------------- Insert a
+	 * new task using the given name passed by parameter It checks the task name
+	 * existence and tries different suffixes using underscore + a number from 0 to
+	 * 9.
+	 */
+	private static String insertTaskNamed(JTree tree, String name) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		// okay the original sequence code assumed that decendents of sequences were allways sequences or modules
+		// which to be fair was true
+		// now with tasks and sps, we need to code the following logic
+		// first nomenclature:
+		//    getLastPathCompontent() : parent of our new module
+		//    getParentPath(): grand parent of our new module, this will 
+		//                     be the top level node (eg sequences, tasks)
+		// The goal of the index is to find out where to insert the new 
+		// reference container. This is index+1 of the parent path in the 
+		// top level node when the types are the same
+		// this means a deep cloned sequence will right after its original
+		// and all deep cloned child sequences will be directly after that 
+		// sequence
+		// 
+		// however when the parent is different to the inserted object, we
+		// will put it at last index of the of the new node
+	
+		int index = 0;
+		if( treePath.getPathCount() == 2){
+			index = 0;
+		}else if(treePath.getParentPath().equals(model.tasksNode())) {
+			index = (treePath.getPathCount() == 2) ? 0
+					: model.getIndexOfChild(treePath.getParentPath().	getLastPathComponent(),
+					treePath.getLastPathComponent()) + 1;	
+		}else{
+			index = config.taskCount();
+		}
+
+		// To make sure that task name doesn't exist:
+		String newName = name;
+		if (config.task(name) != null) {
+			for (int j = 0; j < 10; j++) {
+				newName = name + "_" + j;
+				if (config.task(newName) == null) {
+					j = 10;
+				}
+			}
+		}
+
+		Task task = config.insertTask(index, newName);
+
+		model.nodeInserted(model.tasksNode(), index);
+		model.updateLevel1Nodes();
+		
+		//bug fix: we need to ensure we are using the tasks node
+		//TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath parentPath = (index == 0) ? treePath : new TreePath(model.getPathToRoot(model.tasksNode()));
+		
+		TreePath newTreePath = parentPath.pathByAddingChild(task);
+		tree.setSelectionPath(newTreePath);
+		return newName;
+	}
+
+	/** insert a new switch producer */
+	public static boolean insertSwitchProducer(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		int index = (treePath.getPathCount() == 2) ? 0
+				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+						treePath.getLastPathComponent()) + 1;
+
+		SwitchProducer switchProducer = config.insertSwitchProducer(index, "<ENTER SWITCH PRODUCER NAME>");
+
+		model.nodeInserted(model.switchProducersNode(), index);
+		model.updateLevel1Nodes();
+
+		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath newTreePath = parentPath.pathByAddingChild(switchProducer);
+
+		tree.setSelectionPath(newTreePath);
+		editNodeName(tree);
+
+		return true;
+	}
+
+	/**
+	 * insertSwitchProducerNamed
+	 * ----------------------------------------------------------------- Insert a
+	 * new switch producer using the given name passed by parameter It checks the
+	 * switch producer name existence and tries different suffixes using underscore
+	 * + a number from 0 to 9.
+	 */
+	private static String insertSwitchProducerNamed(JTree tree, String name) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		
+		// okay the original sequence code assumed that decendents of sequences were allways sequences or modules
+		// which to be fair was true
+		// now with tasks and sps, we need to code the following logic
+		// first nomenclature:
+		//    getLastPathCompontent() : parent of our new module
+		//    getParentPath(): grand parent of our new module, this will 
+		//                     be the top level node (eg sequences, tasks)
+		// The goal of the index is to find out where to insert the new 
+		// reference container. This is index+1 of the parent path in the 
+		// top level node when the types are the same
+		// this means a deep cloned sequence will right after its original
+		// and all deep cloned child sequences will be directly after that 
+		// sequence
+		// 
+		// however when the parent is different to the inserted object, we
+		// will put it at last index of the of the new node
+	
+		int index = 0;
+		if( treePath.getPathCount() == 2){
+			index = 0;
+		}else if(treePath.getParentPath().equals(model.switchProducersNode())) {
+			index = (treePath.getPathCount() == 2) ? 0
+					: model.getIndexOfChild(treePath.getParentPath().	getLastPathComponent(),
+					treePath.getLastPathComponent()) + 1;
+		}else{
+			index = config.switchProducerCount();
+		}
+
+		// To make sure that switch producer name doesn't exist:
+		String newName = name;
+		if (config.switchProducer(name) != null) {
+			for (int j = 0; j < 10; j++) {
+				newName = name + "_" + j;
+				if (config.switchProducer(newName) == null) {
+					j = 10;
+				}
+			}
+		}
+
+		SwitchProducer switchProducer = config.insertSwitchProducer(index, newName);
+
+		model.nodeInserted(model.switchProducersNode(), index);
+		model.updateLevel1Nodes();
+		//bug fix: we need to ensure we are using the tasks node
+		//TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath parentPath = (index == 0) ? treePath : new TreePath(model.getPathToRoot(model.switchProducersNode()));
+		TreePath newTreePath = parentPath.pathByAddingChild(switchProducer);
+		tree.setSelectionPath(newTreePath);
+		return newName;
+	}
+
+	/** insert a new EDAlias */
+	public static boolean insertEDAlias(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
+		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
+
+		int index = parent.entryCount();
+
+		EDAliasInstance edAlias = config.insertEDAlias("<ENTER EDALIAS NAME>");
+		Reference reference = null;
+
+		reference = config.insertEDAliasReference(parent, index, edAlias);
+
+		// Inserting in the model and refreshing tree view:
+		model.nodeInserted(parent, index);
+		model.updateLevel1Nodes();
+
+		TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
+		tree.expandPath(newTreePath.getParentPath());
+		tree.setSelectionPath(newTreePath);
+
+		// Allow the user to modify the name of the reference
+		if (edAlias != null && edAlias.referenceCount() == 1) {
+			TreePath edAliasTreePath = new TreePath(model.getPathToRoot((Object) edAlias));
+			editNodeName(tree);
+		}
+
+		return true;
+	}
+	
+	public static boolean removeGlobalEDAlias(JTree tree, EDAliasInstance globalEDAlias) {
+		return removeNode(tree, globalEDAlias);
+	}
+	
+	/** insert a new global EDAlias producer */
+	public static boolean insertGlobalEDAlias(JTree tree) {
+		if (globalEDAliasAvailability) {
+			errorNotificationPanel dialog = new errorNotificationPanel("Error: InsertGlobalEDAlias", "Error GlobalEDAliases are not supported by this database",
+			"This database does not have support for GlobalEDAliases (but supports EDAliases in SwitchProducers) at this time");
+			dialog.createAndShowGUI();
+			return true;
+		}
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		int index = config.globalEDAliasCount();
+
+		EDAliasInstance globalEDAlias = config.insertGlobalEDAlias("<ENTER GLOBAL EDALIAS NAME>");
+
+		// Inserting in the model and refreshing tree view:
+		model.nodeInserted(model.globalEDAliasesNode(), index);
+		model.updateLevel1Nodes();
+				
+		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
+		tree.setSelectionPath(parentPath.pathByAddingChild(globalEDAlias));
+
+		// Allow the user to modify the name of the reference
+		if (globalEDAlias != null) {
+			editNodeName(tree);
+		}
+
+		return true;
+	}
+
+	/**
+	 * insertEDAliasNamed
+	 * ----------------------------------------------------------------- Insert a
+	 * new EDAlias using the given name passed by parameter It checks the
+	 * EDAlias name existence and tries different suffixes using underscore
+	 * + a number from 0 to 9.
+	 * @throws DataException 
+	 */
+	private static String insertEDAliasNamed(JTree tree, String name) throws DataException {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
+
+		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
+
+		int index = (treePath.getPathCount() == 2) ? 0
+				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+						treePath.getLastPathComponent()) + 1;
+		// To make sure that EDALias name doesn't exist:
+		String newName = name;
+		if (config.edAlias(name) != null) {
+			for (int j = 0; j < 10; j++) {
+				newName = name + "_" + j;
+				if (config.edAlias(newName) == null) {
+					j = 10;
+				}
+			}
+		}
+
+		EDAliasInstance edAlias = config.insertEDAlias(index, newName);
+
+		model.nodeInserted(parent, index);
+		model.updateLevel1Nodes();
+		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath newTreePath = parentPath.pathByAddingChild(edAlias);
+		tree.setSelectionPath(newTreePath);
+		return newName;
+	}
+	
+	/**
+	 * insertGlobalEDAliasNamed
+	 * ----------------------------------------------------------------- Insert a
+	 * new global EDAlias using the given name passed by parameter It checks the
+	 * EDAlias name existence and tries different suffixes using underscore
+	 * + a number from 0 to 9.
+	 * @throws DataException 
+	 */
+	private static String insertGlobalEDAliasNamed(JTree tree, String name) throws DataException {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
+
+		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
+
+		int index = (treePath.getPathCount() == 2) ? 0
+				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+						treePath.getLastPathComponent()) + 1;
+		// To make sure that global EDALias name doesn't exist:
+		String newName = name;
+		if (config.globalEDAlias(name) != null) {
+			for (int j = 0; j < 10; j++) {
+				newName = name + "_" + j;
+				if (config.globalEDAlias(newName) == null) {
+					j = 10;
+				}
+			}
+		}
+
+		EDAliasInstance globalEDAlias = config.insertGlobalEDAlias(index, newName);
+
+		model.nodeInserted(parent, index);
+		model.updateLevel1Nodes();
+		TreePath parentPath = (index == 0) ? treePath : treePath.getParentPath();
+		TreePath newTreePath = parentPath.pathByAddingChild(globalEDAlias);
+		tree.setSelectionPath(newTreePath);
+		return newName;
+	}
+
 	/**
 	 * insertPathNamed
 	 * ----------------------------------------------------------------- Insert a
@@ -607,7 +1092,7 @@ public class ConfigurationTreeActions {
 		int index = (treePath.getPathCount() == 2) ? 0
 				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
 						treePath.getLastPathComponent()) + 1;
-		// To make sure that sequence name doesn't exist:
+		// To make sure that path name doesn't exist:
 		String newName = name;
 		if (config.path(name) != null) {
 			for (int j = 0; j < 10; j++) {
@@ -676,9 +1161,33 @@ public class ConfigurationTreeActions {
 																						// targetContainer
 				Object lc = tree.getSelectionPath().getLastPathComponent(); // get from the new selectionPath set in
 																			// insertSequenceNamed.
-				ConfigurationTreeActions.DeepCloneSequence(tree, source, (ReferenceContainer) lc);
+				ConfigurationTreeActions.DeepCloneSequence(tree, source, (ReferenceContainer) lc); // DEEP RECURSION
 				Sequence targetSequence = config.sequence(newName);
 				config.insertSequenceReference(targetContainer, i, targetSequence).setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
+			} else if (entry instanceof TaskReference) {
+				TaskReference sourceRef = (TaskReference) entry;
+				Task source = (Task) sourceRef.parent();
+				newName = ConfigurationTreeActions.insertTaskNamed(tree, newName); // It has created the
+																					// targetContainer
+				Object lc = tree.getSelectionPath().getLastPathComponent(); // get from the new selectionPath set in
+																			// insertTaskNamed.
+				ConfigurationTreeActions.DeepCloneTask(tree, source, (ReferenceContainer) lc); // DEEP RECURSION
+				Task targetTask = config.task(newName);
+				config.insertTaskReference(targetContainer, i, targetTask).setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
+			} else if (entry instanceof SwitchProducerReference) {
+				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
+				SwitchProducer source = (SwitchProducer) sourceRef.parent();
+				newName = ConfigurationTreeActions.insertSwitchProducerNamed(tree, newName); // It has created the
+				// targetContainer
+				Object lc = tree.getSelectionPath().getLastPathComponent(); // get from the new selectionPath set in
+																			// insertSwitchProducerNamed.
+				ConfigurationTreeActions.DeepCloneSwitchProducer(tree, source, (ReferenceContainer) lc); // DEEP
+																											// RECURSION
+				SwitchProducer targetSwitchProducer = config.switchProducer(newName);
+				config.insertSwitchProducerReference(targetContainer, i, targetSwitchProducer)
+						.setOperator(sourceRef.getOperator());
 				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof ModuleReference) {
 				ModuleReference sourceRef = (ModuleReference) entry;
@@ -696,11 +1205,151 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
+	 * DeepCloneTask
+	 * ----------------------------------------------------------------- Clone a
+	 * task from source reference container to target reference container. If the
+	 * target reference container is null, it creates the root task using the source
+	 * task name + suffix. This method use recursion to clone the source tree based
+	 * in the selection path. NOTE: It automatically go across the entries setting
+	 * the selection path in different levels. Selection Path is restored to current
+	 * level when recursion ends.
+	 */
+	public static boolean DeepCloneTask(JTree tree, ReferenceContainer sourceContainer,
+			ReferenceContainer targetContainer) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		String targetName = sourceContainer.name() + "_clone";
+
+		if (targetContainer == null) {
+			targetName = ConfigurationTreeActions.insertTaskNamed(tree, targetName); // It has created the
+																						// targetContainer
+			targetContainer = config.task(targetName);
+			if (targetContainer == null) {
+				System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneTask] ERROR: targetTask == NULL");
+				return false;
+			}
+		} else
+			targetName = targetContainer.name();
+
+		treePath = tree.getSelectionPath(); // need to get selection path again. (after insertTaskNamed).
+
+		if (targetContainer.entryCount() != 0) {
+			System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneTask] ERROR: targetTask.entryCount != 0 "
+					+ targetContainer.name());
+		}
+
+		String newName;
+		for (int i = 0; i < sourceContainer.entryCount(); i++) {
+			Reference entry = sourceContainer.entry(i);
+			newName = entry.name() + "_clone";
+			if (entry instanceof TaskReference) {
+				TaskReference sourceRef = (TaskReference) entry;
+				Task source = (Task) sourceRef.parent();
+				newName = ConfigurationTreeActions.insertTaskNamed(tree, newName); // It has created the
+																					// targetContainer
+				Object lc = tree.getSelectionPath().getLastPathComponent(); // get from the new selectionPath set in
+																			// insertTaskNamed.
+				ConfigurationTreeActions.DeepCloneTask(tree, source, (ReferenceContainer) lc); // DEEP RECURSION
+				Task targetTask = config.task(newName);
+				config.insertTaskReference(targetContainer, i, targetTask).setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
+			} else if (entry instanceof SwitchProducerReference) {
+				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
+				SwitchProducer source = (SwitchProducer) sourceRef.parent();
+				newName = ConfigurationTreeActions.insertSwitchProducerNamed(tree, newName); // It has created the
+				// targetContainer
+				Object lc = tree.getSelectionPath().getLastPathComponent(); // get from the new selectionPath set in
+																			// insertSwitchProducerNamed.
+				ConfigurationTreeActions.DeepCloneSwitchProducer(tree, source, (ReferenceContainer) lc); // DEEP
+																											// RECURSION
+				SwitchProducer targetSwitchProducer = config.switchProducer(newName);
+				config.insertSwitchProducerReference(targetContainer, i, targetSwitchProducer)
+						.setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
+			} else if (entry instanceof ModuleReference) {
+				ModuleReference sourceRef = (ModuleReference) entry;
+				ConfigurationTreeActions.CloneModule(tree, sourceRef, newName);
+			} else {
+				System.err.println("[confdb.gui.ConfigurationTreeActions.DeepCloneTask] ERROR: reference instanceof "
+						+ entry.getClass());
+				return false;
+			}
+			tree.setSelectionPath(treePath); // set the selection path again to this level.
+		}
+
+		return true;
+	}
+
+	/**
+	 * DeepCloneSwitchProducer
+	 * ----------------------------------------------------------------- Clone a
+	 * switch producer from source reference container to target reference
+	 * container. If the target reference container is null, it creates the root
+	 * switch produce using the source switch producer name + suffix. This method
+	 * use recursion to clone the source tree based in the selection path. NOTE: It
+	 * automatically go across the entries setting the selection path in different
+	 * levels. Selection Path is restored to current level when recursion ends.
+	 */
+	public static boolean DeepCloneSwitchProducer(JTree tree, ReferenceContainer sourceContainer,
+			ReferenceContainer targetContainer) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		String targetName = sourceContainer.name() + "_clone";
+
+		if (targetContainer == null) {
+			targetName = ConfigurationTreeActions.insertSwitchProducerNamed(tree, targetName); // It has created the
+			// targetContainer
+			targetContainer = config.switchProducer(targetName);
+			if (targetContainer == null) {
+				System.err.println(
+						"[confdb.gui.ConfigurationTreeActions.DeepCloneSwitchProducer] ERROR: targetSwitchProducer == NULL");
+				return false;
+			}
+		} else
+			targetName = targetContainer.name();
+
+		treePath = tree.getSelectionPath(); // need to get selection path again. (after insertSwitchProducerNamed).
+
+		if (targetContainer.entryCount() != 0) {
+			System.err.println(
+					"[confdb.gui.ConfigurationTreeActions.DeepCloneSwitchProducer] ERROR: targetSwitchProducer.entryCount != 0 "
+							+ targetContainer.name());
+		}
+
+		String newName;
+		for (int i = 0; i < sourceContainer.entryCount(); i++) { // technically only 2 entries are possible here
+			Reference entry = sourceContainer.entry(i);
+			
+			newName = entry.name().replace(((SwitchProducer)sourceContainer).modulePrefix(),"");
+			newName = targetName+SwitchProducer.nameSeperator()+newName;
+			if (entry instanceof ModuleReference) {
+				ModuleReference sourceRef = (ModuleReference) entry;
+				ConfigurationTreeActions.CloneModule(tree, sourceRef, newName);
+			} else if (entry instanceof EDAliasReference) {
+				EDAliasReference sourceRef = (EDAliasReference) entry;
+				ConfigurationTreeActions.CloneEDAlias(tree, sourceRef, newName);
+			} else {
+				System.err.println(
+						"[confdb.gui.ConfigurationTreeActions.DeepCloneSwitchProducer] ERROR: reference instanceof "
+								+ entry.getClass());
+				return false;
+			}
+			tree.setSelectionPath(treePath); // set the selection path again to this level.
+		}
+
+		return true;
+	}
+
+	/**
 	 * DeepCloneContainer
 	 * -----------------------------------------------------------------
 	 * DeepCloneContainer clones a Path container. Generates a full copy of the
-	 * selected path also creating clones of modules and nested sequences. This
-	 * method uses recursion to also take into account the sub-paths.
+	 * selected path also creating clones of modules, nested sequences, tasks and
+	 * switch producers. This method uses recursion to also take into account the
+	 * sub-paths.
+	 * 
 	 */
 	public static boolean DeepCloneContainer(JTree tree, ReferenceContainer sourceContainer,
 			ReferenceContainer targetContainer) {
@@ -757,10 +1406,50 @@ public class ConfigurationTreeActions {
 				// sets the selection path back to pathNode:
 				tree.setSelectionPath(treePath);
 
+			} else if (entry instanceof TaskReference) {
+				// Sets selection path to taskNode:
+				tree.setSelectionPath(new TreePath(model.getPathToRoot(model.tasksNode())));
+
+				TaskReference sourceRef = (TaskReference) entry;
+				Task source = (Task) sourceRef.parent();
+				ConfigurationTreeActions.DeepCloneTask(tree, source, null);
+
+				// Getting the cloned task using the selection path:
+				Task clonedTask = (Task) tree.getLastSelectedPathComponent();
+
+				config.insertTaskReference(targetContainer, i, clonedTask).setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
+
+				// sets the selection path back to pathNode:
+				tree.setSelectionPath(treePath);
+
+			} else if (entry instanceof SwitchProducerReference) {
+				// Sets selection path to switchProducerNode:
+				tree.setSelectionPath(new TreePath(model.getPathToRoot(model.switchProducersNode())));
+
+				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
+				SwitchProducer source = (SwitchProducer) sourceRef.parent();
+				ConfigurationTreeActions.DeepCloneSwitchProducer(tree, source, null);
+
+				// Getting the cloned switch producer using the selection path:
+				SwitchProducer clonedSwitchProducer = (SwitchProducer) tree.getLastSelectedPathComponent();
+
+				config.insertSwitchProducerReference(targetContainer, i, clonedSwitchProducer)
+						.setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
+
+				// sets the selection path back to pathNode:
+				tree.setSelectionPath(treePath);
+
 			} else if (entry instanceof ModuleReference) {
 				String newName = entry.name() + "_clone";
 				ModuleReference sourceRef = (ModuleReference) entry;
 				ConfigurationTreeActions.CloneModule(tree, sourceRef, newName);
+
+			} else if (entry instanceof EDAliasReference) {
+				String newName = entry.name() + "_clone";
+				EDAliasReference sourceRef = (EDAliasReference) entry;
+				ConfigurationTreeActions.CloneEDAlias(tree, sourceRef, newName);
 
 			} else if (entry instanceof PathReference) {
 				String newName = entry.name() + "_clone";
@@ -812,7 +1501,17 @@ public class ConfigurationTreeActions {
 			targetName = ConfigurationTreeActions.insertSequenceNamed(tree, targetName); // It has created the
 																							// targetContainer
 			targetContainer = config.sequence(targetName);
-		} else {
+		} else if (sourceContainer instanceof Task) {
+			targetName = ConfigurationTreeActions.insertTaskNamed(tree, targetName); // It has created the
+																						// targetContainer
+			targetContainer = config.task(targetName);
+		} else if (sourceContainer instanceof SwitchProducer) {
+			targetName = ConfigurationTreeActions.insertSwitchProducerNamed(tree, targetName); // It has created the
+			// targetContainer
+			targetContainer = config.switchProducer(targetName);
+		}
+
+		else {
 			System.err.println(
 					"[confdb.gui.ConfigurationTreeActions.CloneReferenceContainer] ERROR: sourceContainer NOT instanceof Path");
 			return false;
@@ -841,9 +1540,30 @@ public class ConfigurationTreeActions {
 				Sequence source = (Sequence) sourceRef.parent();
 				config.insertSequenceReference(targetContainer, i, source).setOperator(sourceRef.getOperator());
 				model.nodeInserted(targetContainer, i);
+			} else if (entry instanceof TaskReference) {
+				TaskReference sourceRef = (TaskReference) entry;
+				Task source = (Task) sourceRef.parent();
+				config.insertTaskReference(targetContainer, i, source).setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
+			} else if (entry instanceof SwitchProducerReference) {
+				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
+				SwitchProducer source = (SwitchProducer) sourceRef.parent();
+																				
+				config.insertSwitchProducerReference(targetContainer, i, source).setOperator(sourceRef.getOperator());
+				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof ModuleReference) {
 				ModuleInstance module = config.module(entry.name());
-				config.insertModuleReference(targetContainer, i, module).setOperator(entry.getOperator());
+				//prescale modules are unique to a path and thus must be cloned
+				if(module.template().name().equals("HLTPrescaler")){
+					String newName = Path.hltPrescalerLabel(targetName);
+					ConfigurationTreeActions.CloneModule(tree, (ModuleReference) entry, newName);	
+				}else{
+					config.insertModuleReference(targetContainer, i, module).setOperator(entry.getOperator());
+					model.nodeInserted(targetContainer, i);
+				}
+			} else if (entry instanceof EDAliasReference) {
+				EDAliasInstance edAlias = config.edAlias(entry.name());
+				config.insertEDAliasReference(targetContainer, i, edAlias).setOperator(entry.getOperator());
 				model.nodeInserted(targetContainer, i);
 			} else if (entry instanceof PathReference) {
 				Path sourcePath = config.path(entry.name());
@@ -879,9 +1599,50 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
+	/** move an existing task within the list of tasks */
+	public static boolean moveTask(JTree tree, Task sourceTask) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		int sourceIndex = config.indexOfTask(sourceTask);
+		int targetIndex = (treePath.getPathCount() == 2) ? 0
+				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+						treePath.getLastPathComponent()) + 1;
+
+		config.moveTask(sourceTask, targetIndex);
+		model.nodeRemoved(model.tasksNode(), sourceIndex, sourceTask);
+		if (sourceIndex < targetIndex)
+			targetIndex--;
+		model.nodeInserted(model.tasksNode(), targetIndex);
+		return true;
+	}
+
 	/**
-	 * Import all references from a container (paths or sequences). The import
-	 * operation is performed by a worker and showing a progress bar.
+	 * move an existing switch producer within the list of switch producers 
+	 */
+	public static boolean moveSwitchProducer(JTree tree, SwitchProducer sourceSwitchProducer) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		int sourceIndex = config.indexOfSwitchProducer(sourceSwitchProducer);
+		int targetIndex = (treePath.getPathCount() == 2) ? 0
+				: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
+						treePath.getLastPathComponent()) + 1;
+
+		config.moveSwitchProducer(sourceSwitchProducer, targetIndex);
+		model.nodeRemoved(model.switchProducersNode(), sourceIndex, sourceSwitchProducer);
+		if (sourceIndex < targetIndex)
+			targetIndex--;
+		model.nodeInserted(model.switchProducersNode(), targetIndex);
+		return true;
+	}
+
+	/**
+	 * Import all references from a container (paths, sequences or tasks). The
+	 * import operation is performed by a worker and showing a progress bar.
+	 * 
 	 */
 	public static boolean importAllReferenceContainers(JTree tree, JTree sourceTree, Object external) {
 		ConfigurationTreeModel sm = (ConfigurationTreeModel) sourceTree.getModel();
@@ -900,8 +1661,11 @@ public class ConfigurationTreeActions {
 				targetContainer = config.path(container.name());
 			} else if (container instanceof Sequence) {
 				targetContainer = config.sequence(container.name());
+			} else if (container instanceof Task) {
+				targetContainer = config.task(container.name());
+			} else if (container instanceof SwitchProducer) {
+				targetContainer = config.switchProducer(container.name());
 			}
-
 			if (targetContainer != null) {
 				existance = true;
 				break;
@@ -925,13 +1689,22 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/** import Path / Sequence */
+	/** import Path / Sequence / Task */
 	public static boolean importReferenceContainer(JTree tree, ReferenceContainer external) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
 
-		int count = (external instanceof Path) ? config.pathCount() : config.sequenceCount();
+		int count = 0;
+		if (external instanceof Path)
+			count = config.pathCount();
+		else if (external instanceof Sequence)
+			count = config.sequenceCount();
+		else if (external instanceof Task)
+			count = config.taskCount();
+		else if (external instanceof SwitchProducer)
+			count = config.switchProducerCount();
+
 		int index = (treePath == null) ? count
 				: (treePath.getPathCount() == 2) ? 0
 						: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
@@ -949,13 +1722,27 @@ public class ConfigurationTreeActions {
 			container = config.sequence(external.name());
 			parent = model.sequencesNode();
 			type = "sequence";
+		} else if (external instanceof Task) {
+			container = config.task(external.name());
+			parent = model.tasksNode();
+			type = "task";
+		} else if (external instanceof SwitchProducer) {
+			container = config.switchProducer(external.name());
+			parent = model.switchProducersNode();
+			type = "switchproducer";
 		}
 
 		boolean update = false;
 		if (container != null) {
 
-			index = (type.equals("path")) ? config.indexOfPath((Path) container)
-					: config.indexOfSequence((Sequence) container);
+			if (type.equals("path"))
+				index = config.indexOfPath((Path) container);
+			else if (type.equals("sequence"))
+				index = config.indexOfSequence((Sequence) container);
+			else if (type.equals("task"))
+				index = config.indexOfTask((Task) container);
+			else if (type.equals("switchproducer"))
+				index = config.indexOfSwitchProducer((SwitchProducer) container);
 
 			int choice = JOptionPane.showConfirmDialog(null,
 					"The " + type + " '" + container.name() + "' exists, " + "do you want to overwrite it?",
@@ -979,8 +1766,12 @@ public class ConfigurationTreeActions {
 			if (type.equals("path")) {
 				container = config.insertPath(index, external.name());
 				((Path) container).setFields((Path) external);
-			} else {
+			} else if (type.equals("sequence")) {
 				container = config.insertSequence(index, external.name());
+			} else if (type.equals("task")) {
+				container = config.insertTask(index, external.name());
+			} else if (type.equals("switchproducer")) {
+				container = config.insertSwitchProducer(index, external.name());
 			}
 
 		}
@@ -1017,11 +1808,12 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
-	 * import Path / Sequence DeepImportReferenceContainer Import Paths and
-	 * Sequences container giving as result identical containers in source and
-	 * target configuration. NOTE: The implementation of this method has change to
-	 * support filtering. It uses the source configuration instead of the source
-	 * JTree.
+	 * import Path / Sequence / Task / Switch producer DeepImportReferenceContainer
+	 * Import Paths, Sequences, Tasks and Switch producer containers giving as
+	 * result identical containers in source and target configuration. NOTE: The
+	 * implementation of this method has change to support filtering. It uses the
+	 * source configuration instead of the source JTree.
+	 * 
 	 */
 	public static boolean DeepImportReferenceContainer(JTree tree, Configuration sourceConfig,
 			ReferenceContainer external) {
@@ -1029,7 +1821,16 @@ public class ConfigurationTreeActions {
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
 
-		int count = (external instanceof Path) ? config.pathCount() : config.sequenceCount();
+		int count = 0;
+		if (external instanceof Path)
+			count = config.pathCount();
+		else if (external instanceof Sequence)
+			count = config.sequenceCount();
+		else if (external instanceof Task)
+			count = config.taskCount();
+		else if (external instanceof SwitchProducer)
+			count = config.switchProducerCount();
+
 		int index = (treePath == null) ? count
 				: (treePath.getPathCount() == 2) ? 0
 						: model.getIndexOfChild(treePath.getParentPath().getLastPathComponent(),
@@ -1048,6 +1849,12 @@ public class ConfigurationTreeActions {
 		} else if (external instanceof Sequence) {
 			container = importTestConfig.sequence(external.name());
 			type = "sequence";
+		} else if (external instanceof Task) {
+			container = importTestConfig.task(external.name());
+			type = "task";
+		} else if (external instanceof SwitchProducer) {
+			container = importTestConfig.switchProducer(external.name());
+			type = "switchproducer";
 		}
 		if (container == null) { // if root container doesn't exist:
 			if (!importTestConfig.hasUniqueQualifier(external))
@@ -1055,8 +1862,12 @@ public class ConfigurationTreeActions {
 			if (type.equals("path")) {
 				container = importTestConfig.insertPath(index, external.name());
 				((Path) container).setFields((Path) external);
-			} else {
+			} else if (type.equals("sequence")) {
 				container = importTestConfig.insertSequence(index, external.name());
+			} else if (type.equals("task")) {
+				container = importTestConfig.insertTask(index, external.name());
+			} else if (type.equals("switchproducer")) {
+				container = importTestConfig.insertSwitchProducer(index, external.name());
 			}
 		}
 
@@ -1071,8 +1882,11 @@ public class ConfigurationTreeActions {
 		// the target
 		// configuration.
 		diff.compareModules();
+		diff.compareEDAliases();
 		diff.comparePathsIgnoreStreams(); // Ignore Streams.
+		diff.compareTasksIgnoreStreams(); // Ignore Streams.
 		diff.compareSequencesIgnoreStreams(); // Ignore Streams.
+		diff.compareSwitchProducersIgnoreStreams(); // Ignore Streams.
 
 		String message = "You are about to add, delete or order multiple items! \n";
 		message += "These operations could adversely affect many parts of the configuration.\n";
@@ -1100,16 +1914,28 @@ public class ConfigurationTreeActions {
 			container = config.sequence(external.name());
 			parent = model.sequencesNode();
 			type = "sequence";
+		} else if (external instanceof Task) {
+			container = config.task(external.name());
+			parent = model.tasksNode();
+			type = "task";
+		} else if (external instanceof SwitchProducer) {
+			container = config.switchProducer(external.name());
+			parent = model.switchProducersNode();
+			type = "switchproducer";
 		}
 
-		if (container == null) { // if root container doesn't exist:
+		if (container == null) { // if root container doesn't exist:								
 			if (!config.hasUniqueQualifier(external))
 				return false;
 			if (type.equals("path")) {
 				container = config.insertPath(index, external.name());
 				((Path) container).setFields((Path) external);
-			} else {
+			} else if (type.equals("sequence")) {
 				container = config.insertSequence(index, external.name());
+			} else if (type.equals("task")) {
+				container = config.insertTask(index, external.name());
+			} else if (type.equals("switchproducer")) {
+				container = config.insertSwitchProducer(index, external.name());
 			}
 
 			model.nodeInserted(parent, index); // Force update bug76145
@@ -1154,7 +1980,7 @@ public class ConfigurationTreeActions {
 	private static Configuration getConfigurationCopy(Configuration sourceConf) {
 		Configuration configurationCopy = new Configuration();
 
-		// Configuration needs to be initialised with a new software release.
+		// Configuration needs to be initialized with a new software release.
 		// A new software release allows to insert modules from scratch.
 		configurationCopy.initialize(new ConfigInfo("", null, sourceConf.releaseTag()),
 				new SoftwareRelease(sourceConf.release()));
@@ -1260,6 +2086,32 @@ public class ConfigurationTreeActions {
 			index++;
 		}
 
+		// COPY Task:
+		Iterator<Task> Tasit = sourceConf.taskIterator();
+		index = 0;
+		while (Tasit.hasNext()) {
+			Task task = Tasit.next();
+			Task newTask = configurationCopy.task(task.name());
+			if (newTask == null) {
+				newTask = configurationCopy.insertTask(index, task.name());
+				importContainerEntries(configurationCopy, null, task, newTask);
+			}
+			index++;
+		}
+
+		// COPY Switch producers:
+		Iterator<SwitchProducer> SPit = sourceConf.switchProducerIterator();
+		index = 0;
+		while (SPit.hasNext()) {
+			SwitchProducer switchProducer = SPit.next();
+			SwitchProducer newSwitchProducer = configurationCopy.switchProducer(switchProducer.name());
+			if (newSwitchProducer == null) {
+				newSwitchProducer = configurationCopy.insertSwitchProducer(index, switchProducer.name());
+				importContainerEntries(configurationCopy, null, switchProducer, newSwitchProducer);
+			}
+			index++;
+		}
+
 		// COPY PATHS:
 		Iterator<Path> pathit = sourceConf.pathIterator();
 		index = 0;
@@ -1281,14 +2133,23 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
-	 * import Path / Sequence Perform updates and insertions of new references into
-	 * a target configuration. NOTE: Nodes are not updated in the Tree model.
+	 * import Path / Sequence / Task / Switch producer. Perform updates and
+	 * insertions of new references into a target configuration. NOTE: Nodes are not
+	 * updated in the Tree model.
 	 */
 	public static boolean importReferenceContainersNoModel(JTree tree, ReferenceContainer external, boolean update) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 
-		int index = (external instanceof Path) ? config.pathCount() : config.sequenceCount();
+		int index = 0;
+		if (external instanceof Path)
+			index = config.pathCount();
+		else if (external instanceof Sequence)
+			index = config.sequenceCount();
+		else if (external instanceof Task)
+			index = config.taskCount();
+		else if (external instanceof SwitchProducer)
+			index = config.switchProducerCount();
 
 		ReferenceContainer container = null;
 		String type = null;
@@ -1299,11 +2160,24 @@ public class ConfigurationTreeActions {
 		} else if (external instanceof Sequence) {
 			container = config.sequence(external.name());
 			type = "sequence";
+		} else if (external instanceof Task) {
+			container = config.task(external.name());
+			type = "task";
+		} else if (external instanceof SwitchProducer) {
+			container = config.switchProducer(external.name());
+			type = "switchproducer";
 		}
 
 		if (container != null) {
-			index = (type.equals("path")) ? config.indexOfPath((Path) container)
-					: config.indexOfSequence((Sequence) container);
+			if (type.equals("path"))
+				index = config.indexOfPath((Path) container);
+			else if (type.equals("sequence"))
+				index = config.indexOfSequence((Sequence) container);
+			else if (type.equals("task"))
+				index = config.indexOfTask((Task) container);
+			else if (type.equals("switchproducer"))
+				index = config.indexOfSwitchProducer((SwitchProducer) container);
+
 			if (update) {
 				while (container.entryCount() > 0) {
 					Reference entry = (Reference) container.entry(0);
@@ -1319,8 +2193,12 @@ public class ConfigurationTreeActions {
 			if (type.equals("path")) {
 				container = config.insertPath(index, external.name());
 				((Path) container).setFields((Path) external);
-			} else {
+			} else if (type.equals("sequence")) {
 				container = config.insertSequence(index, external.name());
+			} else if (type.equals("task")) {
+				container = config.insertTask(index, external.name());
+			} else if (type.equals("switchproducer")) {
+				container = config.insertSwitchProducer(index, external.name());
 			}
 		}
 
@@ -1337,11 +2215,13 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/** insert entries of an external reference container into the local copy */
+	/**
+	 * insert entries of an external reference container into the local copy
+	 */
 	private static boolean importContainerEntries(Configuration config, ConfigurationTreeModel treeModel,
 			ReferenceContainer sourceContainer, ReferenceContainer targetContainer) {
 		boolean updateModel = (treeModel != null);
-		// result=true: import all daugthers unchangend
+		// result=true: import all daughters unchanged
 		boolean result = true;
 
 		for (int i = 0; i < sourceContainer.entryCount(); i++) {
@@ -1369,6 +2249,31 @@ public class ConfigurationTreeActions {
 					treeModel.nodeInserted(targetContainer, i);
 					if (target.referenceCount() == 1)
 						treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount() - 1);
+				}
+
+			} else if (entry instanceof EDAliasReference) {
+				EDAliasReference sourceRef = (EDAliasReference) entry;
+				EDAliasInstance source = (EDAliasInstance) sourceRef.parent();
+				EDAliasInstance target = config.edAlias(source.name());
+				EDAliasReference targetRef = null;
+				if (target != null) {
+					targetRef = config.insertEDAliasReference(targetContainer, i, target);
+					result = false;
+				} else {
+					targetRef = config.insertEDAliasReference(targetContainer, i, source.name());
+					target = (EDAliasInstance) targetRef.parent();
+					for (int j = 0; j < source.parameterCount(); j++)
+						target.updateParameter(source.parameter(j));
+					target.setDatabaseId(source.databaseId());
+				}
+				targetRef.setOperator(sourceRef.getOperator());
+
+				if (updateModel) {
+					treeModel.nodeInserted(targetContainer, i);
+					/*
+					 * if (target.referenceCount() == 1)
+					 * treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount() - 1);
+					 */
 				}
 
 			} else if (entry instanceof OutputModuleReference) {
@@ -1426,6 +2331,52 @@ public class ConfigurationTreeActions {
 						treeModel.nodeInserted(treeModel.sequencesNode(), config.sequenceCount() - 1);
 					config.insertSequenceReference(targetContainer, i, target).setOperator(sourceRef.getOperator());
 					boolean tmp = importContainerEntries(config, treeModel, source, target);
+					if (tmp)
+						target.setDatabaseId(source.databaseId());
+					if (result)
+						result = tmp;
+				}
+
+				if (updateModel)
+					treeModel.nodeInserted(targetContainer, i);
+			} else if (entry instanceof TaskReference) {
+				TaskReference sourceRef = (TaskReference) entry;
+				Task source = (Task) sourceRef.parent();
+				Task target = config.task(sourceRef.name());
+				if (target != null) {
+					config.insertTaskReference(targetContainer, i, target).setOperator(sourceRef.getOperator());
+					result = false;
+				} else {
+					target = config.insertTask(config.taskCount(), sourceRef.name());
+					if (updateModel)
+						treeModel.nodeInserted(treeModel.tasksNode(), config.taskCount() - 1);
+					config.insertTaskReference(targetContainer, i, target).setOperator(sourceRef.getOperator());
+					boolean tmp = importContainerEntries(config, treeModel, source, target);
+																								
+					if (tmp)
+						target.setDatabaseId(source.databaseId());
+					if (result)
+						result = tmp;
+				}
+
+				if (updateModel)
+					treeModel.nodeInserted(targetContainer, i);
+			} else if (entry instanceof SwitchProducerReference) {
+				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
+				SwitchProducer source = (SwitchProducer) sourceRef.parent();
+				SwitchProducer target = config.switchProducer(sourceRef.name());
+				if (target != null) {								
+					config.insertSwitchProducerReference(targetContainer, i, target)
+							.setOperator(sourceRef.getOperator());
+					result = false;
+				} else {
+					target = config.insertSwitchProducer(config.switchProducerCount(), sourceRef.name());
+					if (updateModel)
+						treeModel.nodeInserted(treeModel.switchProducersNode(), config.switchProducerCount() - 1);
+					config.insertSwitchProducerReference(targetContainer, i, target)
+							.setOperator(sourceRef.getOperator());
+					boolean tmp = importContainerEntries(config, treeModel, source, target);
+																								
 					if (tmp)
 						target.setDatabaseId(source.databaseId());
 					if (result)
@@ -1552,6 +2503,107 @@ public class ConfigurationTreeActions {
 						treeModel.nodeInserted(targetContainer, i);
 						if (target.referenceCount() == 1)
 							treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount() - 1);
+					}
+				}
+				// -----------------------------------------------------------------------------//
+			} else if (entry instanceof EDAliasReference) { // EDALIAS REFERENCES
+				EDAliasReference sourceRef = (EDAliasReference) entry;
+				EDAliasInstance source = (EDAliasInstance) sourceRef.parent();
+				EDAliasInstance target = config.edAlias(source.name());
+				EDAliasReference targetRef = null;
+
+				if (target != null) { // if edAlias already exist then just insert the reference.
+
+					Diff diff = new Diff(sourceConfig, config);
+					Comparison c = diff.compareInstances(source, target);
+
+					// If edAlias exist but it's not identical:
+					if (!c.isIdentical()) { // replace edAlias.
+						if (updateModel) {
+							ConfigurationTreeActions.replaceEDAlias(null, targetTree, source);
+							// refresh SP node since EDA are there
+							treeModel.nodeStructureChanged(treeModel.switchProducersNode()); // forcing refresh
+						} else {
+							ConfigurationTreeActions.replaceEDAlias(config, null, source);
+						}
+					} // else If edAlias exist and it's identical then do nothing.
+
+					// After replacing the edAlias (or not) we proceed checking the reference:
+					boolean existance = false;
+					for (int j = 0; j < targetContainer.entryCount(); j++) {
+						Reference subentry = (Reference) targetContainer.entry(j);
+						if ((subentry instanceof EDAliasReference) && (entry instanceof EDAliasReference)
+								&& (subentry.name().equals(entry.name()))) {
+
+							// Check if edAliases are in the same order:
+							if (i != j) { // then remove reference, and insert it again.
+								if (updateModel) {
+									removeReference(null, targetTree, subentry); // this might delete the edAlias (index
+																					// of -1 when searching).
+									treeModel.nodeStructureChanged(targetContainer);
+								} else {
+									removeReference(config, null, subentry); // this might delete the edAlias (index of
+																				// -1 when searching).
+								}
+								existance = false; // this force the reference to be inserted again (in order).
+							} else {
+								subentry.setOperator(sourceRef.getOperator());
+								existance = true;
+							}
+						}
+					}
+					if (!existance) {
+						int indexOfEDAlias = config.indexOfEDAlias(source);
+						if (indexOfEDAlias == -1) {
+							// the instance was also removed so it needs to be inserted again:
+							targetRef = config.insertEDAliasReference(targetContainer, i, source.name());
+							target = (EDAliasInstance) targetRef.parent();
+							// Update parameters:
+							for (int j = 0; j < source.parameterCount(); j++){
+								Parameter param = source.parameter(j);
+								target.updateParameter(param);
+							}
+								
+							target.setDatabaseId(source.databaseId());
+
+							// it was inserted. common operations:
+							targetRef.setOperator(sourceRef.getOperator());
+							if (updateModel) {
+								treeModel.nodeInserted(targetContainer, i);
+								/*
+								 * if (target.referenceCount() == 1)
+								 * treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount() - 1);
+								 */
+							}
+						} else { // ONLY insert the reference. (the module already exists).
+							targetRef = config.insertEDAliasReference(targetContainer, i, target);
+							targetRef.setOperator(sourceRef.getOperator());
+							if (updateModel)
+								treeModel.nodeInserted(targetContainer, i);
+						}
+					}
+				} else { // Inserts the edAlias and the reference:
+
+					// NOTE: next call also inserts the module before inserting references
+					targetRef = config.insertEDAliasReference(targetContainer, i, source.name());
+
+					target = (EDAliasInstance) targetRef.parent();
+					// Update parameters:
+					for (int j = 0; j < source.parameterCount(); j++){
+						Parameter param = source.parameter(j);
+						target.updateParameter(param);
+					}
+						
+					target.setDatabaseId(source.databaseId());
+
+					// it was inserted. common operations:
+					targetRef.setOperator(sourceRef.getOperator());
+					if (updateModel) {
+						treeModel.nodeInserted(targetContainer, i);
+						/*
+						 * if (target.referenceCount() == 1)
+						 * treeModel.nodeInserted(treeModel.modulesNode(), config.moduleCount() - 1);
+						 */
 					}
 				}
 				// -----------------------------------------------------------------------------//
@@ -1683,7 +2735,7 @@ public class ConfigurationTreeActions {
 
 				SequenceReference sourceRef = (SequenceReference) entry;
 				Sequence source = (Sequence) sourceRef.parent();
-				Sequence target = config.sequence(sourceRef.name());
+				Sequence target = config.sequence(sourceRef.name());															
 
 				if (target != null) { // if sequence already exist then just insert the reference.
 
@@ -1756,6 +2808,163 @@ public class ConfigurationTreeActions {
 					if (updateModel)
 						treeModel.nodeInserted(targetContainer, i);
 				}
+			} else if (entry instanceof TaskReference) { // TASK REFERENCES
+
+				TaskReference sourceRef = (TaskReference) entry;
+				Task source = (Task) sourceRef.parent();
+				Task target = config.task(sourceRef.name());
+
+				if (target != null) { // if task already exist then just insert the reference.
+
+					Diff diff = new Diff(sourceConfig, config);
+					Comparison c = diff.compareContainers(source, target);
+
+					if (!c.isIdentical()) {
+						DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
+						if (updateModel) {
+							treeModel.nodeStructureChanged(treeModel.sequencesNode());
+							treeModel.nodeStructureChanged(treeModel.tasksNode());
+							treeModel.nodeStructureChanged(treeModel.pathsNode());
+						}
+					} // if identical, just check the order.
+
+					// Now references must be checked:
+					for (int j = 0; j < targetContainer.entryCount(); j++) {
+						Reference subentry = (Reference) targetContainer.entry(j);
+						if ((subentry instanceof TaskReference) && (entry instanceof TaskReference)
+								&& (subentry.name().equals(entry.name()))) {
+
+							if (i != j) {
+								// So remove reference, and insert it later.
+								if (updateModel) {
+									removeReference(null, targetTree, subentry); // this might delete the ITEM (index of
+																					// -1 when searching).
+									treeModel.nodeStructureChanged(targetContainer);
+								} else {
+									removeReference(config, null, subentry); // this might delete the ITEM (index of -1
+																				// when searching).
+								}
+							} else {
+								subentry.setOperator(sourceRef.getOperator());
+							}
+						}
+					}
+					result = false;
+				} else { // Insert the task and the reference.
+
+					target = config.insertTask(config.taskCount(), sourceRef.name());
+					config.insertTaskReference(targetContainer, i, target).setOperator(sourceRef.getOperator());
+
+					if (updateModel)
+						treeModel.nodeInserted(treeModel.tasksNode(), config.taskCount() - 1);
+
+					// config.insertTaskReference(targetContainer,targetContainer.entryCount(),target);
+
+					// recursively entries insertion!
+					boolean tmp = DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
+					if (tmp)
+						target.setDatabaseId(source.databaseId());
+					if (result)
+						result = tmp;
+					if (updateModel)
+						treeModel.nodeInserted(targetContainer, targetContainer.entryCount() - 1);
+				}
+
+				// INSERT REFERENCES: for new tasks, and out of order tasks
+				boolean existance = false;
+				for (int j = 0; j < targetContainer.entryCount(); j++) {
+					Reference subentry = (Reference) targetContainer.entry(j);
+					if ((subentry instanceof TaskReference) && (entry instanceof TaskReference)
+							&& (subentry.name().equals(entry.name()))) {
+						subentry.setOperator(sourceRef.getOperator());
+						existance = true;
+					}
+				}
+				if (!existance) {
+					config.insertTaskReference(targetContainer, i, target).setOperator(sourceRef.getOperator());
+					if (updateModel)
+						treeModel.nodeInserted(targetContainer, i);
+				}
+			} else if (entry instanceof SwitchProducerReference) { // SWITCH PRODUCER REFERENCES
+
+				SwitchProducerReference sourceRef = (SwitchProducerReference) entry;
+				SwitchProducer source = (SwitchProducer) sourceRef.parent();
+				SwitchProducer target = config.switchProducer(sourceRef.name());																	
+
+				if (target != null) { // if switch producer already exist then just insert the reference.
+
+					Diff diff = new Diff(sourceConfig, config);
+					Comparison c = diff.compareContainers(source, target);
+
+					if (!c.isIdentical()) {
+						DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
+						if (updateModel) {
+							treeModel.nodeStructureChanged(treeModel.switchProducersNode());
+							treeModel.nodeStructureChanged(treeModel.sequencesNode());
+							treeModel.nodeStructureChanged(treeModel.tasksNode());
+							treeModel.nodeStructureChanged(treeModel.pathsNode());
+						}
+					} // if identical, just check the order.
+
+					// Now references must be checked:
+					for (int j = 0; j < targetContainer.entryCount(); j++) {
+						Reference subentry = (Reference) targetContainer.entry(j);
+						if ((subentry instanceof SwitchProducerReference) && (entry instanceof SwitchProducerReference)
+								&& (subentry.name().equals(entry.name()))) {
+
+							// Check if SwitchProducerReference are in the same order
+							if (i != j) {
+								// So remove reference, and insert it later.
+								if (updateModel) {				
+									removeReference(null, targetTree, subentry); 												
+									treeModel.nodeStructureChanged(targetContainer);
+								} else {
+									removeReference(config, null, subentry);
+								}
+							} else {
+								subentry.setOperator(sourceRef.getOperator());
+							}
+						}
+					}
+					result = false;
+				} else { // Insert the switch producer and the reference.
+
+					target = config.insertSwitchProducer(config.switchProducerCount(), sourceRef.name());
+					config.insertSwitchProducerReference(targetContainer, i, target)
+							.setOperator(sourceRef.getOperator());
+
+					if (updateModel)
+						treeModel.nodeInserted(treeModel.switchProducersNode(), config.switchProducerCount() - 1);
+
+					// config.insertSwitchProducerReference(targetContainer,targetContainer.entryCount(),target);
+
+					// recursively entries insertion!
+					boolean tmp = DeepImportContainerEntries(config, sourceConfig, targetTree, source, target);
+					if (tmp)
+						target.setDatabaseId(source.databaseId());
+					if (result)
+						result = tmp;
+					if (updateModel)
+						treeModel.nodeInserted(targetContainer, targetContainer.entryCount() - 1);
+				}
+
+				// INSERT REFERENCES: for new switch producers, and out of order switch
+				// producers 
+				boolean existance = false;
+				for (int j = 0; j < targetContainer.entryCount(); j++) {
+					Reference subentry = (Reference) targetContainer.entry(j);
+					if ((subentry instanceof SwitchProducerReference) && (entry instanceof SwitchProducerReference)
+							&& (subentry.name().equals(entry.name()))) {
+						subentry.setOperator(sourceRef.getOperator());
+						existance = true;
+					}
+				}
+				if (!existance) {
+					config.insertSwitchProducerReference(targetContainer, i, target)
+							.setOperator(sourceRef.getOperator());
+					if (updateModel)
+						treeModel.nodeInserted(targetContainer, i);
+				}
 			}
 		}
 		// -----------------------------------------------------------------------------//
@@ -1769,7 +2978,12 @@ public class ConfigurationTreeActions {
 				Reference sourceSubEntry = (Reference) sourceContainer.entry(j);
 
 				if (((((targetSubEntry instanceof SequenceReference) && (sourceSubEntry instanceof SequenceReference))
+						|| ((targetSubEntry instanceof TaskReference) && (sourceSubEntry instanceof TaskReference))
+						|| ((targetSubEntry instanceof SwitchProducerReference)
+								&& (sourceSubEntry instanceof SwitchProducerReference))
 						|| ((targetSubEntry instanceof ModuleReference) && (sourceSubEntry instanceof ModuleReference))
+						|| ((targetSubEntry instanceof EDAliasReference)
+								&& (sourceSubEntry instanceof EDAliasReference))
 						|| ((targetSubEntry instanceof PathReference) && (sourceSubEntry instanceof PathReference)))
 						&& (targetSubEntry.name().equals(sourceSubEntry.name())))) {
 					if (i == j)
@@ -1790,7 +3004,9 @@ public class ConfigurationTreeActions {
 		return result;
 	}
 
-	/** insert reference into currently selected reference container */
+	/**
+	 * insert reference into currently selected reference container
+	 */
 	public static boolean insertReference(JTree tree, String type, String name) {
 
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -1804,6 +3020,7 @@ public class ConfigurationTreeActions {
 
 		Reference reference = null;
 		ModuleInstance module = null;
+		EDAliasInstance edAlias = null;
 
 		if (type.equalsIgnoreCase("Path")) {
 			Path referencedPath = config.path(name);
@@ -1815,6 +3032,16 @@ public class ConfigurationTreeActions {
 			if (referencedSequence == null)
 				return false;
 			reference = config.insertSequenceReference(parent, index, referencedSequence);
+		} else if (type.equalsIgnoreCase("Task")) {
+			Task referencedTask = config.task(name);
+			if (referencedTask == null)
+				return false;
+			reference = config.insertTaskReference(parent, index, referencedTask);
+		} else if (type.equalsIgnoreCase("SwitchProducer")) {
+			SwitchProducer referencedSwitchProducer = config.switchProducer(name);
+			if (referencedSwitchProducer == null)
+				return false;
+			reference = config.insertSwitchProducerReference(parent, index, referencedSwitchProducer);
 		} else if (type.equalsIgnoreCase("OutputModule")) {
 			OutputModule referencedOutput = config.output(name);
 			if (referencedOutput == null)
@@ -1836,18 +3063,25 @@ public class ConfigurationTreeActions {
 				templateName = s[1];
 				instanceName = s[2];
 			}
-
+			
 			ModuleTemplate template = config.release().moduleTemplate(templateName);
 
 			if (!copy) {
 				if (template.hasInstance(instanceName)) {
-					try {
-						module = (ModuleInstance) template.instance(instanceName);
-					} catch (DataException e) {
-						System.err.println(e.getMessage());
-						return false;
+					//switch producers can not add existing modules
+					
+					if (!(parent instanceof SwitchProducer) ) {
+						try {
+							module = (ModuleInstance) template.instance(instanceName);
+						} catch (DataException e) {
+							System.err.println(e.getMessage());
+							return false;
+						}
+						//modules in switch producers can not be added to other containers
+						if( module.moduleType() != 1 ){
+							reference = config.insertModuleReference(parent, index, module);
+						}
 					}
-					reference = config.insertModuleReference(parent, index, module);
 				} else {
 					instanceName = templateName;
 					int count = 2;
@@ -1874,23 +3108,55 @@ public class ConfigurationTreeActions {
 					Parameter p = itP.next();
 					module.updateParameter(p.name(), p.type(), p.valueAsString());
 				}
+				
+			}
+		} else if (type.equalsIgnoreCase("EDAlias")) {
+			String[] s = name.split(":");
+			String instanceName = "";
+			boolean copy = false;
+
+			if (s.length == 1) {
+				instanceName = s[0];
+			} else if (s.length == 2) {
+				copy = true;
+				instanceName = s[1];
+			}
+
+			// ModuleTemplate template = config.release().moduleTemplate(templateName);
+
+			if (!copy) {
+				reference = config.insertEDAliasReference(parent, index, instanceName);
+			} else {
+				EDAliasInstance original = null;
+				original = config.edAlias(instanceName);
+				instanceName = "copy_of_" + instanceName;
+				reference = config.insertEDAliasReference(parent, index, original);
+				edAlias = (EDAliasInstance) reference.parent();
+				Iterator<Parameter> itP = original.parameterIterator();
+				while (itP.hasNext()) {
+					Parameter p = itP.next();
+					edAlias.updateParameter(p.name(), p.type(), p.valueAsString());
+				}
 			}
 		}
 
-		model.nodeInserted(parent, index);
-		model.updateLevel1Nodes();
+		if (reference != null) {
+			model.nodeInserted(parent, index);
+			model.updateLevel1Nodes();
 
-		TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
-		tree.expandPath(newTreePath.getParentPath());
-		tree.setSelectionPath(newTreePath);
+			TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
+			tree.expandPath(newTreePath.getParentPath());
+			tree.setSelectionPath(newTreePath);
 
-		if (module != null && module.referenceCount() == 1) {
-			TreePath moduleTreePath = new TreePath(model.getPathToRoot((Object) module));
-			model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
-			editNodeName(tree);
+			if (module != null && module.referenceCount() == 1) {
+				TreePath moduleTreePath = new TreePath(model.getPathToRoot((Object) module));
+				model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
+				editNodeName(tree);
+			}
+			return true;
+		} else {
+			return true;
 		}
-
-		return true;
 	}
 
 	/** move a reference within its container */
@@ -1936,7 +3202,7 @@ public class ConfigurationTreeActions {
 				ModuleInstance instance = (ModuleInstance) reference.parent();
 				if (instance.referenceCount() == 1)
 					unreferencedIndices.add(config.indexOfModule(instance));
-			}
+			} 
 		}
 
 		int childIndices[] = null;
@@ -1984,6 +3250,14 @@ public class ConfigurationTreeActions {
 			index = config.indexOfSequence((Sequence) container);
 			parent = model.sequencesNode();
 			config.removeSequence((Sequence) container);
+		} else if (container instanceof Task) {
+			index = config.indexOfTask((Task) container);
+			parent = model.tasksNode();
+			config.removeTask((Task) container);
+		} else if (container instanceof SwitchProducer) {
+			index = config.indexOfSwitchProducer((SwitchProducer) container);
+			parent = model.switchProducersNode();
+			config.removeSwitchProducer((SwitchProducer) container);
 		}
 
 		model.nodeRemoved(parent, index, container);
@@ -2010,12 +3284,18 @@ public class ConfigurationTreeActions {
 		ReferenceContainer container = reference.container();
 		int index = container.indexOfEntry(reference);
 		ModuleInstance module = null;
+		EDAliasInstance edAlias = null;
 		int indexOfModule = -1;
+		// int indexOfEDAlias = -1;
 
 		if (reference instanceof ModuleReference) {
 			module = (ModuleInstance) reference.parent();
 			indexOfModule = config.indexOfModule(module);
 			config.removeModuleReference((ModuleReference) reference);
+		} else if (reference instanceof EDAliasReference) {
+			edAlias = (EDAliasInstance) reference.parent();
+			// indexOfEDAlias = config.indexOfEDAlias(edAlias);
+			config.removeEDAliasReference((EDAliasReference) reference);
 		} else if (reference instanceof OutputModuleReference) {
 			OutputModuleReference omr = (OutputModuleReference) reference;
 			config.removeOutputModuleReference(omr);
@@ -2066,6 +3346,8 @@ public class ConfigurationTreeActions {
 			module = (ModuleInstance) reference.parent();
 			indexOfModule = config.indexOfModule(module);
 			config.removeModuleReference((ModuleReference) reference);
+		} else if (reference instanceof EDAliasReference) {
+			config.removeEDAliasReference((EDAliasReference) reference);
 		} else if (reference instanceof OutputModuleReference) {
 			config.removeOutputModuleReference((OutputModuleReference) reference);
 		} else {
@@ -2075,7 +3357,7 @@ public class ConfigurationTreeActions {
 		if (updateModel) {
 			model.nodeRemoved(container, index, reference);
 			if (module != null && module.referenceCount() == 0)
-				model.nodeRemoved(model.modulesNode(), indexOfModule, module);
+				model.nodeRemoved(model.modulesNode(), indexOfModule, module);																				
 			model.updateLevel1Nodes();
 		}
 
@@ -2139,6 +3421,33 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
+	 * scroll to the Path given by the task name and expand the tree.
+	 */
+	public static void scrollToTaskByName(String taskName, JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		TreePath Path = new TreePath(model.getPathToRoot(config.task(taskName)));
+		tree.setSelectionPath(Path);
+		tree.expandPath(Path);
+		tree.scrollPathToVisible(Path);
+	}
+
+	/**
+	 * scroll to the Path given by the switch prouducer name and expand the
+	 * tree.
+	 */
+	public static void scrollToSwitchProducerByName(String switchProducerName, JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		TreePath Path = new TreePath(model.getPathToRoot(config.switchProducer(switchProducerName)));
+		tree.setSelectionPath(Path);
+		tree.expandPath(Path);
+		tree.scrollPathToVisible(Path);
+	}
+
+	/**
 	 * scroll to the module given by the module name and expand the tree.
 	 */
 	public static void scrollToModuleByName(String moduleName, JTree tree) {
@@ -2151,7 +3460,33 @@ public class ConfigurationTreeActions {
 		tree.scrollPathToVisible(Path);
 	}
 
-	/** import a single module into path or sequence */
+	/**
+	 * scroll to the edAlias given by the edAlias name and expand the tree.
+	 */
+	public static void scrollToEDAliasByName(String edAliasName, JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		TreePath Path = new TreePath(model.getPathToRoot(config.edAlias(edAliasName)));
+		tree.setSelectionPath(Path);
+		tree.expandPath(Path);
+		tree.scrollPathToVisible(Path);
+	}
+	
+	/**
+	 * scroll to the global edAlias given by the edAlias name and expand the tree.
+	 */
+	public static void scrollToGlobalEDAliasByName(String globalEDAliasName, JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		TreePath Path = new TreePath(model.getPathToRoot(config.globalEDAlias(globalEDAliasName)));
+		tree.setSelectionPath(Path);
+		tree.expandPath(Path);
+		tree.scrollPathToVisible(Path);
+	}
+
+	/** import a single module into path, sequence, task or a switch producer */
 	public static boolean importModule(JTree tree, ModuleInstance external) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -2198,6 +3533,79 @@ public class ConfigurationTreeActions {
 		model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
 		model.updateLevel1Nodes();
 
+		return true;
+	}
+
+	/** import a single EDAlias into a switch producer */
+	public static boolean importEDAlias(JTree tree, EDAliasInstance external) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		ReferenceContainer parent = null;
+		EDAliasInstance target = config.edAlias(external.name());
+		int insertAtIndex = 0;
+
+		if (target != null) {
+			int choice = JOptionPane.showConfirmDialog(null,
+					"The EDALias '" + target.name() + "' exists, " + "do you want to overwrite it?",
+					"Overwrite EDAlias", JOptionPane.OK_CANCEL_OPTION);
+			if (choice == JOptionPane.CANCEL_OPTION)
+				return false;
+			else
+				return replaceEDAlias(null, tree, external);
+		} else if (treePath == null)
+			return false;
+
+		Object targetNode = treePath.getLastPathComponent();
+
+		if (targetNode instanceof ReferenceContainer) {
+			parent = (ReferenceContainer) targetNode;
+			EDAliasReference reference = config.insertEDAliasReference(parent, 0, external.name());
+			target = (EDAliasInstance) reference.parent();
+		} else if (targetNode instanceof Reference) {
+			Reference selectedRef = (Reference) targetNode;
+			parent = selectedRef.container();
+			insertAtIndex = parent.indexOfEntry(selectedRef) + 1;
+			EDAliasReference reference = config.insertEDAliasReference(parent, insertAtIndex, external.name());
+			target = (EDAliasInstance) reference.parent();
+		}
+
+		if (target == null)
+			return false;
+
+		for (int i = 0; i < external.parameterCount(); i++) {
+			target.updateParameter(external.parameter(i));
+		}
+		target.setDatabaseId(external.databaseId());
+		model.nodeInserted(parent, insertAtIndex);
+		// model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
+		model.updateLevel1Nodes();
+
+		return true;
+	}
+	
+	/** import a single global EDAlias into a switch producer */
+	public static boolean importGlobalEDAlias(JTree tree, EDAliasInstance external) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+
+		EDAliasInstance target = config.globalEDAlias(external.name());
+
+		if (target != null) {
+			int choice = JOptionPane.showConfirmDialog(null,
+					"The Global EDALias '" + target.name() + "' exists, " + "do you want to overwrite it?",
+					"Overwrite Global EDAlias", JOptionPane.OK_CANCEL_OPTION);
+			if (choice == JOptionPane.CANCEL_OPTION)
+				return false;
+			else
+				return replaceGlobalEDAlias(null, tree, external);
+		} else if (treePath == null)
+			return false;
+
+		//Target reference part is probably completely unnecessary since global EDAliases cannot be referenced
+		
 		return true;
 	}
 
@@ -2351,6 +3759,276 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
+	 * replace a EDAlias with the internal one
+	 */
+	public static boolean replaceEDAliasInternally(JTree tree, EDAliasInstance oldEDAlias, String newObject) {
+		/* newObject = class or class:name or copy:class:name */
+		if (tree == null || oldEDAlias == null || newObject == null)
+			return false;
+
+		String oldEDAliasName = oldEDAlias.name();
+		String newEDAliasName = null;
+		String[] s = newObject.split(":");
+
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		if (config == null)
+			return false;
+
+		if (config.edAlias(oldEDAlias.name()) == null)
+			return false;
+
+		EDAliasInstance newEDAlias = null;
+		if (s.length == 1) {
+			// temporary unique name
+			newEDAliasName = "Instance_of_" + s[0];
+			int i = 0;
+			while (!config.isUniqueQualifier(newEDAliasName)) {
+				newEDAliasName = "Instance_of_" + s[0] + "_" + i;
+				++i;
+			}
+			newEDAlias = config.insertEDAlias(newEDAliasName);
+			Iterator<Parameter> itP = null;
+			itP = oldEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Iterator<Parameter> itQ = newEDAlias.parameterIterator();
+				while (itQ.hasNext()) {
+					Parameter q = itQ.next();
+					if (p.type().equals(q.type()))
+						newEDAlias.updateParameter(q.name(), q.type(), p.valueAsString());
+				}
+			}
+			itP = oldEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Parameter n = newEDAlias.parameter(p.name(), p.type());
+				if (n != null)
+					newEDAlias.updateParameter(p.name(), p.type(), p.valueAsString());
+			}
+		} else if (s.length == 2) {
+			// old edAlias replaced by existing edAlias, keeping newEDAliasName
+			// newTemplateName = s[0];
+			newEDAliasName = s[1];
+			if (newEDAliasName.equals(oldEDAliasName))
+				return false;
+			newEDAlias = config.edAlias(newEDAliasName);
+		} else if (s.length == 3) {
+			// old edAlias replaced by new copy of an existing edAlias, keeping
+			// oldEDAliasName
+			// newTemplateName = s[1];
+			// temporary unique name
+			newEDAliasName = "Copy_of_" + s[2];
+			int i = 0;
+			while (!config.isUniqueQualifier(newEDAliasName)) {
+				newEDAliasName = "Copy_of_" + s[2] + "_" + i;
+				++i;
+			}
+			newEDAlias = config.insertEDAlias(newEDAliasName);
+			Iterator<Parameter> itP = null;
+			itP = oldEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Iterator<Parameter> itQ = newEDAlias.parameterIterator();
+				while (itQ.hasNext()) {
+					Parameter q = itQ.next();
+					if (p.type().equals(q.type()))
+						newEDAlias.updateParameter(q.name(), q.type(), p.valueAsString());
+				}
+			}
+			itP = oldEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Parameter n = newEDAlias.parameter(p.name(), p.type());
+				if (n != null)
+					newEDAlias.updateParameter(p.name(), p.type(), p.valueAsString());
+			}
+		} else {
+			return false;
+		}
+
+		//int index = config.indexOfEDAlias(oldEDAlias);
+		int refCount = oldEDAlias.referenceCount();
+		ReferenceContainer[] parents = new ReferenceContainer[refCount];
+		int[] indices = new int[refCount];
+		Operator[] operators = new Operator[refCount];
+		int iRefCount = 0;
+		while (oldEDAlias.referenceCount() > 0) {
+			Reference reference = oldEDAlias.reference(0);
+			parents[iRefCount] = reference.container();
+			indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+			operators[iRefCount] = reference.getOperator();
+			config.removeEDAliasReference((EDAliasReference) reference);
+			model.nodeRemoved(parents[iRefCount], indices[iRefCount], reference);
+			iRefCount++;
+		}
+		// model.nodeRemoved(model.modulesNode(), index, oldEDAlias);
+
+		// oldEDAliase's refCount is now 0 and hence oldEDAlias is removed
+		// from the config; thus we can rename newEDAlias to oldEDAliase's
+		// name which is needed for later combined setNameAndPropagate
+		try {
+			newEDAlias.setNameAndPropagate(oldEDAliasName);
+		} catch (DataException e) {
+			System.err.println(e.getMessage());
+		}
+
+		// update refs pointing to oldEDAlias to point to newEDAlias
+		for (int i = 0; i < refCount; i++) {
+			config.insertEDAliasReference(parents[i], indices[i], newEDAlias).setOperator(operators[i]);
+			model.nodeInserted(parents[i], indices[i]);
+		}
+
+		if (s.length == 2) {
+			// now rename newEDAlias back to its original name, and update all
+			// (V)InputTags/keeps etc. originally referring to both oldEDAlias
+			// and the also newEDAlias under oldModule's name to use newEDAlias's
+			// original and final name.
+			try {
+				newEDAlias.setNameAndPropagate(newEDAliasName);
+			} catch (DataException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+
+		model.updateLevel1Nodes();
+
+		// model.nodeStructureChanged(model.modulesNode());
+		if (s.length == 2) {
+			scrollToEDAliasByName(newEDAliasName, tree);
+		} else {
+			scrollToEDAliasByName(oldEDAliasName, tree);
+		}
+
+		return true;
+	}
+	
+	/**
+	 * replace a global EDAlias with the internal one
+	 */
+	public static boolean replaceGlobalEDAliasInternally(JTree tree, EDAliasInstance oldGlobalEDAlias, String newObject) {
+		/* newObject = class or class:name or copy:class:name */
+		if (tree == null || oldGlobalEDAlias == null || newObject == null)
+			return false;
+
+		String oldGlobalEDAliasName = oldGlobalEDAlias.name();
+		String newGlobalEDAliasName = null;
+		String[] s = newObject.split(":");
+
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		if (config == null)
+			return false;
+
+		if (config.globalEDAlias(oldGlobalEDAlias.name()) == null)
+			return false;
+
+		EDAliasInstance newGlobalEDAlias = null;
+		String newTemplateName = null;
+		if (s.length == 1) {
+			// temporary unique name
+			newGlobalEDAliasName = "Instance_of_" + s[0];
+			int i = 0;
+			while (!config.isUniqueQualifier(newGlobalEDAliasName)) {
+				newGlobalEDAliasName = "Instance_of_" + s[0] + "_" + i;
+				++i;
+			}
+			newGlobalEDAlias = config.insertGlobalEDAlias(newGlobalEDAliasName);
+			Iterator<Parameter> itP = null;
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Iterator<Parameter> itQ = newGlobalEDAlias.parameterIterator();
+				while (itQ.hasNext()) {
+					Parameter q = itQ.next();
+					if (p.type().equals(q.type()))
+						newGlobalEDAlias.updateParameter(q.name(), q.type(), p.valueAsString());
+				}
+			}
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Parameter n = newGlobalEDAlias.parameter(p.name(), p.type());
+				if (n != null)
+					newGlobalEDAlias.updateParameter(p.name(), p.type(), p.valueAsString());
+			}
+		} else if (s.length == 2) {
+			// old edAlias replaced by existing edAlias, keeping newGlobalEDAliasName
+			// newTemplateName = s[0]; //here there will have to be dummy, or
+			// empty space
+			newGlobalEDAliasName = s[1];
+			if (newGlobalEDAliasName.equals(oldGlobalEDAliasName))
+				return false;
+			newGlobalEDAlias = config.globalEDAlias(newGlobalEDAliasName);
+		} else if (s.length == 3) {
+			// old edAlias replaced by new copy of an existing edAlias, keeping
+			// oldGlobalEDAliasName
+			// newTemplateName = s[1];
+			// temporary unique name
+			newGlobalEDAliasName = "Copy_of_" + s[2];
+			int i = 0;
+			while (!config.isUniqueQualifier(newGlobalEDAliasName)) {
+				newGlobalEDAliasName = "Copy_of_" + s[2] + "_" + i;
+				++i;
+			}
+			newGlobalEDAlias = config.insertGlobalEDAlias(newGlobalEDAliasName);
+			Iterator<Parameter> itP = null;
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Iterator<Parameter> itQ = newGlobalEDAlias.parameterIterator();
+				while (itQ.hasNext()) {
+					Parameter q = itQ.next();
+					if (p.type().equals(q.type()))
+						newGlobalEDAlias.updateParameter(q.name(), q.type(), p.valueAsString());
+				}
+			}
+			itP = oldGlobalEDAlias.parameterIterator();
+			while (itP.hasNext()) {
+				Parameter p = itP.next();
+				Parameter n = newGlobalEDAlias.parameter(p.name(), p.type());
+				if (n != null)
+					newGlobalEDAlias.updateParameter(p.name(), p.type(), p.valueAsString());
+			}
+		} else {
+			return false;
+		}
+
+		int index = config.indexOfGlobalEDAlias(oldGlobalEDAlias);
+
+		model.nodeRemoved(model.globalEDAliasesNode(), index, oldGlobalEDAlias);
+
+		try {
+			newGlobalEDAlias.setNameAndPropagate(oldGlobalEDAliasName);
+		} catch (DataException e) {
+			System.err.println(e.getMessage());
+		}
+
+		if (s.length == 2) {
+			// now rename newGlobalEDAlias back to its original name, and update all
+			// (V)InputTags/keeps etc. originally referring to both oldGlobalEDAlias
+			// and the also newGlobalEDAlias under oldModule's name to use newGlobalEDAlias's
+			// original and final name.
+			try {
+				newGlobalEDAlias.setNameAndPropagate(newGlobalEDAliasName);
+			} catch (DataException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+
+		model.updateLevel1Nodes();
+
+		model.nodeStructureChanged(model.globalEDAliasesNode());
+		if (s.length == 2) {
+			scrollToGlobalEDAliasByName(newGlobalEDAliasName, tree);
+		} else {
+			scrollToGlobalEDAliasByName(oldGlobalEDAliasName, tree);
+		}
+
+		return true;
+	}
+
+	/**
 	 * Clone module -------------------- Clone an existing module with a different
 	 * name. USAGE: if newName is null, it allows the user to edit the name,
 	 * otherwise it assign the prefix "copy_of_" to the sourceModule.
@@ -2441,7 +4119,144 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
-	 * replace a container (path or sequence) with the internal one
+	 * Clone EDAlias -------------------- Clone an existing EDAlias with a different
+	 * name. USAGE: if newName is null, it allows the user to edit the name,
+	 * otherwise it assign the prefix "copy_of_" to the sourceEDAlias.
+	 * 
+	 */
+	public static boolean CloneEDAlias(JTree tree, EDAliasReference oldEDAlias, String newName) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		int depth = treePath.getPathCount();
+		TreePath parentTreePath = (depth == 3) ? treePath : treePath.getParentPath();
+		ReferenceContainer parent = (ReferenceContainer) parentTreePath.getLastPathComponent();
+
+		// INDEX: if you are cloning the EDAlias by hand use next position in selection
+		// path.
+		// if EDAlias is being cloned by "cloneSequence" use the count to insert it in
+		// order.
+
+		int index = (newName != null) ? parent.entryCount()
+				: parent.indexOfEntry((Reference) treePath.getLastPathComponent()) + 1;
+
+		Reference reference = null;
+		EDAliasInstance original = config.edAlias(oldEDAlias.name());
+
+		String instanceName = oldEDAlias.name();
+
+		// Temporary name "copy_of_xxx"
+		if (newName != null)
+			instanceName = newName;
+		else
+			instanceName = "copy_of_" + instanceName;
+
+		// To make sure edAlias name doesn't exist.
+		String temp;
+		if (config.edAlias(instanceName) != null)
+			for (int j = 0; j < 10; j++) {
+				temp = instanceName + "_" + j;
+				if (config.edAlias(temp) == null) {
+					j = 10;
+					instanceName = temp;
+				}
+			}
+
+		reference = config.insertEDAliasReference(parent, index, instanceName); // this creates new EDAlias internally
+		reference.setOperator(oldEDAlias.getOperator());
+
+		EDAliasInstance newEDAlias = (EDAliasInstance) reference.parent();
+
+		// Copy values
+		Iterator<Parameter> itP = original.parameterIterator(); // this should copy EDAlias module names
+		while (itP.hasNext()) {
+			Parameter p = itP.next();
+			newEDAlias.updateTrackedParameter(p.name(), p.type(), p.valueAsString());
+		}
+
+		// Inserting in the model and refreshing tree view:
+		model.nodeInserted(parent, index);
+		model.updateLevel1Nodes();
+
+		TreePath newTreePath = parentTreePath.pathByAddingChild(reference);
+		tree.expandPath(newTreePath.getParentPath());
+		tree.setSelectionPath(newTreePath);
+
+		// Allow the user to modify the name of the reference
+		if (newEDAlias != null && newEDAlias.referenceCount() == 1) {
+			TreePath edAliasTreePath = new TreePath(model.getPathToRoot((Object) newEDAlias));
+			// model.nodeInserted(model.modulesNode(), config.moduleCount() - 1);
+			if (newName == null)
+				editNodeName(tree);
+		}
+
+		return true;
+	}
+	
+	/**
+	 * Clone EDAlias -------------------- Clone an existing global EDAlias with a different
+	 * name. USAGE: if newName is null, it allows the user to edit the name,
+	 * otherwise it assign the prefix "copy_of_" to the sourceGlobalEDAlias.
+	 * @throws DataException 
+	 * 
+	 */
+	public static boolean CloneGlobalEDAlias(JTree tree, EDAliasInstance oldGlobalEDAlias, String newName) throws DataException {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		TreePath treePath = tree.getSelectionPath();
+		
+		int index = config.globalEDAliasCount();
+
+		//EDAliasInstance globalEDAlias = config.insertGlobalEDAlias("<ENTER GLOBAL EDALIAS NAME>");
+
+		EDAliasInstance original = config.globalEDAlias(oldGlobalEDAlias.name());
+
+		String instanceName = oldGlobalEDAlias.name();
+
+		// Temporary name "copy_of_xxx"
+		if (newName != null)
+			instanceName = newName;
+		else
+			instanceName = "copy_of_" + instanceName;
+
+		// To make sure global edAlias name doesn't exist.
+		String temp;
+		if (config.globalEDAlias(instanceName) != null)
+			for (int j = 0; j < 10; j++) {
+				temp = instanceName + "_" + j;
+				if (config.globalEDAlias(temp) == null) {
+					j = 10;
+					instanceName = temp;
+				}
+			}
+				
+		EDAliasInstance newEDAlias = config.insertGlobalEDAlias(index, instanceName);
+
+		// Copy values
+		Iterator<Parameter> itP = original.parameterIterator(); // this should copy EDAlias module names
+		while (itP.hasNext()) {
+			Parameter p = itP.next();
+			newEDAlias.updateTrackedParameter(p.name(), p.type(), p.valueAsString());
+		}
+
+		// Inserting in the model and refreshing tree view:
+		model.nodeInserted(model.globalEDAliasesNode(), index);
+		model.updateLevel1Nodes();
+
+		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
+		tree.setSelectionPath(parentPath.pathByAddingChild(newEDAlias));
+
+		// Allow the user to modify the name of the reference
+		if (newEDAlias != null && newName == null) {
+			editNodeName(tree);
+		}
+
+		return true;
+	}
+
+	/**
+	 * replace a container (path, sequence, task, switch producer) with the internal
+	 * one
 	 */
 	public static boolean replaceContainerInternally(JTree tree, String type, ReferenceContainer oldContainer,
 			String newObject) {
@@ -2498,6 +4313,97 @@ public class ConfigurationTreeActions {
 			model.updateLevel1Nodes();
 			tree.expandPath(new TreePath(model.getPathToRoot(newSequence)));
 			config.removeSequence(oldSequence);
+
+		} else if (type.equals("Task")) {
+
+			Task oldTask = (Task) oldContainer;
+			if (oldTask == null)
+				return false;
+			if (config.task(oldTask.name()) == null)
+				return false;
+			Task newTask = config.task(newObject);
+													
+			if (newTask == null)
+				return false;
+
+			int index = config.indexOfTask(oldTask);
+			int refCount = oldTask.referenceCount();
+			ReferenceContainer[] parents = new ReferenceContainer[refCount];
+			int[] indices = new int[refCount];
+			Operator[] operators = new Operator[refCount];
+			int iRefCount = 0;
+			while (oldTask.referenceCount() > 0) {
+				Reference reference = oldTask.reference(0); // fill old task parents (references)
+				parents[iRefCount] = reference.container();
+				indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+				operators[iRefCount] = reference.getOperator();
+				reference.remove();
+				model.nodeRemoved(parents[iRefCount], indices[iRefCount], reference);
+				iRefCount++;
+			}
+			model.nodeRemoved(model.tasksNode(), index, oldTask);
+			for (int i = 0; i < refCount; i++) {
+				Reference check = parents[i].entry(newTask.name());
+				int iref = parents[i].indexOfEntry(check);
+				if (iref < 0) {
+					config.insertTaskReference(parents[i], indices[i], newTask).setOperator(operators[i]);
+					model.nodeInserted(parents[i], indices[i]);
+				} else if (iref > indices[i]) {
+					config.insertTaskReference(parents[i], indices[i], newTask).setOperator(operators[i]);
+					model.nodeInserted(parents[i], indices[i]);
+					check.remove();
+					model.nodeRemoved(parents[i], iref, check);
+				}
+			}
+			model.updateLevel1Nodes();
+			tree.expandPath(new TreePath(model.getPathToRoot(newTask)));
+			config.removeTask(oldTask);
+
+		} else if (type.equals("SwitchProducer")) {
+
+			SwitchProducer oldSwitchProducer = (SwitchProducer) oldContainer;
+			if (oldSwitchProducer == null)
+				return false;
+			if (config.switchProducer(oldSwitchProducer.name()) == null)
+				return false;
+			SwitchProducer newSwitchProducer = config.switchProducer(newObject);
+			if (newSwitchProducer == null)
+				return false;
+
+			int index = config.indexOfSwitchProducer(oldSwitchProducer);
+			int refCount = oldSwitchProducer.referenceCount();
+			ReferenceContainer[] parents = new ReferenceContainer[refCount];
+			int[] indices = new int[refCount];
+			Operator[] operators = new Operator[refCount];
+			int iRefCount = 0;
+			while (oldSwitchProducer.referenceCount() > 0) {
+				Reference reference = oldSwitchProducer.reference(0);
+				parents[iRefCount] = reference.container();
+				indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+				operators[iRefCount] = reference.getOperator();
+				reference.remove();
+				model.nodeRemoved(parents[iRefCount], indices[iRefCount], reference);
+				iRefCount++;
+			}
+			model.nodeRemoved(model.switchProducersNode(), index, oldSwitchProducer);
+			for (int i = 0; i < refCount; i++) {
+				Reference check = parents[i].entry(newSwitchProducer.name());
+				int iref = parents[i].indexOfEntry(check);
+				if (iref < 0) {
+					config.insertSwitchProducerReference(parents[i], indices[i], newSwitchProducer)
+							.setOperator(operators[i]);
+					model.nodeInserted(parents[i], indices[i]);
+				} else if (iref > indices[i]) {
+					config.insertSwitchProducerReference(parents[i], indices[i], newSwitchProducer)
+							.setOperator(operators[i]);
+					model.nodeInserted(parents[i], indices[i]);
+					check.remove();
+					model.nodeRemoved(parents[i], iref, check);
+				}
+			}
+			model.updateLevel1Nodes();
+			tree.expandPath(new TreePath(model.getPathToRoot(newSwitchProducer)));
+			config.removeSwitchProducer(oldSwitchProducer);
 
 		} else if (type.equals("Path")) {
 
@@ -2590,12 +4496,44 @@ public class ConfigurationTreeActions {
 		model.nodeStructureChanged(model.sequencesNode());
 	}
 
+	/** sort Tasks */
+	public static void sortTasks(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		config.sortTasks();
+		model.nodeStructureChanged(model.tasksNode());
+	}
+
+	/** sort SwitchProducers */
+	public static void sortSwitchProducers(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		config.sortSwitchProducers();
+		model.nodeStructureChanged(model.switchProducersNode());
+	}
+
 	/** sort Modules */
 	public static void sortModules(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 		config.sortModules();
 		model.nodeStructureChanged(model.modulesNode());
+	}
+
+	/** sort EDAliases */
+	public static void sortEDAliases(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		config.sortEDAliases();
+		// model.nodeStructureChanged(model.modulesNode());
+	}
+	
+	/** sort global EDAliases */
+	public static void sortGlobalEDAliases(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		config.sortGlobalEDAliases();
+		model.nodeStructureChanged(model.globalEDAliasesNode());
 	}
 
 	//
@@ -3664,6 +5602,118 @@ public class ConfigurationTreeActions {
 	}
 
 	/**
+	 * replace a EDAlias with the external one
+	 */
+	public static boolean replaceEDAlias(Configuration config, JTree tree, EDAliasInstance external) {
+		if ((config == null) && (tree == null))
+			return false;
+		if ((config != null) && (tree != null))
+			return false;
+
+		ConfigurationTreeModel model = null;
+
+		boolean updateModel = (tree != null);
+
+		if (updateModel) {
+			model = (ConfigurationTreeModel) tree.getModel();
+			config = (Configuration) model.getRoot();
+		}
+
+		EDAliasInstance oldEDAlias = config.edAlias(external.name());
+		if (oldEDAlias == null)
+			return false;
+
+		int index = config.indexOfEDAlias(oldEDAlias);
+		int refCount = oldEDAlias.referenceCount();
+		Operator[] operators = new Operator[refCount];
+		ReferenceContainer[] parents = new ReferenceContainer[refCount];
+		int[] indices = new int[refCount];
+		int iRefCount = 0;
+		while (oldEDAlias.referenceCount() > 0) {
+			Reference reference = oldEDAlias.reference(0);
+			operators[iRefCount] = reference.getOperator();
+			parents[iRefCount] = reference.container();
+			indices[iRefCount] = parents[iRefCount].indexOfEntry(reference);
+			config.removeEDAliasReference((EDAliasReference) reference);
+			if (updateModel)
+				model.nodeRemoved(parents[iRefCount], indices[iRefCount], reference);
+			iRefCount++;
+		}
+
+		try {
+			EDAliasInstance newEDAlias = new EDAliasInstance(external.name());
+			for (int i = 0; i < external.parameterCount(); i++){
+				Parameter param = external.parameter(i);
+				newEDAlias.updateParameter(param);
+			}
+			newEDAlias.setDatabaseId(external.databaseId());
+			config.insertEDAlias(index, newEDAlias);
+
+			for (int i = 0; i < refCount; i++) {
+				config.insertEDAliasReference(parents[i], indices[i], newEDAlias).setOperator(operators[i]);
+				if (updateModel)
+					model.nodeInserted(parents[i], indices[i]);
+			}
+
+			if (updateModel) {
+				model.updateLevel1Nodes();
+				tree.expandPath(new TreePath(model.getPathToRoot(newEDAlias)));
+			}
+
+		} catch (DataException e) {
+			System.err.println("replaceEDAlias() FAILED: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * replace a global EDAlias with the external one
+	 */
+	public static boolean replaceGlobalEDAlias(Configuration config, JTree tree, EDAliasInstance external) {
+		if ((config == null) && (tree == null))
+			return false;
+		if ((config != null) && (tree != null))
+			return false;
+
+		ConfigurationTreeModel model = null;
+
+		boolean updateModel = (tree != null);
+
+		if (updateModel) {
+			model = (ConfigurationTreeModel) tree.getModel();
+			config = (Configuration) model.getRoot();
+		}
+
+		EDAliasInstance oldGlobalEDAlias = config.globalEDAlias(external.name());
+		if (oldGlobalEDAlias == null)
+			return false;
+
+		int index = config.indexOfGlobalEDAlias(oldGlobalEDAlias);
+		
+		if (updateModel) model.nodeRemoved(model.globalEDAliasesNode(), index, oldGlobalEDAlias);
+		
+		try {
+			EDAliasInstance newGlobalEDAlias = new EDAliasInstance(external.name());
+			for (int i = 0; i < newGlobalEDAlias.parameterCount(); i++)
+				newGlobalEDAlias.updateParameter(i, external.parameter(i).valueAsString());
+			newGlobalEDAlias.setDatabaseId(external.databaseId());
+			config.insertGlobalEDAlias(index, newGlobalEDAlias);
+			 
+			if (updateModel) {
+				model.nodeInserted(model.globalEDAliasesNode(), index);
+				model.updateLevel1Nodes();
+				tree.expandPath(new TreePath(model.getPathToRoot(newGlobalEDAlias)));
+			}
+
+		} catch (DataException e) {
+			System.err.println("replaceGlobalEDAlias() FAILED: " + e.getMessage());
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * import a node into the tree and add the respective component to the
 	 * configuration
 	 */
@@ -3799,6 +5849,42 @@ public class ConfigurationTreeActions {
 
 		return true;
 	}
+	
+	
+	/**
+	 * Update All EDAliases.
+	 */
+	public static boolean UpdateAllEDAliases(JTree tree, JTree sourceTree, Object external) {
+		ConfigurationTreeModel sm = (ConfigurationTreeModel) sourceTree.getModel();
+
+		if (sm.getChildCount(external) == 0) {
+			String error = "[confdb.gui.ConfigurationTreeActions.UpdateAllEDAliases] ERROR: Child count == 0";
+			System.err.println(error);
+			return false;
+		}
+
+		if (sm.getChildCount(external) > 0) {
+			Instance instance = (Instance) sm.getChild(external, 0);
+			if (!(instance instanceof EDAliasInstance)) {
+				System.err.println("[confdb.gui.ConfigurationTreeActions.UpdateAllEDAliases] ERROR: type mismatch!");
+				return false;
+			}
+		} else
+			return false;
+
+		int choice = JOptionPane.showConfirmDialog(null,
+				" Items shared by both configurations will be overwritten.\n" + "Do you want to update them?",
+				"update all", JOptionPane.YES_NO_OPTION);
+
+		if (choice == JOptionPane.NO_OPTION)
+			return false;
+
+		UpdateAllEDAliasesThread worker = new UpdateAllEDAliasesThread(tree, sm, external);
+		WorkerProgressBar wpb = new WorkerProgressBar("Updating all EDAliases", worker);
+		wpb.createAndShowGUI();
+
+		return true;
+	}
 
 	/*
 	 * replace an existing instance with the external one
@@ -3881,6 +5967,13 @@ public class ConfigurationTreeActions {
 				return false;
 			config.removePSet(pset);
 			parent = model.psetsNode();
+		} else if (node instanceof EDAliasInstance) {
+			EDAliasInstance globalEDAlias = (EDAliasInstance) node;
+			index = config.indexOfGlobalEDAlias(globalEDAlias);
+			if (index < 0)
+				return false;
+			config.removeGlobalEDAlias(globalEDAlias);
+			parent = model.globalEDAliasesNode();
 		} else if (node instanceof EDSourceInstance) {
 			EDSourceInstance edsource = (EDSourceInstance) node;
 			index = config.indexOfEDSource(edsource);
@@ -4023,6 +6116,30 @@ public class ConfigurationTreeActions {
 			public String toString() {
 				return "HLTFilter";
 			}
+		}
+	}
+
+	public static void renameEDAliasVPSets(IConfiguration config, String oldModuleName, String newModuleName) {
+		
+		Iterator<EDAliasInstance> itEDA = config.edAliasIterator();
+		while (itEDA.hasNext()) {
+			EDAliasInstance edAliasInstance = itEDA.next();
+			for (int j = 0; j < edAliasInstance.parameterCount(); j++) {
+				edAliasInstance.updateName(oldModuleName, "VPSet", newModuleName);
+			}
+
+		}
+	}
+	
+	public static void renameGlobalEDAliasVPSets(IConfiguration config, String oldModuleName, String newModuleName) {
+		
+		Iterator<EDAliasInstance> itGEDA = config.globalEDAliasIterator();
+		while (itGEDA.hasNext()) {
+			EDAliasInstance globalEDAliasInstance = itGEDA.next();
+			for (int j = 0; j < globalEDAliasInstance.parameterCount(); j++) {
+				globalEDAliasInstance.updateName(oldModuleName, "VPSet", newModuleName);
+			}
+
 		}
 	}
 
@@ -4287,6 +6404,104 @@ final class UpdateAllModulesThread extends SwingWorker<String, String> {
 
 }
 
+/** Update Modules using threads. */
+final class UpdateAllEDAliasesThread extends SwingWorker<String, String> {
+	/** member data */
+	private long startTime;
+	private JTree tree;
+	private ConfigurationTreeModel sourceModel;
+	private ConfigurationTreeModel targetModel;
+	private Object ext;
+	private ArrayList<String> items; // names of imported items
+	private Configuration targetConfig;
+	private Configuration sourceConfig;
+	private ConfigurationModifier sourceConfM;
+	private String type;
+
+	/** standard constructor */
+	public UpdateAllEDAliasesThread(JTree Tree, ConfigurationTreeModel sourceModel, Object external) {
+		this.tree = Tree;
+		this.sourceModel = sourceModel;
+		this.targetModel = (ConfigurationTreeModel) tree.getModel();
+		this.ext = external;
+		this.items = new ArrayList<String>();
+		this.targetConfig = (Configuration) targetModel.getRoot();
+		this.type = "";
+		this.sourceConfig = null;
+		this.sourceConfM = null; // Necessary to allow import from a filtered configuration.
+
+		Object conf = sourceModel.getRoot();
+		if (conf instanceof Configuration)
+			this.sourceConfig = (Configuration) sourceModel.getRoot();
+		else if (conf instanceof ConfigurationModifier)
+			this.sourceConfM = (ConfigurationModifier) sourceModel.getRoot();
+
+	}
+
+	/** Return an Array list with containers name to perform a diff operation. */
+	public ArrayList<String> getUpdatedItems() {
+		return items;
+	}
+
+	@Override
+	protected String doInBackground() throws Exception {
+		startTime = System.currentTimeMillis();
+		int count = sourceModel.getChildCount(ext);
+		EDAliasInstance instance = null;
+		for (int i = 0; i < sourceModel.getChildCount(ext); i++) {
+			tree.setSelectionPath(null);
+			instance = (EDAliasInstance) sourceModel.getChild(ext, i);
+
+			int progress = (i * 100) / count; // range 0-100
+			setProgress(progress);
+
+			if ((instance instanceof EDAliasInstance) && targetConfig.module(instance.name()) != null) {
+				if (!ConfigurationTreeActions.replaceEDAlias(targetConfig, null, instance)) {
+					ConfigurationTreeActions.replaceGlobalEDAlias(targetConfig, null, instance);
+					type = "GEDAlias";
+				} else
+					type = "EDAlias";
+				items.add(instance.name()); // register item for diff
+				firePropertyChange("current", null, instance.name());
+			}
+		}
+		setProgress(100);
+
+		return new String("Done!");
+	}
+
+	/*
+	 * Executed in event dispatching thread
+	 */
+	@Override
+	public void done() {
+		long elapsedTime = System.currentTimeMillis() - startTime;
+
+		Diff diff;
+		if (sourceConfig != null)
+			diff = new Diff(sourceConfig, targetConfig);
+		else
+			diff = new Diff(sourceConfM, targetConfig);
+
+		diff.compare(type, items);
+		if (!diff.isIdentical()) {
+			DiffDialog dlg = new DiffDialog(diff);
+			dlg.pack();
+			dlg.setVisible(true);
+		}
+		String time = String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes(elapsedTime),
+				TimeUnit.MILLISECONDS.toSeconds(elapsedTime)
+						- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(elapsedTime)));
+
+		firePropertyChange("current", null, items.size() + " items updated! " + time);
+		System.out.println(items.size() + " items updated! enlapsedTime: " + time);
+		targetModel.updateLevel1Nodes();
+		targetModel.nodeStructureChanged(targetModel.globalEDAliasesNode());
+		targetModel.nodeStructureChanged(targetModel.switchProducersNode());
+	}
+
+}
+
 /**
  * Import a reference container using threads
  * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4275976
@@ -4357,6 +6572,10 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
 				type = "path";
 			else if (container instanceof Sequence)
 				type = "sequence";
+			else if (container instanceof Task)
+				type = "task";
+			else if (container instanceof SwitchProducer)
+				type = "switchproducer";
 
 		return new String("Done!");
 	}

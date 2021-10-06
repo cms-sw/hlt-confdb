@@ -22,9 +22,9 @@ public class HtmlSequenceWriter implements ISequenceWriter
 	}
 	
 
-	protected String decorate( String moduleName )
+	protected String decorate( String entryName )
 	{
-		return "<a href=\"#" + moduleName + "\">" + moduleName + "</a>";
+		return "<a href=\"#" + entryName + "\">" + entryName + "</a>";
 	}
 	
 	protected String decorateName( String sequenceName )

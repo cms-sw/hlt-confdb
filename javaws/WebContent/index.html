@@ -17,6 +17,8 @@ pre {
 
 <h3>Click <a href="start.jnlp">here</a> to start the HLT ConfDB GUI via Java Web Start</h3>
 
+<p>This is the Run3 version of the program ConfDBV3 which is suitable for Run3 development. It can also read run2 menus without issue</p>
+
 <p>The HLT ConfDB GUI is a signed Java application; the signing certificate was granted by the
 <a href="https://ca.cern.ch/ca/">CERN Certification Authority</a> to the "CMS ConfDB" account.<br>
 To verify the certificate, please install the <a href="https://cafiles.cern.ch/cafiles/certificates/CERN%20Root%20Certification%20Authority%202.crt">
@@ -34,10 +36,10 @@ ant clean
 
 <h3>Connection details</h3>
 <p>In order to work, the GUI needs to connect to one of the Oracle database at CERN.<br>
-The offline database <b>HLTDEVv2</b> should be accessible from the CERN network and from all (most?) institutes
+The offline databases <b>Offline Run3</b>, <b> Offline Run2</b>, and <b>Offline Dev</b> should be accessible from the CERN network and from all (most?) institutes
 that belong to the CMS collaboration.<br>
-The online database <b>DAQv2</b> is accessible only from the .CMS network at Point 5, while its read-only
-copy <b>ORCOFFv2</b> is accessible from the CERN network. An ssh tunnel can be used to connect from outside.</p>
+The online database <b>DAQ</b> is accessible only from the .CMS network at Point 5, while its read-only
+copy <b>ORCOFF</b> is accessible from the CERN network. An ssh tunnel can be used to connect from outside.</p>
 
 <p>You can test the connection to the offline database with
 <pre>
@@ -70,7 +72,7 @@ forwarding through an ssh connection to lxplus:
 <pre>
 ssh -f -N -D 1080 lxplus.cern.ch
 </pre>
-then start the GUI, select the HLTDEVv2 (socks tunnel) option<br>
+then start the GUI, select the Offline Run3 (socks tunnel) option<br>
 Change the proxy port number if you used a different local port. </p>
 
 <p>Note we currently are seeing instances of this not working when running via the prebuilt GUI  while it works on the locally compiled version. In this case, either locally compile or note it is it is also possible to forward a port.
@@ -78,7 +80,7 @@ Forward the local port 10121 to the database server through an ssh connection to
 <pre>
 ssh -f -N -L 10121:10.116.96.139:10121 lxplus.cern.ch
 </pre>
-then start the GUI, select the HLTDEVv2 (direct tunnel) option.
+then start the GUI, select the Offlne Run3 (direct tunnel) option.
 Change the server port number if you used a different local port.
 </p>
 

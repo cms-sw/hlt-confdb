@@ -17,17 +17,17 @@ import confdb.data.Parameter;
  */
 public class AddParameterDialog extends JDialog
 {
-    //
-    // member data
-    //
+	//
+	// member data
+	//
     
     /** indicate if a valid choice was made */
     private boolean validChoice = false;
 
-    /** inidcate if only PSet is allowed as type (for adding to VPSet) */
-    private boolean psetMode = false;
-    
-    /** inidcate if tracked is an option */
+	/** indicate if only PSet is allowed as type (for adding to VPSet) */
+	private boolean psetMode = false;
+
+	/** indicate if tracked is an option */
     private boolean isTrackedOption = true;
 
     /** array of valid parameter types */
@@ -39,7 +39,7 @@ public class AddParameterDialog extends JDialog
         "vint32","vuint32","vint64","vuint64","vdouble","vstring",
         "VEventID","VInputTag","VPSet","ESInputTag","VESInputTag"
     };
-    
+
     /** GUI components */
     private JTextField jTextFieldName   = new JTextField();
     private JComboBox  jComboBoxType    = new JComboBox(types);
@@ -74,9 +74,9 @@ public class AddParameterDialog extends JDialog
             jCheckBoxTracked.setEnabled(false); 
     }
 
-    //
-    // member functions
-    //
+	//
+	// member functions
+	//
     
     /** only allow the addition of a pset! */
     public void addParameterSet()
@@ -85,6 +85,36 @@ public class AddParameterDialog extends JDialog
         jComboBoxType.setSelectedIndex(11);
         jComboBoxType.setEnabled(false);
     }
+
+	/** only allow the addition of a vpset! */
+	public void addVParameterSet() {
+		// psetMode = true;
+		jComboBoxType.setSelectedIndex(20);
+		jComboBoxType.setEnabled(false);
+	}
+
+	/** only allow the addition of a string! */
+	public void addString() {
+		// psetMode = true;
+		jComboBoxType.setSelectedIndex(6);
+		jComboBoxType.setEnabled(false);
+	}
+
+	/** only allow the addition of a tracked parameter! */
+	public void disableTrackedCheckbox() {
+		// psetMode = true;
+		jCheckBoxTracked.setEnabled(false);
+	}
+
+	/** set the name */
+	public void setName(String name) {
+		jTextFieldName.setText(name);
+	}
+
+	/** focus the value */
+	public void setValueFocus() {
+		jTextFieldValue.requestFocusInWindow();		 
+	}
 
     /** parameter name entered */
     public void jTextFieldNameActionPerformed(ActionEvent e)
@@ -100,7 +130,7 @@ public class AddParameterDialog extends JDialog
         }
     }
     
-    /** type choosen from the combo box */
+    /** type chosen from the combo box */
     public void jComboBoxTypeActionPerformed(ActionEvent e)
     {
         String type = (String)jComboBoxType.getSelectedItem();
@@ -129,7 +159,7 @@ public class AddParameterDialog extends JDialog
         setVisible(false);
     }
 
-    /** valid choide? */
+    /** valid choice? */
     public boolean validChoice() { return validChoice; }
     
     /** parameter name */
@@ -144,15 +174,14 @@ public class AddParameterDialog extends JDialog
     /** parameter value as string */
     public String valueAsString() { return jTextFieldValue.getText(); }
 
-    
-    //
-    // private member functions
-    //
+	//
+	// private member functions
+	//
 
-    /** init GUI components [generated with NetBeans] */
-    private JPanel createContentPane(boolean isTrackedDefault)
-    {
-        JPanel contentPane = new JPanel();
+	/** init GUI components [generated with NetBeans] */
+	private JPanel createContentPane(boolean isTrackedDefault)
+	{
+		JPanel contentPane = new JPanel();
         
         JLabel jLabel1 = new JLabel();
         JLabel jLabel2 = new JLabel();
@@ -267,7 +296,7 @@ public class AddParameterDialog extends JDialog
                 .addContainerGap())
         );
 
-        return contentPane;
-    }
+		return contentPane;
+	}
 
 }

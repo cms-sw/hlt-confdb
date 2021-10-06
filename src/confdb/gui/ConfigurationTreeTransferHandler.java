@@ -116,7 +116,7 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 		return t;
 	}
 
-	/** wether a certain data flavor can be imported or not */
+	/** Weather a certain data flavor can be imported or not */
 	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
 		return true;
 	}
@@ -189,8 +189,17 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 				ModuleInstance source = (ModuleInstance) sourceNode;
 				return ConfigurationTreeActions.importModule(targetTree, source);
 			}
+			
+			// insert EDAlias
+			if (sourceNode instanceof EDAliasInstance) {
+				EDAliasInstance source = (EDAliasInstance) sourceNode;
+				boolean success = false;
+				if ((success = ConfigurationTreeActions.importEDAlias(targetTree, source)) == false)
+						success = ConfigurationTreeActions.importGlobalEDAlias(targetTree, source);
+				return success;
+			}
 
-			// insert Path/Sequence
+			// insert Path/Sequence/Task/SwitchProducer
 			if (sourceNode instanceof ReferenceContainer) {
 				ReferenceContainer container = (ReferenceContainer) sourceNode;
 				return ConfigurationTreeActions.importReferenceContainer(targetTree, container);
@@ -209,6 +218,19 @@ public class ConfigurationTreeTransferHandler extends TransferHandler {
 					&& (targetNode instanceof Sequence || targetNode == targetModel.sequencesNode())) {
 				Sequence source = (Sequence) sourceNode;
 				return ConfigurationTreeActions.moveSequence(targetTree, source);
+			}
+
+			// move a task
+			if (sourceNode instanceof Task && (targetNode instanceof Task || targetNode == targetModel.tasksNode())) {
+				Task source = (Task) sourceNode;
+				return ConfigurationTreeActions.moveTask(targetTree, source);
+			}
+			
+			// move a switch producer
+			if (sourceNode instanceof SwitchProducer && (targetNode instanceof SwitchProducer || 
+					targetNode == targetModel.switchProducersNode())) {
+				SwitchProducer source = (SwitchProducer) sourceNode;
+				return ConfigurationTreeActions.moveSwitchProducer(targetTree, source);
 			}
 
 			// move a reference within its parent container

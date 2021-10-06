@@ -67,13 +67,41 @@ public class ModifierInstructions {
 	private boolean undefineAllSequences = false;
 	private ArrayList<String> undefinedSequences = new ArrayList<String>();
 
-	/** modules reqested regardless of being referenced in requested path */
+	/** tasks requested regardless of being referenced in requested paths */
+	private ArrayList<String> requestedTasks = new ArrayList<String>();
+
+	/** tasks to be properly referenced but *not* defined */
+	private boolean undefineAllTasks = false;
+	private ArrayList<String> undefinedTasks = new ArrayList<String>();
+
+	/** modules requested regardless of being referenced in requested path */
 	private ArrayList<String> requestedModules = new ArrayList<String>();
 	private ArrayList<String> requestedOutputs = new ArrayList<String>();
-
+	
 	/** modules to be properly referenced but *not* defined */
 	private boolean undefineAllModules = false;
 	private ArrayList<String> undefinedModules = new ArrayList<String>();
+	
+	/** EDAliases requested regardless of being referenced in requested path */
+	private ArrayList<String> requestedEDAliases = new ArrayList<String>();
+	
+	/** EDAliases to be properly referenced but *not* defined */
+	private boolean undefineAllEDAliases = false;
+	private ArrayList<String> undefinedEDAliases = new ArrayList<String>();
+	
+	/** Global EDAliases requested */
+	private ArrayList<String> requestedGlobalEDAliases = new ArrayList<String>();
+	
+	/** EDAliases to be properly referenced but *not* defined */
+	private boolean undefineGlobalAllEDAliases = false;
+	private ArrayList<String> undefinedGlobalEDAliases = new ArrayList<String>();
+
+	/** SwitchProducers requested regardless of being referenced in requested path */
+	private ArrayList<String> requestedSwitchProducers = new ArrayList<String>();
+	
+	/** SwitchProducers to be properly referenced but *not* defined */
+	private boolean undefineAllSwitchProducers= false;
+	private ArrayList<String> undefinedSwitchProducers = new ArrayList<String>();
 
 	/** contents, streams, & datasets reqested */
 	private ArrayList<String> requestedContents = new ArrayList<String>();
@@ -142,9 +170,18 @@ public class ModifierInstructions {
 		value = args.remove("nosequences");
 		if (value != null)
 			undefineAllSequences();
+		value = args.remove("notasks");
+		if (value != null)
+			undefineAllTasks();
 		value = args.remove("nomodules");
 		if (value != null)
 			undefineAllModules();
+		value = args.remove("noedaliases");
+		if (value != null)
+			undefineAllEDAliases();
+		value = args.remove("noswitchproducers");
+		if (value != null)
+			undefineAllSwitchProducers();
 		value = args.remove("nooutput");
 		if (value != null) {
 			filterAllOutputModules(true);
@@ -250,6 +287,17 @@ public class ModifierInstructions {
 			}
 		}
 
+		value = args.remove("tasks");
+		if (value != null) {
+			String[] taskNames = value.split(",");
+			for (String s : taskNames) {
+				if (s.startsWith("-"))
+					undefineTask(s.substring(1));
+				else
+					requestTask(s);
+			}
+		}
+
 		value = args.remove("modules");
 		if (value != null) {
 			String[] moduleNames = value.split(",");
@@ -258,6 +306,28 @@ public class ModifierInstructions {
 					undefineModule(s.substring(1));
 				else
 					requestModule(s);
+			}
+		}
+		
+		value = args.remove("edaliases");
+		if (value != null) {
+			String[] edAliasNames = value.split(",");
+			for (String s : edAliasNames) {
+				if (s.startsWith("-"))
+					undefineEDAlias(s.substring(1));
+				else
+					requestEDAlias(s);
+			}
+		}
+		
+		value = args.remove("switchproducers");
+		if (value != null) {
+			String[] switchProducerNames = value.split(",");
+			for (String s : switchProducerNames) {
+				if (s.startsWith("-"))
+					undefineSwitchProducer(s.substring(1));
+				else
+					requestSwitchProducer(s);
 			}
 		}
 
@@ -468,6 +538,13 @@ public class ModifierInstructions {
 				requestSequence(name);
 		}
 
+		Iterator<Task> itT = config.taskIterator();
+		while (itT.hasNext()) {
+			name = itT.next().name();
+			if (isMatch(name, search, alg))
+				requestTask(name);
+		}
+
 		Iterator<ModuleInstance> itM = config.moduleIterator();
 		while (itM.hasNext()) {
 			ModuleInstance module = itM.next();
@@ -484,6 +561,31 @@ public class ModifierInstructions {
 						requestModule(module.name());
 				}
 			}
+		}
+				
+		Iterator<EDAliasInstance> itEDA = config.edAliasIterator();
+		while (itEDA.hasNext()) {
+			EDAliasInstance edAlias = itEDA.next();
+			if (obj == 3 && edAlias.findParameters(null, null, search, alg).length > 0) {
+				requestEDAlias(edAlias.name());
+			} else {
+				name = edAlias.name(); //no template
+				if (isMatch(name, search, alg)) {
+					requestEDAlias(edAlias.name());
+				} else {
+					Name = (obj == 1) ? search : null;
+					Type = (obj == 1) ? null : search;
+					if (edAlias.findParameters(Name, Type, null, alg).length > 0)
+						requestEDAlias(edAlias.name());
+				}
+			}
+		}
+		
+		Iterator<SwitchProducer> itSP = config.switchProducerIterator();
+		while (itSP.hasNext()) {
+			name = itSP.next().name();
+			if (isMatch(name, search, alg))
+				requestSwitchProducer(name);
 		}
 
 		Iterator<OutputModule> itOM = config.outputIterator();
@@ -668,8 +770,40 @@ public class ModifierInstructions {
 					continue;
 				if (parent instanceof Sequence)
 					requestSequence(name);
+				else if (parent instanceof Task)
+					requestTask(name);
 				else if (parent instanceof ModuleInstance)
 					requestModule(name);
+				else if (parent instanceof EDAliasInstance)
+					requestEDAlias(name);
+				else if (parent instanceof SwitchProducer)
+					requestSwitchProducer(name);
+			}
+		}
+
+		// make sure content of requested tasks is requested as well
+		ArrayList<Task> reqTasks = new ArrayList<Task>();
+		for (String taskName : requestedTasks)
+			reqTasks.add(config.task(taskName));
+
+		Iterator<Task> itReqTas = reqTasks.iterator();
+		while (itReqTas.hasNext()) {
+			Task task = itReqTas.next();
+			Iterator<Reference> itR = task.recursiveReferenceIterator();
+			while (itR.hasNext()) {
+				Reference reference = itR.next();
+				Referencable parent = reference.parent();
+				String name = parent.name();
+				if (isUndefined(parent))
+					continue;
+				if (parent instanceof Task)
+					requestTask(name);
+				else if (parent instanceof ModuleInstance)
+					requestModule(name);
+				else if (parent instanceof EDAliasInstance)
+					requestEDAlias(name);
+				else if (parent instanceof SwitchProducer)
+					requestSwitchProducer(name);
 			}
 		}
 
@@ -696,11 +830,72 @@ public class ModifierInstructions {
 				if (!isUndefined(s))
 					undefineSequence(s.name());
 			}
+			Iterator<Task> itT = sequence.taskIterator();
+			while (itT.hasNext()) {
+				Task t = itT.next();
+				if (!isUndefined(t))
+					undefineTask(t.name());
+			}
 			Iterator<ModuleInstance> itM = sequence.moduleIterator();
 			while (itM.hasNext()) {
 				ModuleInstance m = itM.next();
 				if (!isUndefined(m))
 					undefineModule(m.name());
+			}
+			Iterator<EDAliasInstance> itEDA = sequence.edAliasIterator();
+			while (itEDA.hasNext()) {
+				EDAliasInstance e = itEDA.next();
+				if (!isUndefined(e))
+					undefineEDAlias(e.name());
+			}
+			Iterator<SwitchProducer> itSP = sequence.switchProducerIterator();
+			while (itSP.hasNext()) {
+				SwitchProducer sp = itSP.next();
+				if (!isUndefined(sp))
+					undefineSwitchProducer(sp.name());
+			}
+		}
+
+		// make sure content of undefined tasks is undefined as well
+		ArrayList<Task> undefTasks = new ArrayList<Task>();
+		if (undefineAllTasks) {
+			Iterator<Task> itT = config.taskIterator();
+			while (itT.hasNext())
+				undefTasks.add(itT.next());
+		} else {
+			for (String taskName : undefinedTasks) {
+				Task task = config.task(taskName);
+				if (task != null)
+					undefTasks.add(task);
+			}
+		}
+
+		Iterator<Task> itUndefTas = undefTasks.iterator();
+		while (itUndefTas.hasNext()) {
+			Task task = itUndefTas.next();
+			Iterator<Task> itT = task.taskIterator();
+			while (itT.hasNext()) {
+				Task t = itT.next();
+				if (!isUndefined(t))
+					undefineTask(t.name());
+			}
+			Iterator<ModuleInstance> itM = task.moduleIterator(); // hope this is OK
+			while (itM.hasNext()) {
+				ModuleInstance m = itM.next();
+				if (!isUndefined(m))
+					undefineModule(m.name());
+			}
+			Iterator<EDAliasInstance> itEDA = task.edAliasIterator();
+			while (itEDA.hasNext()) {
+				EDAliasInstance e = itEDA.next();
+				if (!isUndefined(e))
+					undefineModule(e.name());
+			}
+			Iterator<SwitchProducer> itSP = task.switchProducerIterator();
+			while (itSP.hasNext()) {
+				SwitchProducer sp = itSP.next();
+				if (!isUndefined(sp))
+					undefineSwitchProducer(sp.name());
 			}
 		}
 
@@ -827,23 +1022,35 @@ public class ModifierInstructions {
 		return result;
 	}
 
-	/** check if a sequence or module is specifically requested */
-	public boolean isRequested(Referencable moduleOrSequence) {
-		if (moduleOrSequence instanceof Sequence)
-			return (requestedSequences.contains(moduleOrSequence.name()));
-		else if (moduleOrSequence instanceof ModuleInstance)
-			return (requestedModules.contains(moduleOrSequence.name()));
-		else if (moduleOrSequence instanceof OutputModule)
-			return (requestedOutputs.contains(moduleOrSequence.name()));
+	/** check if a sequence, task or module is specifically requested */
+	public boolean isRequested(Referencable requestedObject) {
+		if (requestedObject instanceof Sequence)
+			return (requestedSequences.contains(requestedObject.name()));
+		else if (requestedObject instanceof Task)
+			return (requestedTasks.contains(requestedObject.name()));
+		else if (requestedObject instanceof ModuleInstance)
+			return (requestedModules.contains(requestedObject.name()));
+		else if (requestedObject instanceof OutputModule)
+			return (requestedOutputs.contains(requestedObject.name()));
+		else if (requestedObject instanceof EDAliasInstance)
+			return (requestedEDAliases.contains(requestedObject.name()));
+		else if (requestedObject instanceof SwitchProducer)
+			return (requestedSwitchProducers.contains(requestedObject.name()));
 		return false;
 	}
 
-	/** check if a sequence or module should be undefined */
-	public boolean isUndefined(Referencable moduleOrSequence) {
-		if (moduleOrSequence instanceof Sequence)
-			return (undefineAllSequences) ? true : (undefinedSequences.contains(moduleOrSequence.name()));
-		else if ((moduleOrSequence instanceof ModuleInstance) || (moduleOrSequence instanceof OutputModule))
-			return (undefineAllModules) ? true : (undefinedModules.contains(moduleOrSequence.name()));
+	/** check if a sequence, task, module, EDAlias or SwitchProducer should be undefined */
+	public boolean isUndefined(Referencable undefinedObject) {
+		if (undefinedObject instanceof Sequence)
+			return (undefineAllSequences) ? true : (undefinedSequences.contains(undefinedObject.name()));
+		else if (undefinedObject instanceof Task)
+			return (undefineAllTasks) ? true : (undefinedTasks.contains(undefinedObject.name()));
+		else if ((undefinedObject instanceof ModuleInstance) || (undefinedObject instanceof OutputModule))
+			return (undefineAllModules) ? true : (undefinedModules.contains(undefinedObject.name()));
+		else if (undefinedObject instanceof EDAliasInstance)
+			return (undefineAllEDAliases) ? true : (undefinedEDAliases.contains(undefinedObject.name()));
+		else if (undefinedObject instanceof SwitchProducer)
+			return (undefineAllSwitchProducers) ? true : (undefinedSwitchProducers.contains(undefinedObject.name()));
 		return false;
 	}
 
@@ -852,9 +1059,29 @@ public class ModifierInstructions {
 		return requestedSequences.iterator();
 	}
 
+	/** get iterator for requested tasks */
+	public Iterator<String> requestedTaskIterator() {
+		return requestedTasks.iterator();
+	}
+
 	/** get iterator for requested modules */
 	public Iterator<String> requestedModuleIterator() {
 		return requestedModules.iterator();
+	}
+	
+	/** get iterator for requested EDAliases */
+	public Iterator<String> requestedEDAliasIterator() {
+		return requestedEDAliases.iterator();
+	}
+	
+	/** get iterator for requested globaL EDAliases */
+	public Iterator<String> requestedGlobalEDAliasIterator() {
+		return requestedGlobalEDAliases.iterator();
+	}
+	
+	/** get iterator for requested switch producers */
+	public Iterator<String> requestedSwitchProducerIterator() {
+		return requestedSwitchProducers.iterator();
 	}
 
 	/** get iterator for requested outputs */
@@ -1167,11 +1394,6 @@ public class ModifierInstructions {
 		requestedSequences.remove(sequenceName);
 	}
 
-	/** no sequences will be defined */
-	public void undefineAllSequences() {
-		undefineAllSequences = true;
-	}
-
 	/** sequence won't be defined but references remain; content removed! */
 	public void undefineSequence(String sequenceName) {
 		undefinedSequences.add(sequenceName);
@@ -1182,6 +1404,36 @@ public class ModifierInstructions {
 		undefinedSequences.remove(sequenceName);
 	}
 
+	/** no sequences will be defined */
+	public void undefineAllSequences() {
+		undefineAllSequences = true;
+	}
+
+	/** request a task regardless of it being referenced in path */
+	public void requestTask(String taskName) {
+		requestedTasks.add(taskName);
+	}
+
+	/** unrequest a task regardless of it being referenced in path */
+	public void unrequestTask(String taskName) {
+		requestedTasks.remove(taskName);
+	}
+
+	/** remove task from list of undefined tasks */
+	public void redefineTask(String taskName) {
+		undefinedTasks.remove(taskName);
+	}
+
+	/** task won't be defined but references remain; content removed! */
+	public void undefineTask(String taskName) {
+		undefinedTasks.add(taskName);
+	}
+
+	/** no tasks will be defined */
+	public void undefineAllTasks() {
+		undefineAllTasks = true;
+	}
+
 	/** request a module regardless of it being referenced in path */
 	public void requestModule(String moduleName) {
 		requestedModules.add(moduleName);
@@ -1190,6 +1442,16 @@ public class ModifierInstructions {
 	/** unrequest a module regardless of it being referenced in path */
 	public void unrequestModule(String moduleName) {
 		requestedModules.remove(moduleName);
+	}
+	
+	/** request an EDAlias regardless of it being referenced in path */
+	public void requestEDAlias(String edAliasName) {
+		requestedEDAliases.add(edAliasName);
+	}
+
+	/** unrequest an EDAlias regardless of it being referenced in path */
+	public void unrequestEDAlias(String edAliasName) {
+		requestedEDAliases.remove(edAliasName);
 	}
 
 	/** request a output regardless of it being referenced in path */
@@ -1230,6 +1492,46 @@ public class ModifierInstructions {
 	/** remove a module from the list of undefined modules */
 	public void redefineModule(String moduleName) {
 		undefinedModules.remove(moduleName);
+	}
+	
+	/** no EDAliases will be defined */
+	public void undefineAllEDAliases() {
+		undefineAllEDAliases = true;
+	}
+
+	/** EDAlias will not be defined, but references remain */
+	public void undefineEDAlias(String edAliasName) {
+		undefinedEDAliases.add(edAliasName);
+	}
+
+	/** remove a EDAlias from the list of undefined EDAlias */
+	public void redefineEDAlias(String edAliasName) {
+		undefinedEDAliases.remove(edAliasName);
+	}
+	
+	/** request a switch producer regardless of it being referenced in path */
+	public void requestSwitchProducer(String switchProducerName) {
+		requestedSwitchProducers.add(switchProducerName);
+	}
+
+	/** unrequest a switch producer regardless of it being referenced in path */
+	public void unrequestSwitchProducer(String switchProducerName) {
+		requestedSwitchProducers.remove(switchProducerName);
+	}
+
+	/** remove switch producer from list of undefined switch producers */
+	public void redefineSwitchProducer(String switchProducerName) {
+		requestedSwitchProducers.remove(switchProducerName);
+	}
+
+	/** switch producer won't be defined but references remain; content removed! */
+	public void undefineSwitchProducer(String switchProducerName) {
+		undefinedSwitchProducers.add(switchProducerName);
+	}
+
+	/** no switch producers will be defined */
+	public void undefineAllSwitchProducers() {
+		undefineAllSwitchProducers = true;
 	}
 
 	/** insert a DaqSource */

@@ -4,6 +4,9 @@ import confdb.data.EventContent;
 import confdb.data.ReferenceContainer;
 import confdb.data.Path;
 import confdb.data.Sequence;
+import confdb.data.Task;
+import confdb.data.SwitchProducer;
+
 
 /**
  * EventContentComparison

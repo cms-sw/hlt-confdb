@@ -1,3 +1,3 @@
-confdb.version=V02-07-02
+confdb.version=V03-00-04
 confdb.contact=sandro.ventura@cern.ch
-confdb.url=https://confdb.web.cern.ch/confdb/v2/
+confdb.url=https://confdb.web.cern.ch/confdb/v2-gpu/

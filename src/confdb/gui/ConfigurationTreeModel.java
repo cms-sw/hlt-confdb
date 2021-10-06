@@ -36,12 +36,15 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	/** first level of nodes */
 	private StringBuffer psetsNode = new StringBuffer();
+	private StringBuffer globalEDAliasesNode = new StringBuffer();
 	private StringBuffer edsourcesNode = new StringBuffer();
 	private StringBuffer essourcesNode = new StringBuffer();
 	private StringBuffer esmodulesNode = new StringBuffer();
 	private StringBuffer servicesNode = new StringBuffer();
 	private StringBuffer pathsNode = new StringBuffer();
 	private StringBuffer sequencesNode = new StringBuffer();
+	private StringBuffer tasksNode = new StringBuffer();
+	private StringBuffer switchProducersNode = new StringBuffer();
 	private StringBuffer modulesNode = new StringBuffer();
 	private StringBuffer outputsNode = new StringBuffer();
 	private StringBuffer contentsNode = new StringBuffer();
@@ -52,6 +55,7 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 
 	private ArrayList<StringBuffer> level1Nodes = new ArrayList<StringBuffer>();
 
+	private boolean globalEDAliasAvailability = false;
 	//
 	// construction
 	//
@@ -85,6 +89,11 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	public StringBuffer psetsNode() {
 		return psetsNode;
 	}
+	
+	/** get the global EDAliases root node */
+	public StringBuffer globalEDAliasesNode() {
+		return globalEDAliasesNode;
+	}
 
 	/** get the EDSources root node */
 	public StringBuffer edsourcesNode() {
@@ -114,6 +123,16 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 	/** get the sequences root node */
 	public StringBuffer sequencesNode() {
 		return sequencesNode;
+	}
+
+	/** get the tasks root node */
+	public StringBuffer tasksNode() {
+		return tasksNode;
+	}
+
+	/** get the switch producers root node */
+	public StringBuffer switchProducersNode() {
+		return switchProducersNode;
 	}
 
 	/** get the modules root node */
@@ -149,12 +168,15 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else {
 			if (level1Nodes.isEmpty()) {
 				level1Nodes.add(psetsNode);
+				if(globalEDAliasAvailability) level1Nodes.add(globalEDAliasesNode);
 				level1Nodes.add(edsourcesNode);
 				level1Nodes.add(essourcesNode);
 				level1Nodes.add(esmodulesNode);
 				level1Nodes.add(servicesNode);
 				level1Nodes.add(pathsNode);
 				level1Nodes.add(sequencesNode);
+				level1Nodes.add(tasksNode);
+				level1Nodes.add(switchProducersNode);
 				level1Nodes.add(modulesNode);
 				level1Nodes.add(outputsNode);
 				level1Nodes.add(contentsNode);
@@ -205,6 +227,21 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		}
 		psetsNode.append("</html>");
 		nodeChanged(psetsNode);
+
+		// Global EDAliases node
+		int globalEDAliasCount = config.globalEDAliasCount();
+		int unsetEDAliasCount = config.unsetTrackedEDAliasParameterCount();
+		globalEDAliasesNode.delete(0, globalEDAliasesNode.length());
+		globalEDAliasesNode.append("<html><b>EDAliases</b> (");
+		globalEDAliasesNode.append(globalEDAliasCount);
+		globalEDAliasesNode.append(")");
+		if (unsetEDAliasCount > 0) {
+			globalEDAliasesNode.append(" <font color=#ff0000>[");
+			globalEDAliasesNode.append(unsetEDAliasCount);
+			globalEDAliasesNode.append("]</font>");
+		}
+		globalEDAliasesNode.append("</html>");
+		nodeChanged(globalEDAliasesNode);
 
 		// EDSources node
 		int edsourceCount = config.edsourceCount();
@@ -288,6 +325,22 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		sequencesNode.append(")</html>");
 		nodeChanged(sequencesNode);
 
+		// Tasks node
+		int taskCount = config.taskCount();
+		tasksNode.delete(0, tasksNode.length());
+		tasksNode.append("<html><b>Tasks</b> (");
+		tasksNode.append(taskCount);
+		tasksNode.append(")</html>");
+		nodeChanged(tasksNode);
+
+		// SwitchProducers node
+		int switchProducerCount = config.switchProducerCount();
+		switchProducersNode.delete(0, switchProducersNode.length());
+		switchProducersNode.append("<html><b>SwitchProducers</b> (");
+		switchProducersNode.append(switchProducerCount);
+		switchProducersNode.append(")</html>");
+		nodeChanged(switchProducersNode);
+
 		// Module node
 		int moduleCount = config.moduleCount();
 		int unsetModuleCount = config.unsetTrackedModuleParameterCount();
@@ -367,6 +420,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (node instanceof StringBuffer) {
 			if (node.equals(psetsNode))
 				return config.psetCount();
+			if (node.equals(globalEDAliasesNode))
+				return config.globalEDAliasCount();
 			if (node.equals(edsourcesNode))
 				return config.edsourceCount();
 			if (node.equals(essourcesNode))
@@ -379,6 +434,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				return config.pathCount();
 			if (node.equals(sequencesNode))
 				return config.sequenceCount();
+			if (node.equals(tasksNode))
+				return config.taskCount();
+			if (node.equals(switchProducersNode))
+				return config.switchProducerCount();
 			if (node.equals(modulesNode))
 				return config.moduleCount();
 			if (node.equals(outputsNode))
@@ -418,6 +477,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (node instanceof ModuleReference) {
 			ModuleReference reference = (ModuleReference) node;
 			return reference.parameterCount();
+		} else if (node instanceof EDAliasReference) {
+			EDAliasReference reference = (EDAliasReference) node;
+			return reference.parameterCount();
 		} else if (node instanceof OutputModuleReference) {
 			OutputModuleReference reference = (OutputModuleReference) node;
 			return reference.parameterCount();
@@ -429,6 +491,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			SequenceReference reference = (SequenceReference) node;
 			Sequence sequence = (Sequence) reference.parent();
 			return sequence.entryCount();
+		} else if (node instanceof TaskReference) {
+			TaskReference reference = (TaskReference) node;
+			Task task = (Task) reference.parent();
+			return task.entryCount();
+		} else if (node instanceof SwitchProducerReference) {
+			SwitchProducerReference reference = (SwitchProducerReference) node;
+			SwitchProducer switchProducer = (SwitchProducer) reference.parent();
+			return switchProducer.entryCount();
 		} else if (node instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) node;
 			return pset.parameterCount();
@@ -457,6 +527,8 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (parent instanceof StringBuffer) {
 			if (parent.equals(psetsNode))
 				return config.pset(i);
+			if (parent.equals(globalEDAliasesNode))
+				return config.globalEDAlias(i);
 			if (parent.equals(edsourcesNode))
 				return config.edsource(i);
 			if (parent.equals(essourcesNode))
@@ -469,6 +541,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				return config.path(i);
 			if (parent.equals(sequencesNode))
 				return config.sequence(i);
+			if (parent.equals(tasksNode))
+				return config.task(i);
+			if (parent.equals(switchProducersNode))
+				return config.switchProducer(i);
 			if (parent.equals(modulesNode))
 				return config.module(i);
 			if (parent.equals(outputsNode))
@@ -509,6 +585,9 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 		} else if (parent instanceof ModuleReference) {
 			ModuleReference reference = (ModuleReference) parent;
 			return reference.parameter(i);
+		} else if (parent instanceof EDAliasReference) {
+			EDAliasReference reference = (EDAliasReference) parent;
+			return reference.parameter(i);
 		} else if (parent instanceof OutputModuleReference) {
 			OutputModuleReference reference = (OutputModuleReference) parent;
 			return reference.parameter(i);
@@ -520,6 +599,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			SequenceReference reference = (SequenceReference) parent;
 			Sequence sequence = (Sequence) reference.parent();
 			return sequence.entry(i);
+		} else if (parent instanceof TaskReference) {
+			TaskReference reference = (TaskReference) parent;
+			Task task = (Task) reference.parent();
+			return task.entry(i);
+		} else if (parent instanceof SwitchProducerReference) {
+			SwitchProducerReference reference = (SwitchProducerReference) parent;
+			SwitchProducer switchProducer = (SwitchProducer) reference.parent();
+			return switchProducer.entry(i);
 		} else if (parent instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) parent;
 			return pset.parameter(i);
@@ -549,6 +636,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 				PSetParameter pset = (PSetParameter) child;
 				return config.indexOfPSet(pset);
 			}
+			if (parent.equals(globalEDAliasesNode)) {
+				EDAliasInstance globalEDAlias = (EDAliasInstance) child;
+				return config.indexOfGlobalEDAlias(globalEDAlias);
+			}
 			if (parent.equals(edsourcesNode)) {
 				EDSourceInstance edsource = (EDSourceInstance) child;
 				return config.indexOfEDSource(edsource);
@@ -572,6 +663,14 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			if (parent.equals(sequencesNode)) {
 				Sequence sequence = (Sequence) child;
 				return config.indexOfSequence(sequence);
+			}
+			if (parent.equals(tasksNode)) {
+				Task task = (Task) child;
+				return config.indexOfTask(task);
+			}
+			if (parent.equals(switchProducersNode)) {
+				SwitchProducer switchProducer = (SwitchProducer) child;
+				return config.indexOfSwitchProducer(switchProducer);
 			}
 			if (parent.equals(modulesNode)) {
 				ModuleInstance module = (ModuleInstance) child;
@@ -635,6 +734,10 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			ModuleReference reference = (ModuleReference) parent;
 			Parameter parameter = (Parameter) child;
 			return reference.indexOfParameter(parameter);
+		} else if (parent instanceof EDAliasReference) {
+			EDAliasReference reference = (EDAliasReference) parent;
+			Parameter parameter = (Parameter) child;
+			return reference.indexOfParameter(parameter);
 		} else if (parent instanceof OutputModuleReference) {
 			OutputModuleReference reference = (OutputModuleReference) parent;
 			Parameter parameter = (Parameter) child;
@@ -649,6 +752,16 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			Sequence sequence = (Sequence) seqreference.parent();
 			Reference reference = (Reference) child;
 			return sequence.indexOfEntry(reference);
+		} else if (parent instanceof TaskReference) {
+			TaskReference tasreference = (TaskReference) parent;
+			Task task = (Task) tasreference.parent();
+			Reference reference = (Reference) child;
+			return task.indexOfEntry(reference);
+		} else if (parent instanceof SwitchProducerReference) {
+			SwitchProducerReference spreference = (SwitchProducerReference) parent;
+			SwitchProducer switchProducer = (SwitchProducer) spreference.parent();
+			Reference reference = (Reference) child;
+			return switchProducer.indexOfEntry(reference);
 		} else if (parent instanceof PSetParameter) {
 			PSetParameter pset = (PSetParameter) parent;
 			Parameter parameter = (Parameter) child;
@@ -708,14 +821,20 @@ public class ConfigurationTreeModel extends AbstractTreeModel {
 			return esmodulesNode;
 		else if (node instanceof ServiceInstance)
 			return servicesNode;
-		else if (node instanceof ModuleInstance)
+		else if (node instanceof ModuleInstance) {
 			return modulesNode;
-		else if (node instanceof OutputModule)
+		} else if (node instanceof EDAliasInstance) {
+			return globalEDAliasesNode;
+		} else if (node instanceof OutputModule)
 			return outputsNode;
 		else if (node instanceof Path)
 			return pathsNode;
 		else if (node instanceof Sequence)
 			return sequencesNode;
+		else if (node instanceof Task)
+			return tasksNode;
+		else if (node instanceof SwitchProducer)
+			return switchProducersNode;
 		else if (node instanceof EventContent)
 			return contentsNode;
 		else if (node instanceof Stream)

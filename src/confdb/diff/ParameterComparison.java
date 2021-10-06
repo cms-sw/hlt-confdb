@@ -129,7 +129,7 @@ public class ParameterComparison extends Comparison
     // private member functions
     //
 
-    /** retrieve string represantation of parameter type & name */
+    /** retrieve string representation of parameter type & name */
     private String typeAndNameAsString(Parameter pold,Parameter pnew)
     {
 	StringBuffer result = new StringBuffer();
@@ -139,7 +139,7 @@ public class ParameterComparison extends Comparison
 	return result.toString();
     }
     
-    /** retrieve string represantion for parameter type change */
+    /** retrieve string representation for parameter type change */
     private String typeChangedAsString(Parameter pold,Parameter pnew)
     {
 	StringBuffer result = new StringBuffer();
@@ -148,7 +148,7 @@ public class ParameterComparison extends Comparison
 	return result.toString();
     }
     
-    /** retrieve string represantion for parameter trackiness change */
+    /** retrieve string representation for parameter trackiness change */
     private String trackinessChangedAsString(Parameter pold,Parameter pnew)
     {
 	StringBuffer result = new StringBuffer();
@@ -159,7 +159,7 @@ public class ParameterComparison extends Comparison
 	return result.toString();
     }
 
-    /** retrieve string represantation of old parameter value */
+    /** retrieve string representation of old parameter value */
     private String oldValueAsString(Parameter pold,Parameter pnew)
     {
 	StringBuffer result = new StringBuffer();
@@ -216,7 +216,7 @@ public class ParameterComparison extends Comparison
     
     
     
-    /** retrieve HTML represantation of parameter type & name */
+    /** retrieve HTML representation of parameter type & name */
     private String typeAndNameAsHtml(Parameter pold,Parameter pnew)
     {
 	StringBuffer result = new StringBuffer();
@@ -226,7 +226,7 @@ public class ParameterComparison extends Comparison
 	return result.toString();
     }
     
-    /** retrieve HTML represantion for parameter type change */
+    /** retrieve HTML representation for parameter type change */
     private String typeChangedAsHtml(Parameter pold,Parameter pnew)
     {
 	StringBuffer result = new StringBuffer();
@@ -238,7 +238,7 @@ public class ParameterComparison extends Comparison
 	return result.toString();
     }
     
-    /** retrieve HTML represantion for parameter trackiness change */
+    /** retrieve HTML representation for parameter trackiness change */
     private String trackinessChangedAsHtml(Parameter pold,Parameter pnew)
     {
 	StringBuffer result = new StringBuffer();

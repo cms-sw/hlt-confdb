@@ -22,6 +22,7 @@ public class ModuleInstance extends Instance implements Referencable {
 	/** list of references */
 	private ArrayList<ModuleReference> references = new ArrayList<ModuleReference>();
 
+	private int moduleType = 0; //0 = standard module, 1 = switch producer module
 	//
 	// construction
 	//
@@ -29,6 +30,11 @@ public class ModuleInstance extends Instance implements Referencable {
 	/** standard constructor */
 	public ModuleInstance(String name, ModuleTemplate template) throws DataException {
 		super(name, template);
+	}
+
+	public ModuleInstance(String name, ModuleTemplate template, int modType ) throws DataException {
+		super(name, template);
+		moduleType = modType;
 	}
 
 	//
@@ -53,7 +59,7 @@ public class ModuleInstance extends Instance implements Referencable {
 		return references.get(i);
 	}
 
-	/** test if a specifc reference refers to this entity */
+	/** test if a specific reference refers to this entity */
 	public boolean isReferencedBy(Reference reference) {
 		return references.contains(reference);
 	}
@@ -119,16 +125,17 @@ public class ModuleInstance extends Instance implements Referencable {
 					}
 				}
 			}
-
-			boolean isDownstream = path.isEndPath();
+			
 			Iterator<ModuleInstance> itM = path.moduleIterator();
 			while (itM.hasNext()) {
 				ModuleInstance module = itM.next();
-				if (!isDownstream) {
-					if (module == this)
-						isDownstream = true;
-					continue;
-				}
+				
+				/* there was a check for downstreamness before                    
+				/* ie a module would only be changed if was physically after the  
+				/* module being changed                                        
+				/* however with tasks, SP, this is no longer true, the order
+				/* doesnt matter so we globally replace   */
+				
 				Iterator<Parameter> itP = module.recursiveParameterIterator();
 				while (itP.hasNext()) {
 					Parameter p = itP.next();
@@ -199,6 +206,18 @@ public class ModuleInstance extends Instance implements Referencable {
 
 		return result;
 
+	}
+
+	public void setModuleType(int val) {
+		if (val != moduleType) {
+			moduleType = val;	
+			setHasChanged();
+		} 
+		
+	}
+	
+	public int moduleType() {
+		return moduleType;
 	}
 
 }

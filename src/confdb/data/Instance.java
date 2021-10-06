@@ -9,7 +9,7 @@ import java.util.Iterator;
  * --------
  * @author Philipp Schieferdecker
  *
- * abstract base class for Service, EDSource, ESSource, and Module Instances.
+ * abstract base class for Service, EDSource, ESSource, Module and EDAlias Instances.
  */
 public class Instance extends ParameterContainer implements Comparable<Instance>
 {
@@ -36,8 +36,10 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     {
 	this.template = template;
 	setName(name);
+	if (template != null) {
 	for (int i=0;i<template.parameterCount();i++)
 	    addParameter(template.parameter(i).clone(this));
+	}
     }
     
     
@@ -60,11 +62,21 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** set the name of this instance */
     public void setName(String name) throws DataException
     {
-        name = name.replaceAll("\\W", "");
+        /** we allow EDAliases and Modules to have a . in their name due to 
+         *  SP sub modules needing them (and no good way to limit just to SP 
+         *  SP sub modules, issue is with parsing), otherwise not */
+        if( this instanceof ModuleInstance ||
+            this instanceof EDAliasInstance) {            
+            name = name.replaceAll("[^\\w.]", "");
+        }else{
+            name = name.replaceAll("\\W", "");
+        }
+        if (template != null) {
 	if (template().hasInstance(name)
 	    ||(config!=null&&!config.isUniqueQualifier(name)))
 	    throw new DataException("Instance.setName() ERROR: " +
 				    "name '"+name+"' is not unique!");
+        }
 	this.name = name;
 	setHasChanged();
     }
@@ -78,21 +90,28 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
     /** get the template */
     public Template template() { return template; }
     
-    /** ParameterContainer: indicate wether parameter is at its default */
+    /** ParameterContainer: indicate weather parameter is at its default */
     public boolean isParameterAtItsDefault(Parameter p)
     {
-	Parameter templateParameter =
-	    template.findParameter(p.fullName(),p.type());
-	if (templateParameter==null) return false;
-	return p.valueAsString().equals(templateParameter.valueAsString());
+    	if (template != null) {
+    		Parameter templateParameter = template.findParameter(p.fullName(),p.type());
+    		if (templateParameter==null) return false;
+    		return p.valueAsString().equals(templateParameter.valueAsString());
+    	} else {
+    		return false; //EDAlias
+    	}
     }
     
-    /** ParameterContainer: indicate wether a parameter can be removed */
+    /** ParameterContainer: indicate weather a parameter can be removed */
     public boolean isParameterRemovable(Parameter p)
     {
-	int index = indexOfParameter(p);
-	if (index<template.parameterCount()) return false;
-	return true;
+    	if (template != null) {
+    		int index = indexOfParameter(p);
+    		if (index<template.parameterCount()) return false;
+    			return true;
+    	} else {
+    		return true;
+    	}
     }
     
     /** remove this instance */

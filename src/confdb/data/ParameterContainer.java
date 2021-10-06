@@ -23,10 +23,10 @@ abstract public class ParameterContainer extends DatabaseEntry {
 	// abstract member functions
 	//
 
-	/** indicate wether parameter is at its default */
+	/** indicate weather parameter is at its default */
 	abstract public boolean isParameterAtItsDefault(Parameter p);
 
-	/** indicate wether a parameter can be removed or not */
+	/** indicate weather a parameter can be removed or not */
 	abstract public boolean isParameterRemovable(Parameter p);
 
 	//
@@ -73,7 +73,7 @@ abstract public class ParameterContainer extends DatabaseEntry {
 		return parameters.iterator();
 	}
 
-	/** check wether this container contains a given parameter */
+	/** check weather this container contains a given parameter */
 	public boolean containsParameter(Parameter p) {
 		return parameters.contains(p);
 	}
@@ -250,6 +250,30 @@ abstract public class ParameterContainer extends DatabaseEntry {
 		return result;
 	}
 
+	/** update a name of the parameter when the value is changed */
+	public boolean updateName(String name, String type, String newName) {
+		Parameter p = findParameter(name, type);
+		// handle existing parameter, top-level or not
+		if (p != null) {
+			String oldName = p.name();
+			if (newName.equals(oldName))
+				return true;
+			p.setName(newName);
+			setHasChanged();
+			return true;
+		}
+		return false;
+	}
+
+	/** update a name of the parameter when the value is changed */
+	/*
+	 * public boolean updateRedName(String name, String type, String newName) {
+	 * Parameter p = findParameter(name, type); // handle existing parameter,
+	 * top-level or not if (p != null) { String oldName = p.name(); if
+	 * (newName.equals(oldName)) return true; p.setRedName(newName);
+	 * setHasChanged(); return true; } return false; }
+	 */
+
 	/** update a parameter when the value is changed */
 	public boolean updateParameter(String name, String type, String valueAsString) {
 		Parameter p = findParameter(name, type);
@@ -266,13 +290,42 @@ abstract public class ParameterContainer extends DatabaseEntry {
 		// add an untracked parameter to the top-level
 		else {
 			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, false);
-			System.err
-					.println("ParameterContainer INFO: " + "Adding untracked parameter to top-level: " + parameterNew);
 			addParameter(parameterNew);
 			setHasChanged();
 			return true;
 		}
 	}
+
+	/** update a tracked parameter when the value is changed */
+	public boolean updateTrackedParameter(String name, String type, String valueAsString) {
+		Parameter p = findParameter(name, type);
+		// handle existing parameter, top-level or not
+		if (p != null) {
+			String oldValueAsString = p.valueAsString();
+			if (valueAsString.equals(oldValueAsString))
+				return true;
+			boolean result = p.setValue(valueAsString);
+			if (result)
+				setHasChanged();
+			return result;
+		}
+		// add an tracked parameter to the top-level
+		else {
+			Parameter parameterNew = ParameterFactory.create(type, name, valueAsString, true);	
+			addParameter(parameterNew);
+			setHasChanged();
+			return true;
+		}
+	}
+	/** update a parameter when the value is changed */
+	public boolean updateParameter(Parameter param){
+		if(param.isTracked()){
+			return updateTrackedParameter(param.name(),param.type(),param.valueAsString());
+		}else{
+			return updateTrackedParameter(param.name(),param.type(),param.valueAsString());
+		}
+	}
+
 
 	/** number of unset tracked parameters */
 	public int unsetTrackedParameterCount() {

@@ -24,14 +24,18 @@ public class ConfigurationModifier implements IConfiguration {
 
 	/** filtered components */
 	private ArrayList<PSetParameter> psets = new ArrayList<PSetParameter>();
+	private ArrayList<EDAliasInstance> globalEDAliases = new ArrayList<EDAliasInstance>();
 	private ArrayList<EDSourceInstance> edsources = new ArrayList<EDSourceInstance>();
 	private ArrayList<ESSourceInstance> essources = new ArrayList<ESSourceInstance>();
 	private ArrayList<ESModuleInstance> esmodules = new ArrayList<ESModuleInstance>();
 	private ArrayList<ServiceInstance> services = new ArrayList<ServiceInstance>();
 	private ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
+	private ArrayList<EDAliasInstance> edaliases = new ArrayList<EDAliasInstance>();
+	private ArrayList<SwitchProducer> switchproducers = new ArrayList<SwitchProducer>();
 	private ArrayList<OutputModule> outputs = new ArrayList<OutputModule>();
 	private ArrayList<Path> paths = new ArrayList<Path>();
 	private ArrayList<Sequence> sequences = new ArrayList<Sequence>();
+	private ArrayList<Task> tasks = new ArrayList<Task>();
 	private ArrayList<EventContent> contents = new ArrayList<EventContent>();
 	private ArrayList<Stream> streams = new ArrayList<Stream>();
 	private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>();
@@ -129,6 +133,7 @@ public class ConfigurationModifier implements IConfiguration {
 			return;
 
 		psets.clear();
+		globalEDAliases.clear();
 		edsources.clear();
 		essources.clear();
 		esmodules.clear();
@@ -137,6 +142,9 @@ public class ConfigurationModifier implements IConfiguration {
 		outputs.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
+		edaliases.clear();
+		switchproducers.clear();
 		contents.clear();
 		streams.clear();
 		datasets.clear();
@@ -240,11 +248,29 @@ public class ConfigurationModifier implements IConfiguration {
 						if (!modifications.isUndefined(sequence) && !sequences.contains(sequence))
 							sequences.add(sequence);
 					}
+					Iterator<Task> itT = path.taskIterator();
+					while (itT.hasNext()) {
+						Task task = itT.next();
+						if (!modifications.isUndefined(task) && !tasks.contains(task))
+							tasks.add(task);
+					}
 					Iterator<ModuleInstance> itM = path.moduleIterator();
 					while (itM.hasNext()) {
 						ModuleInstance module = itM.next();
 						if (!modifications.isUndefined(module) && !modules.contains(module))
 							modules.add(module);
+					}
+					Iterator<EDAliasInstance> itEDA = path.edAliasIterator();
+					while (itEDA.hasNext()) {
+						EDAliasInstance edAlias = itEDA.next();
+						if (!modifications.isUndefined(edAlias) && !edaliases.contains(edAlias))
+							edaliases.add(edAlias);
+					}
+					Iterator<SwitchProducer> itSP = path.switchProducerIterator();
+					while (itSP.hasNext()) {
+						SwitchProducer switchProducer = itSP.next();
+						if (!modifications.isUndefined(switchProducer) && !switchproducers.contains(switchProducer))
+							switchproducers.add(switchProducer);
 					}
 					Iterator<OutputModule> itOM = path.outputIterator();
 					while (itOM.hasNext()) {
@@ -271,11 +297,32 @@ public class ConfigurationModifier implements IConfiguration {
 				sequences.add(sequence);
 		}
 
+		Iterator<String> itT = modifications.requestedTaskIterator();
+		while (itT.hasNext()) {
+			Task task = master.task(itT.next());
+			if (task != null && tasks.indexOf(task) < 0)
+				tasks.add(task);
+		}
+
 		Iterator<String> itM = modifications.requestedModuleIterator();
 		while (itM.hasNext()) {
 			ModuleInstance module = master.module(itM.next());
 			if (module != null && modules.indexOf(module) < 0)
 				modules.add(module);
+		}
+		
+		Iterator<String> itEDA = modifications.requestedEDAliasIterator();
+		while (itEDA.hasNext()) {
+			EDAliasInstance edalias = master.edAlias(itEDA.next());
+			if (edalias != null && edaliases.indexOf(edalias) < 0)
+				edaliases.add(edalias);
+		}
+		
+		Iterator<String> itSP = modifications.requestedSwitchProducerIterator();
+		while (itSP.hasNext()) {
+			SwitchProducer switchProducer = master.switchProducer(itSP.next());
+			if (switchProducer != null && switchproducers.indexOf(switchProducer) < 0)
+				switchproducers.add(switchProducer);
 		}
 
 		Iterator<String> itOM = modifications.requestedOutputIterator();
@@ -357,6 +404,79 @@ public class ConfigurationModifier implements IConfiguration {
 		return result.iterator();
 	}
 
+	/**
+	 * order tasks such that each task is defined before being referenced
+	 */
+	public Iterator<Task> orderedTaskIterator() {
+		ArrayList<Task> result = new ArrayList<Task>();
+		Iterator<Task> itT = taskIterator();
+		while (itT.hasNext()) {
+			Task task = itT.next();
+			int indexT = result.indexOf(task);
+			if (indexT < 0) {
+				indexT = result.size();
+				result.add(task);
+			}
+			Iterator<Reference> itR = task.entryIterator();
+			while (itR.hasNext()) {
+				Reference reference = itR.next();
+				Referencable parent = reference.parent();
+				if (parent instanceof Task) {
+					Task t = (Task) parent;
+					if (isModified && !tasks.contains(t))
+						continue;
+					int indexR = result.indexOf(t);
+					if (indexR < 0) {
+						indexR = indexT;
+						indexT++;
+						result.add(indexR, t);
+					} else if (indexR > indexT) {
+						result.remove(indexR);
+						indexR = indexT;
+						indexT++;
+						result.add(indexR, t);
+					}
+				}
+			}
+		}
+		return result.iterator();
+	}
+	
+	public Iterator<SwitchProducer> orderedSwitchProducerIterator() {
+		ArrayList<SwitchProducer> result = new ArrayList<SwitchProducer>();
+		Iterator<SwitchProducer> itSP = switchProducerIterator();
+		while (itSP.hasNext()) {
+			SwitchProducer switchProducer = itSP.next();
+			int indexSP = result.indexOf(switchProducer);
+			if (indexSP < 0) {
+				indexSP = result.size();
+				result.add(switchProducer);
+			}
+			Iterator<Reference> itR = switchProducer.entryIterator();
+			while (itR.hasNext()) {
+				Reference reference = itR.next();
+				Referencable parent = reference.parent();
+				if (parent instanceof SwitchProducer) {
+					SwitchProducer sp = (SwitchProducer) parent;
+					if (isModified && !switchproducers.contains(sp))
+						continue;
+					int indexR = result.indexOf(sp);
+					if (indexR < 0) {
+						indexR = indexSP;
+						indexSP++;
+						result.add(indexR, sp);
+					} else if (indexR > indexSP) {
+						result.remove(indexR);
+						indexR = indexSP;
+						indexSP++;
+						result.add(indexR, sp);
+					}
+				}
+			}
+		}
+		return result.iterator();
+	}
+
 	/** reset all modifications */
 	public void reset() {
 		modifications = new ModifierInstructions();
@@ -370,6 +490,9 @@ public class ConfigurationModifier implements IConfiguration {
 		outputs.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
+		edaliases.clear();
+		switchproducers.clear();
 		contents.clear();
 		streams.clear();
 		datasets.clear();
@@ -459,7 +582,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked global pset parameters */
+	/** number of unset tracked global pset parameters */
 	public int unsetTrackedPSetParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedPSetParameterCount();
@@ -468,8 +591,17 @@ public class ConfigurationModifier implements IConfiguration {
 			result += pset.unsetTrackedParameterCount();
 		return result;
 	}
+	
+	
+	public int unsetTrackedGlobalEDAliasParameterCount() {
+		if (!isModified)
+			return master.unsetTrackedGlobalEDAliasParameterCount();
+		int result = 0;
+		for (EDAliasInstance geda : globalEDAliases)
+			result += geda.unsetTrackedParameterCount();
+		return result;	}
 
-	/** number of unsert tracked edsource parameters */
+	/** number of unset tracked edsource parameters */
 	public int unsetTrackedEDSourceParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedEDSourceParameterCount();
@@ -479,7 +611,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked essource parameters */
+	/** number of unset tracked essource parameters */
 	public int unsetTrackedESSourceParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedESSourceParameterCount();
@@ -489,7 +621,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked esmodule parameters */
+	/** number of unset tracked esmodule parameters */
 	public int unsetTrackedESModuleParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedESModuleParameterCount();
@@ -499,7 +631,7 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked service parameters */
+	/** number of unset tracked service parameters */
 	public int unsetTrackedServiceParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedServiceParameterCount();
@@ -509,13 +641,23 @@ public class ConfigurationModifier implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked module parameters */
+	/** number of unset tracked module parameters */
 	public int unsetTrackedModuleParameterCount() {
 		if (!isModified)
 			return master.unsetTrackedModuleParameterCount();
 		int result = 0;
 		for (ModuleInstance mod : modules)
 			result += mod.unsetTrackedParameterCount();
+		return result;
+	}
+	
+	/** number of unset tracked EDAlias parameters */
+	public int unsetTrackedEDAliasParameterCount() {
+		if (!isModified)
+			return master.unsetTrackedEDAliasParameterCount();
+		int result = 0;
+		for (EDAliasInstance eda : edaliases)
+			result += eda.unsetTrackedParameterCount();
 		return result;
 	}
 
@@ -610,6 +752,26 @@ public class ConfigurationModifier implements IConfiguration {
 	/** retrieve pset iterator */
 	public Iterator<PSetParameter> psetIterator() {
 		return (isModified) ? psets.iterator() : master.psetIterator();
+	}
+
+	public int globalEDAliasCount() {
+		return (isModified) ? globalEDAliases.size() : master.globalEDAliasCount();
+	}
+
+	public EDAliasInstance globalEDAlias(int i) {
+		return (isModified) ? globalEDAliases.get(i) : master.globalEDAlias(i);
+	}
+
+	public EDAliasInstance globalEDAlias(String globalEDAliasName) {
+		return master.globalEDAlias(globalEDAliasName);
+	}
+
+	public int indexOfGlobalEDAlias(EDAliasInstance globalEDAlias) {
+		return (isModified) ? globalEDAliases.indexOf(globalEDAlias) : master.indexOfGlobalEDAlias(globalEDAlias);
+	}
+
+	public Iterator<EDAliasInstance> globalEDAliasIterator() {
+		return (isModified) ? globalEDAliases.iterator() : master.globalEDAliasIterator();
 	}
 
 	/** number of EDSources */
@@ -755,6 +917,55 @@ public class ConfigurationModifier implements IConfiguration {
 	/** retrieve module iterator */
 	public Iterator<ModuleInstance> moduleIterator() {
 		return (isModified) ? modules.iterator() : master.moduleIterator();
+	}
+	
+	/** number of EDAliases */
+	public int edAliasCount() {
+		return (isModified) ? edaliases.size() : master.edAliasCount();
+	}
+
+	/** get i-th EDAlias */
+	public EDAliasInstance edAlias(int i) {
+		return (isModified) ? edaliases.get(i) : master.edAlias(i);
+	}
+
+	/** get EDAlias by name */
+	public EDAliasInstance edAlias(String edAliasName) {
+		return master.edAlias(edAliasName);
+	}
+	
+	/** index of a certain EDAlias */
+	public int indexOfEDAlias(EDAliasInstance edAlias) {
+		return (isModified) ? edaliases.indexOf(edAlias) : master.indexOfEDAlias(edAlias);
+	}
+	
+	public Iterator<EDAliasInstance> edAliasIterator() {
+		return (isModified) ? edaliases.iterator() : master.edAliasIterator();
+	}
+	
+	/** number of switch producers */
+	public int switchProducerCount() {
+		return (isModified) ? switchproducers.size() : master.switchProducerCount();
+	}
+
+	/** get i-th switch producer */
+	public SwitchProducer switchProducer(int i) {
+		return (isModified) ? switchproducers.get(i) : master.switchProducer(i);
+	}
+
+	/** get switch producer by name */
+	public SwitchProducer switchProducer(String switchProducerName) {
+		return master.switchProducer(switchProducerName);
+	}
+
+	/** index of a certain switch producer */
+	public int indexOfSwitchProducer(SwitchProducer switchProducer) {
+		return (isModified) ? switchproducers.indexOf(switchProducer) : master.indexOfSwitchProducer(switchProducer);
+	}
+
+	/** retrieve switch producer iterator */
+	public Iterator<SwitchProducer> switchProducerIterator() {
+		return (isModified) ? switchproducers.iterator() : master.switchProducerIterator();
 	}
 
 	/** number of OutputModules */
@@ -915,5 +1126,30 @@ public class ConfigurationModifier implements IConfiguration {
 	/** add a block */
 	public void insertBlock(Block block) {
 		blocks.add(block);
+	}
+
+	/** number of Tasks */
+	public int taskCount() {
+		return (isModified) ? tasks.size() : master.taskCount();
+	}
+
+	/** get i-th Task */
+	public Task task(int i) {
+		return (isModified) ? tasks.get(i) : master.task(i);
+	}
+
+	/** get Task by name */
+	public Task task(String taskName) {
+		return master.task(taskName);
+	}
+
+	/** index of a certain Task */
+	public int indexOfTask(Task task) {
+		return (isModified) ? tasks.indexOf(task) : master.indexOfTask(task);
+	}
+
+	/** retrieve task iterator */
+	public Iterator<Task> taskIterator() {
+		return (isModified) ? tasks.iterator() : master.taskIterator();
 	}
 }

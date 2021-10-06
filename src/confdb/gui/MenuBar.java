@@ -24,6 +24,7 @@ public class MenuBar {
 	/** menu bar item names: configMenu */
 	private static final String configMenuNew = "New";
 	private static final String configMenuOpen = "Open";
+	private static final String configMenuOpenDB = "Open (Different DB)";
 	private static final String configMenuOpenOld = "Open Old Schema";
 	private static final String configMenuJParse = "Open Python File";
 	private static final String configMenuClose = "Close";
@@ -31,6 +32,7 @@ public class MenuBar {
 	private static final String configMenuCommentSave = "Comment&Save";
 	private static final String configMenuSaveAs = "Save As";
 	private static final String configMenuImport = "Import";
+	private static final String configMenuImportDB = "Import (Different DB)";
 	private static final String configMenuMigrate = "Migrate";
 	private static final String configMenuConvert = "Convert";
 
@@ -39,6 +41,7 @@ public class MenuBar {
 	private static final String toolMenuDiff = "Compare (Diff)";
 	private static final String toolMenuSmartVersions = "Smart Path Versioning";
 	private static final String toolMenuSmartRenaming = "Smart Renaming";
+	private static final String toolMenuConvertToTasks = "Taskify";
 	private static final String toolMenuPSEditor = "Edit Prescales";
 	private static final String toolMenuSPSEditor = "Edit SmartPrescales";
 	private static final String toolMenuMLEditor = "Edit MessageLogger";
@@ -61,6 +64,7 @@ public class MenuBar {
 	private JMenuItem configMenuNewItem = null;
 	private JMenuItem configMenuJParseItem = null;
 	private JMenuItem configMenuOpenItem = null;
+	private JMenuItem configMenuOpenDBItem = null;
 	private JMenuItem configMenuOpenOldItem = null;
 	private JMenuItem configMenuCloseItem = null;
 	private JMenuItem configMenuCommentSaveItem = null;
@@ -68,12 +72,14 @@ public class MenuBar {
 	private JMenuItem configMenuSaveAsItem = null;
 
 	private JMenuItem configMenuImportItem = null;
+	private JMenuItem configMenuImportDBItem = null;
 	private JMenuItem configMenuMigrateItem = null;
 	private JMenuItem configMenuConvertItem = null;
 
 	private JMenuItem toolMenuDiffItem = null;
 	private JMenuItem toolMenuSmartVersionsItem = null;
 	private JMenuItem toolMenuSmartRenamingItem = null;
+	private JMenuItem toolMenuConvertToTasksItem = null;
 	private JMenuItem toolMenuReplaceItem = null;
 	private JMenuItem toolMenuPSEditorItem = null;
 	private JMenuItem toolMenuSPSEditorItem = null;
@@ -105,17 +111,20 @@ public class MenuBar {
 		dbConnectionIsEstablished();
 		configMenuNewItem.setEnabled(true);
 		configMenuOpenItem.setEnabled(true);
+		configMenuOpenDBItem.setEnabled(true);
 		configMenuCloseItem.setEnabled(true);
 		configMenuSaveItem.setEnabled(true);
 		configMenuCommentSaveItem.setEnabled(true);
 		configMenuSaveAsItem.setEnabled(true);
 		configMenuImportItem.setEnabled(true);
+		configMenuImportDBItem.setEnabled(true);
 		configMenuMigrateItem.setEnabled(true);
 		configMenuConvertItem.setEnabled(true);
 		toolMenuReplaceItem.setEnabled(true);
 		toolMenuDiffItem.setEnabled(true);
 		toolMenuSmartVersionsItem.setEnabled(true);
 		toolMenuSmartRenamingItem.setEnabled(true);
+		toolMenuConvertToTasksItem.setEnabled(true);
 		toolMenuPSEditorItem.setEnabled(true);
 		toolMenuSPSEditorItem.setEnabled(true);
 		toolMenuMLEditorItem.setEnabled(true);
@@ -132,11 +141,13 @@ public class MenuBar {
 		configMenuCommentSaveItem.setEnabled(false);
 		configMenuSaveAsItem.setEnabled(false);
 		configMenuImportItem.setEnabled(false);
+		configMenuImportDBItem.setEnabled(false);
 		configMenuMigrateItem.setEnabled(false);
 		configMenuConvertItem.setEnabled(false);
 		// toolMenuDiffItem.setEnabled(false);
 		toolMenuSmartVersionsItem.setEnabled(false);
 		toolMenuSmartRenamingItem.setEnabled(false);
+		toolMenuConvertToTasksItem.setEnabled(false);
 		toolMenuReplaceItem.setEnabled(false);
 		toolMenuPSEditorItem.setEnabled(false);
 		toolMenuSPSEditorItem.setEnabled(false);
@@ -152,6 +163,7 @@ public class MenuBar {
 		configMenuNewItem.setEnabled(true);
 		configMenuJParseItem.setEnabled(true);
 		configMenuOpenItem.setEnabled(true);
+		configMenuOpenDBItem.setEnabled(true);
 		configMenuOpenOldItem.setEnabled(true);
 		toolMenuDiffItem.setEnabled(true);
 		toolMenuSmartVersionsItem.setEnabled(true);
@@ -167,6 +179,7 @@ public class MenuBar {
 		configMenuOpenOldItem.setEnabled(false);
 		configMenuJParseItem.setEnabled(false);
 		configMenuOpenItem.setEnabled(false);
+		configMenuOpenDBItem.setEnabled(false);
 		toolMenuDiffItem.setEnabled(false);
 		toolMenuSmartVersionsItem.setEnabled(false);
 		toolMenuSmartRenamingItem.setEnabled(false);
@@ -201,6 +214,10 @@ public class MenuBar {
 		configMenuOpenItem.setActionCommand(configMenuOpen);
 		configMenuOpenItem.addActionListener(listener);
 		configMenu.add(configMenuOpenItem);
+		configMenuOpenDBItem = new JMenuItem(configMenuOpenDB);
+		configMenuOpenDBItem.setActionCommand(configMenuOpenDB);
+		configMenuOpenDBItem.addActionListener(listener);
+		configMenu.add(configMenuOpenDBItem);
 		configMenuOpenOldItem = new JMenuItem(configMenuOpenOld, KeyEvent.VK_Q);
 		configMenuOpenOldItem.setActionCommand(configMenuOpenOld);
 		configMenuOpenOldItem.addActionListener(listener);
@@ -233,6 +250,10 @@ public class MenuBar {
 		configMenuImportItem.setActionCommand(configMenuImport);
 		configMenuImportItem.addActionListener(listener);
 		configMenu.add(configMenuImportItem);
+		configMenuImportDBItem = new JMenuItem(configMenuImportDB, KeyEvent.VK_D);
+		configMenuImportDBItem.setActionCommand(configMenuImportDB);
+		configMenuImportDBItem.addActionListener(listener);
+		configMenu.add(configMenuImportDBItem);
 		configMenuMigrateItem = new JMenuItem(configMenuMigrate, KeyEvent.VK_M);
 		configMenuMigrateItem.setActionCommand(configMenuMigrate);
 		configMenuMigrateItem.addActionListener(listener);
@@ -257,7 +278,10 @@ public class MenuBar {
 		toolMenuSmartRenamingItem = new JMenuItem(toolMenuSmartRenaming, KeyEvent.VK_N);
 		toolMenuSmartRenamingItem.setActionCommand(toolMenuSmartRenaming);
 		toolMenuSmartRenamingItem.addActionListener(listener);
-		toolMenu.add(toolMenuSmartRenamingItem);
+		toolMenuConvertToTasksItem = new JMenuItem(toolMenuConvertToTasks);
+		toolMenuConvertToTasksItem.setActionCommand(toolMenuConvertToTasks);
+		toolMenuConvertToTasksItem.addActionListener(listener);
+		//toolMenu.add(toolMenuConvertToTasksItem);
 		toolMenuReplaceItem = new JMenuItem(toolMenuReplace, KeyEvent.VK_R);
 		toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 		toolMenuReplaceItem.addActionListener(listener);

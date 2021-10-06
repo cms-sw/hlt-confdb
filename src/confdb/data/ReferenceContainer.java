@@ -9,7 +9,7 @@ import java.util.Iterator;
  * ------------------
  * @author Philipp Schieferdecker
  * 
- * Common base class of Path and Sequence.
+ * Common base class of Path, Sequence, Task etc.
  */
 abstract public class ReferenceContainer extends DatabaseEntry implements Comparable<ReferenceContainer>, Referencable {
 	//
@@ -47,7 +47,7 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 	/** check if container contains the specified reference */
 	abstract public boolean containsEntry(Reference reference);
 
-	/** create a reference of this in a reference container (path/sequence) */
+	/** create a reference of this in a reference container (path/sequence/task) */
 	abstract public Reference createReference(ReferenceContainer container, int i);
 
 	//
@@ -59,7 +59,7 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 		return name();
 	}
 
-	/** DatabaseEntry:indicate wether in the DB or changed */
+	/** DatabaseEntry:indicate weather in the DB or changed */
 	public boolean hasChanged() {
 		if (databaseId() == 0)
 			return true;
@@ -229,11 +229,32 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 		return sequences.iterator();
 	}
 
+	/** create iterator for all contained Tasks */
+	public Iterator<Task> taskIterator() {
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		getTasksAmongEntries(entryIterator(), tasks);
+		return tasks.iterator();
+	}
+
 	/** create iterator for all contained Modules */
 	public Iterator<ModuleInstance> moduleIterator() {
 		ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
 		getModulesAmongEntries(entryIterator(), modules);
 		return modules.iterator();
+	}
+	
+	/** create iterator for all contained EDAliases */
+	public Iterator<EDAliasInstance> edAliasIterator() {
+		ArrayList<EDAliasInstance> edAliases = new ArrayList<EDAliasInstance>();
+		getEDAliasAmongEntries(entryIterator(), edAliases);
+		return edAliases.iterator();
+	}
+	
+	/** create iterator for all contained SwitchProducers */
+	public Iterator<SwitchProducer> switchProducerIterator() {
+		ArrayList<SwitchProducer> switchProducers = new ArrayList<SwitchProducer>();
+		getSwitchProducersAmongEntries(entryIterator(), switchProducers);
+		return switchProducers.iterator();
 	}
 
 	/** create iterator for all contained OutputModules */
@@ -327,6 +348,15 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 				Parameter p = it.next();
 				getUnresolvedInputTags(p, labels, unresolved, prefix + "/" + module.name());
 			}
+		} else if (r instanceof EDAliasReference) {
+			EDAliasReference edaref = (EDAliasReference) r;
+			EDAliasInstance edAlias = (EDAliasInstance) edaref.parent();
+			labels.add(edAlias.name());
+			Iterator<Parameter> it = edAlias.parameterIterator();
+			while (it.hasNext()) {
+				Parameter p = it.next();
+				getUnresolvedInputTags(p, labels, unresolved, prefix + "/" + edAlias.name()); 
+			}
 		} else if (r instanceof OutputModuleReference) {
 		} else {
 			ReferenceContainer container = (ReferenceContainer) r.parent();
@@ -381,6 +411,7 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 				getUnresolvedESInputTags(p, unresolved, prefix + "/" + module.name());
 			}
 		} else if (r instanceof OutputModuleReference) {
+		} else if (r instanceof EDAliasReference) {
 		} else {
 			ReferenceContainer container = (ReferenceContainer) r.parent();
 			Iterator<Reference> it = container.entryIterator();
@@ -433,6 +464,9 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getPathsAmongEntries(sequence.entryIterator(), paths);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getPathsAmongEntries(task.entryIterator(), paths);
 			}
 		}
 	}
@@ -453,6 +487,25 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 		}
 	}
 
+	/** add all Task entries to 'task' array (recursively) */
+	private void getTasksAmongEntries(Iterator<Reference> itEntry, ArrayList<Task> tasks) {
+		while (itEntry.hasNext()) {
+			Reference entry = itEntry.next();
+			if (entry instanceof PathReference) {
+				PathReference ref = (PathReference) entry;
+				Path path = (Path) ref.parent();
+				getTasksAmongEntries(path.entryIterator(), tasks);
+			} else if (entry instanceof SequenceReference) {
+				Sequence sequence = (Sequence) entry.parent();
+				getTasksAmongEntries(sequence.entryIterator(), tasks);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				tasks.add(task);
+				getTasksAmongEntries(task.entryIterator(), tasks);
+			}
+		}
+	}
+
 	/** add all Module entries to 'modules' array (recursively) */
 	private void getModulesAmongEntries(Iterator<Reference> itEntry, ArrayList<ModuleInstance> modules) {
 		while (itEntry.hasNext()) {
@@ -468,6 +521,50 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getModulesAmongEntries(sequence.entryIterator(), modules);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getModulesAmongEntries(task.entryIterator(), modules);
+			} else if (entry instanceof SwitchProducerReference) {
+				SwitchProducer sp = (SwitchProducer) entry.parent();			
+				getModulesAmongEntries(sp.entryIterator(), modules);
+			}
+		}
+	}
+	
+	/** add all EDAlias entries to 'edAliases' array (recursively) */
+	private void getEDAliasAmongEntries(Iterator<Reference> itEntry, ArrayList<EDAliasInstance> edAliases) {
+		while (itEntry.hasNext()) {
+			Reference entry = itEntry.next();
+			if (entry instanceof EDAliasReference) {
+				EDAliasReference ref = (EDAliasReference) entry;
+				EDAliasInstance edAlias = (EDAliasInstance) ref.parent();
+				edAliases.add(edAlias);
+			} else if (entry instanceof SwitchProducerReference) {
+				SwitchProducerReference ref = (SwitchProducerReference) entry;
+				SwitchProducer switchProducer = (SwitchProducer) ref.parent();
+				getEDAliasAmongEntries(switchProducer.entryIterator(), edAliases);
+			} 
+		}
+	}
+	
+	/** add all SwitchProducer entries to 'switchproducer' array (recursively) */
+	private void getSwitchProducersAmongEntries(Iterator<Reference> itEntry, ArrayList<SwitchProducer> switchProducers) {
+		while (itEntry.hasNext()) {
+			Reference entry = itEntry.next();
+			if (entry instanceof SwitchProducerReference) {
+				SwitchProducerReference ref = (SwitchProducerReference) entry;
+				SwitchProducer switchProducer = (SwitchProducer) ref.parent();
+				switchProducers.add(switchProducer);
+			} else if (entry instanceof PathReference) {
+				PathReference ref = (PathReference) entry;
+				Path path = (Path) ref.parent();
+				getSwitchProducersAmongEntries(path.entryIterator(), switchProducers);
+			} else if (entry instanceof SequenceReference) {
+				Sequence sequence = (Sequence) entry.parent();
+				getSwitchProducersAmongEntries(sequence.entryIterator(), switchProducers);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getSwitchProducersAmongEntries(task.entryIterator(), switchProducers);
 			}
 		}
 	}
@@ -487,6 +584,9 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getOutputsAmongEntries(sequence.entryIterator(), outputs);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getOutputsAmongEntries(task.entryIterator(), outputs);
 			}
 		}
 	}
@@ -502,6 +602,12 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof SequenceReference) {
 				Sequence sequence = (Sequence) entry.parent();
 				getReferences(sequence.entryIterator(), references);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getReferences(task.entryIterator(), references);
+			}  else if (entry instanceof SwitchProducerReference) {
+				SwitchProducer switchProducer = (SwitchProducer) entry.parent();
+				getReferences(switchProducer.entryIterator(), references);
 			}
 		}
 	}

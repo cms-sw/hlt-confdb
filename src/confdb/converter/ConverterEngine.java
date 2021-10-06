@@ -8,14 +8,18 @@ public class ConverterEngine {
 
 	private IConfigurationWriter configurationWriter = null;
 	private IParameterWriter parameterWriter = null;
+	private IEDAliasWriter globalEDAliasWriter = null;
 	private IEDSourceWriter edsourceWriter = null;
 	private IESSourceWriter essourceWriter = null;
 	private IESModuleWriter esmoduleWriter = null;
 	private IServiceWriter serviceWriter = null;
 	private IModuleWriter moduleWriter = null;
+	private IEDAliasWriter edAliasWriter = null;
 	private IOutputWriter outputWriter = null;
 	private IPathWriter pathWriter = null;
 	private ISequenceWriter sequenceWriter = null;
+	private ITaskWriter taskWriter = null;
+	private ISwitchProducerWriter switchProducerWriter = null;
 
 	private int maxLineLength = 250;
 
@@ -68,6 +72,15 @@ public class ConverterEngine {
 	protected void setParameterWriter(IParameterWriter parameterWriter) {
 		this.parameterWriter = parameterWriter;
 	}
+	
+	public IEDAliasWriter getGlobalEDAliasWriter() {
+		return globalEDAliasWriter;
+	}
+
+	protected void setGlobalEDAliasWriter(IEDAliasWriter globalEDAliasWriter) {
+		this.globalEDAliasWriter = globalEDAliasWriter;
+		this.globalEDAliasWriter.setConverterEngine(this);
+	}
 
 	public IEDSourceWriter getEDSourceWriter() {
 		return edsourceWriter;
@@ -101,6 +114,15 @@ public class ConverterEngine {
 		this.moduleWriter = moduleWriter;
 		this.moduleWriter.setConverterEngine(this);
 	}
+	
+	public IEDAliasWriter getEDAliasWriter() {
+		return edAliasWriter;
+	}
+
+	protected void setEDAliasWriter(IEDAliasWriter edAliasWriter) {
+		this.edAliasWriter = edAliasWriter;
+		this.edAliasWriter.setConverterEngine(this);
+	}
 
 	public IOutputWriter getOutputWriter() {
 		return outputWriter;
@@ -115,8 +137,24 @@ public class ConverterEngine {
 		return sequenceWriter;
 	}
 
+	public ITaskWriter getTaskWriter() {
+		return taskWriter;
+	}
+	
+	public ISwitchProducerWriter getSwitchProducerWriter() {
+		return switchProducerWriter;
+	}
+
 	protected void setSequenceWriter(ISequenceWriter sequenceWriter) {
 		this.sequenceWriter = sequenceWriter;
+	}
+
+	protected void setTaskWriter(ITaskWriter taskWriter) {
+		this.taskWriter = taskWriter;
+	}
+	
+	protected void setSwitchProducerWriter(ISwitchProducerWriter switchProducerWriter) {
+		this.switchProducerWriter = switchProducerWriter;
 	}
 
 	public String getConfigurationTrailer() {

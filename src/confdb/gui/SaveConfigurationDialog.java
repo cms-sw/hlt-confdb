@@ -57,6 +57,8 @@ public class SaveConfigurationDialog extends JDialog {
 	private static final String OK = new String("OK");
 	private static final String CANCEL = new String("Cancel");
 
+	private UserPermissionsManager userPermissions = null;
+
 	//
 	// construction
 	//
@@ -66,8 +68,7 @@ public class SaveConfigurationDialog extends JDialog {
 		super(frame, true);
 		this.config = config;
 		this.database = database;
-
-		jTextFieldComment.setText(comment);
+		this.userPermissions = new UserPermissionsManager(database);		jTextFieldComment.setText(comment);
 		setTitle("Save Configuration");
 
 		// initialize tree
@@ -203,11 +204,17 @@ public class SaveConfigurationDialog extends JDialog {
 
 		if (configName.length() > 0 && parentDir != null) {
 
-			if (configInfo == null)
-				configInfo = new ConfigInfo(configName, parentDir, releaseTag);
-			config.setConfigInfo(configInfo);
-			validChoice = true;
-			setVisible(false);
+			if(userPermissions.hasWritePermission(parentDir.name())) {
+				if (configInfo == null)
+					configInfo = new ConfigInfo(configName, parentDir, releaseTag);
+				config.setConfigInfo(configInfo);
+				validChoice = true;
+				setVisible(false);
+			}else{
+				String errMsg = "You dont have admin privileges and therefore can only save under /users. If you believe this is an error, please contact the STORM convenors. Please choose a different location";
+				JOptionPane.showMessageDialog((JFrame) getParent(), errMsg, "Permissions Error", JOptionPane.ERROR_MESSAGE,
+							null);
+			}
 		}
 	}
 

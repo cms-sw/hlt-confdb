@@ -35,6 +35,12 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 	/** current parameter (set by MouseAdapter for ActionListener) */
 	private Parameter parameter = null;
 
+	/** Is current parameter parent parent EDAlias **/
+	private boolean isParentParentEDAlias;
+
+	/** Is current parameter parent EDAlias **/
+	private boolean isParentEDAlias;
+
 	//
 	// construction
 	//
@@ -44,6 +50,8 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 		this.treeTable = treeTable;
 		this.treeModel = (ParameterTreeModel) treeTable.getTree().getModel();
 		this.tableModel = (TreeTableTableModel) treeTable.getModel();
+		this.isParentParentEDAlias = false;
+		this.isParentEDAlias = false;
 	}
 
 	//
@@ -77,14 +85,20 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 		JPopupMenu popup = new JPopupMenu();
 		Object parent = parameter.parent();
 		Boolean bRemoveParam = false;
+		Object parentParent = null;
 
-		// if(parent instanceof Instance){
-		// Template template = ((Instance)parent).template();
-		// Parameter pExists = template.parameter(parameter.name());
-		// if(pExists==null){
-		// bRemoveParam = true;
-		// }
-		// }
+		int dotIndex = parent.getClass().toString().lastIndexOf(".");
+		String parentClassName = parent.getClass().toString().substring(dotIndex + 1);
+		String parentParentClassName = null;
+
+		isParentEDAlias = (parentClassName.equals("EDAliasInstance")) ? true : false;
+
+		if (parentClassName.equals("VPSetParameter")) {
+			parentParent = ((Parameter) parent).parent();
+			dotIndex = parentParent.getClass().toString().lastIndexOf(".");
+			parentParentClassName = parentParent.getClass().toString().substring(dotIndex + 1);
+			isParentParentEDAlias = parentParentClassName.matches("EDAliasInstance") ? true : false;
+		}
 
 		if (parent instanceof ParameterContainer) {
 			ParameterContainer container = (ParameterContainer) parent;
@@ -95,6 +109,11 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			JMenuItem menuItem = new JMenuItem("Add PSet");
 			menuItem.addActionListener(this);
 			popup.add(menuItem);
+			if (this.isParentEDAlias) {
+				menuItem = new JMenuItem("Rename Module (VPSet)");
+				menuItem.addActionListener(this);
+				popup.add(menuItem);
+			}
 			if (parent instanceof PSetParameter || bRemoveParam) {
 				popup.addSeparator();
 				menuItem = new JMenuItem("Remove Parameter");
@@ -133,6 +152,9 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			if (cmd.equals("Add PSet")) {
 				VPSetParameter vpset = (VPSetParameter) parameter;
 				addParameterSet(vpset);
+			} else if (cmd.equals("Rename Module (VPSet)")) {
+		        String name = JOptionPane.showInputDialog(frame, "Enter new module (VPSet) name", null);
+		        treeModel.setNameAt(name, parameter, 0);    	
 			} else if (parent instanceof PSetParameter) {
 				PSetParameter pset = (PSetParameter) parent;
 				if (cmd.equals("Remove Parameter")) {
@@ -199,8 +221,15 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 	/** show dialog to add parameter to pset */
 	private void addParameter(PSetParameter pset) {
 		AddParameterDialog dlg = new AddParameterDialog(frame, pset.isTracked());
+		if (this.isParentParentEDAlias) {
+			dlg.addString();
+			dlg.disableTrackedCheckbox();
+			dlg.setName("type");
+		}
 		dlg.pack();
 		dlg.setLocationRelativeTo(frame);
+		if (this.isParentParentEDAlias)
+			dlg.setValueFocus();
 		dlg.setVisible(true);
 		if (dlg.validChoice()) {
 			Parameter p = ParameterFactory.create(dlg.type(), dlg.name(), dlg.valueAsString(), dlg.isTracked());
@@ -247,5 +276,5 @@ public class ParameterTableMouseListener extends MouseAdapter implements ActionL
 			}
 		}
 	}
-
+	
 }

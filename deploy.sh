@@ -1,8 +1,10 @@
 #! /bin/bash -e
 
 # set the target directory
-BASE=$HOME/www/v2
-URL=http://confdb.web.cern.ch/confdb/v2/gui/
+VERSION=${1:-v2}
+
+BASE=$HOME/www/$VERSION
+URL=https://confdb.web.cern.ch/confdb/$VERSION/gui/
 
 # buld everything from scratch
 ant clean

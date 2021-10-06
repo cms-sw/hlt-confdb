@@ -76,10 +76,10 @@ abstract public class Parameter implements Comparable<Parameter>, Serializable
     /** retrieve the name of the parameter */
     public String name() { return name; }
 
-    /** retrieve the flag indication ig the parameter is tracked/untracked */
+    /** retrieve the flag indication if the parameter is tracked/untracked */
     public boolean isTracked() { return isTracked; }
 
-    /** retrieve the flag indication ig the parameter value is set */
+    /** retrieve the flag indication if the parameter value is set */
     public boolean isValueSet() { return isValueSet; }
 
     /** retrieve status indicating if the parameter is at its default */
@@ -95,8 +95,11 @@ abstract public class Parameter implements Comparable<Parameter>, Serializable
 
     /** set isTracked */
     public void setTracked(boolean isTracked) { this.isTracked = isTracked; }
-
-    /** get the parent container, if any (otherwise: global pset, likley) */
+    
+    /** set Name of the parameter */
+    public void setName(String name) { this.name = name; }
+    
+    /** get the parent container, if any (otherwise: global pset, likely) */
     public ParameterContainer getParentContainer()
     {
 	Object p = parent();

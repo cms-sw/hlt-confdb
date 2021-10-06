@@ -17,7 +17,6 @@ public class Configuration implements IConfiguration {
 	//
 	// member data
 	//
-
 	/** configuration information */
 	private ConfigInfo configInfo = null;
 
@@ -27,8 +26,11 @@ public class Configuration implements IConfiguration {
 	/** has the configuration changed since the last 'save' operation? */
 	private boolean hasChanged = false;
 
-	/** list of globale parameter sets */
+	/** list of global parameter sets */
 	private GlobalPSetContainer psets = null;
+
+	/** list of global EDAliases */
+	private ArrayList<EDAliasInstance> globalEDAliases = null; //global EDAliases will not have references
 
 	/** list of EDSources */
 	private ArrayList<EDSourceInstance> edsources = null;
@@ -45,11 +47,20 @@ public class Configuration implements IConfiguration {
 	/** list of Modules */
 	private ArrayList<ModuleInstance> modules = null;
 
+	/** list of EDAliases */
+	private ArrayList<EDAliasInstance> edaliases = null;
+
+	/** list of SwitchProducers */
+	private ArrayList<SwitchProducer> switchproducers = null;
+
 	/** list of Paths */
 	private ArrayList<Path> paths = null;
 
 	/** list of Sequences */
 	private ArrayList<Sequence> sequences = null;
+
+	/** list of Tasks */
+	private ArrayList<Task> tasks = null;
 
 	/** list of EventContents */
 	private ArrayList<EventContent> contents = null;
@@ -64,26 +75,34 @@ public class Configuration implements IConfiguration {
 	/** empty constructor */
 	public Configuration() {
 		psets = new GlobalPSetContainer();
+		globalEDAliases = new ArrayList<EDAliasInstance>();
 		edsources = new ArrayList<EDSourceInstance>();
 		essources = new ArrayList<ESSourceInstance>();
 		esmodules = new ArrayList<ESModuleInstance>();
 		services = new ArrayList<ServiceInstance>();
 		modules = new ArrayList<ModuleInstance>();
+		edaliases = new ArrayList<EDAliasInstance>();
+		switchproducers = new ArrayList<SwitchProducer>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
+		tasks = new ArrayList<Task>();
 		contents = new ArrayList<EventContent>();
 	}
 
 	/** standard constructor */
 	public Configuration(ConfigInfo configInfo, SoftwareRelease release) {
 		psets = new GlobalPSetContainer();
+		globalEDAliases = new ArrayList<EDAliasInstance>();
 		edsources = new ArrayList<EDSourceInstance>();
 		essources = new ArrayList<ESSourceInstance>();
 		esmodules = new ArrayList<ESModuleInstance>();
 		services = new ArrayList<ServiceInstance>();
 		modules = new ArrayList<ModuleInstance>();
+		edaliases = new ArrayList<EDAliasInstance>();
+		switchproducers = new ArrayList<SwitchProducer>();
 		paths = new ArrayList<Path>();
 		sequences = new ArrayList<Sequence>();
+		tasks = new ArrayList<Task>();
 		contents = new ArrayList<EventContent>();
 
 		initialize(configInfo, release);
@@ -101,12 +120,16 @@ public class Configuration implements IConfiguration {
 		setHasChanged(false);
 
 		psets.clear();
+		globalEDAliases.clear();
 		edsources.clear();
 		essources.clear();
 		services.clear();
 		modules.clear();
+		edaliases.clear();
+		switchproducers.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
 		contents.clear();
 	}
 
@@ -117,12 +140,16 @@ public class Configuration implements IConfiguration {
 		setHasChanged(false);
 
 		psets.clear();
+		globalEDAliases.clear();
 		edsources.clear();
 		essources.clear();
 		services.clear();
 		modules.clear();
+		edaliases.clear();
+		switchproducers.clear();
 		paths.clear();
 		sequences.clear();
+		tasks.clear();
 		contents.clear();
 	}
 
@@ -133,7 +160,7 @@ public class Configuration implements IConfiguration {
 		this.configInfo = configInfo;
 	}
 
-	/** overlaod toString() */
+	/** Overload toString() */
 	public String toString() {
 		String result = new String();
 		if (configInfo == null)
@@ -162,8 +189,14 @@ public class Configuration implements IConfiguration {
 			return pathCount();
 		else if (c == Sequence.class)
 			return sequenceCount();
+		else if (c == Task.class)
+			return taskCount();
 		else if (c == ModuleInstance.class)
 			return moduleCount();
+		else if (c == EDAliasInstance.class)
+			return edAliasCount();
+		else if (c == SwitchProducer.class)
+			return switchProducerCount();
 		else if (c == OutputModule.class)
 			return outputCount();
 		else if (c == EventContent.class)
@@ -179,8 +212,10 @@ public class Configuration implements IConfiguration {
 	/** isEmpty() */
 	public boolean isEmpty() {
 		return (name().length() == 0 && // psets.isEmpty()&&
-				psets.parameterCount() == 0 && edsources.isEmpty() && essources.isEmpty() && services.isEmpty()
-				&& modules.isEmpty() && paths.isEmpty() && sequences.isEmpty() && contents.isEmpty());
+				psets.parameterCount() == 0 && globalEDAliases.isEmpty() && edsources.isEmpty()
+				&& essources.isEmpty() && services.isEmpty() && modules.isEmpty() && paths.isEmpty()
+				&& sequences.isEmpty() && tasks.isEmpty() && switchproducers.isEmpty() && edaliases.isEmpty()
+				&& contents.isEmpty());
 	}
 
 	/** retrieve ConfigInfo object */
@@ -276,6 +311,9 @@ public class Configuration implements IConfiguration {
 			return true;
 		if (psets.hasChanged())
 			return true;
+		for (EDAliasInstance geda : globalEDAliases)
+			if (geda.hasChanged())
+				return true;
 		for (EDSourceInstance eds : edsources)
 			if (eds.hasChanged())
 				return true;
@@ -293,6 +331,15 @@ public class Configuration implements IConfiguration {
 				return true;
 		for (Sequence seq : sequences)
 			if (seq.hasChanged())
+				return true;
+		for (Task tas : tasks)
+			if (tas.hasChanged())
+				return true;
+		for (EDAliasInstance eda : edaliases)
+			if (eda.hasChanged())
+				return true;
+		for (SwitchProducer swp : switchproducers)
+			if (swp.hasChanged())
 				return true;
 		for (EventContent evc : contents)
 			if (evc.hasChanged())
@@ -326,11 +373,23 @@ public class Configuration implements IConfiguration {
 		for (ModuleInstance m : modules)
 			if (m.name().equals(qualifier))
 				return false;
+		for (EDAliasInstance eda : edaliases)
+			if (eda.name().equals(qualifier))
+				return false;
+		for (EDAliasInstance geda : globalEDAliases)
+			if (geda.name().equals(qualifier))
+				return false;
+		for (SwitchProducer swp : switchproducers)
+			if (swp.name().equals(qualifier))
+				return false;
 		for (Path p : paths)
 			if (p.name().equals(qualifier))
 				return false;
 		for (Sequence s : sequences)
 			if (s.name().equals(qualifier))
+				return false;
+		for (Task t : tasks)
+			if (t.name().equals(qualifier))
 				return false;
 
 		Iterator<OutputModule> itOM = outputIterator();
@@ -357,6 +416,24 @@ public class Configuration implements IConfiguration {
 			if (m.name().equals(referencable.name()))
 				return false;
 		}
+		for (EDAliasInstance eda : edaliases) {
+			if (eda == referencable)
+				continue;
+			if (eda.name().equals(referencable.name()))
+				return false;
+		}
+		for (EDAliasInstance geda : globalEDAliases) {
+			if (geda == referencable)
+				continue;
+			if (geda.name().equals(referencable.name()))
+				return false;
+		}
+		for (SwitchProducer swp : switchproducers) {
+			if (swp == referencable)
+				continue;
+			if (swp.name().equals(referencable.name()))
+				return false;
+		}
 		Iterator<OutputModule> itOM = outputIterator();
 		while (itOM.hasNext()) {
 			OutputModule om = itOM.next();
@@ -375,6 +452,12 @@ public class Configuration implements IConfiguration {
 			if (s == referencable)
 				continue;
 			if (s.name().equals(referencable.name()))
+				return false;
+		}
+		for (Task t : tasks) {
+			if (t == referencable)
+				continue;
+			if (t.name().equals(referencable.name()))
 				return false;
 		}
 		return true;
@@ -396,7 +479,7 @@ public class Configuration implements IConfiguration {
 		return true;
 	}
 
-	/** number of empty containers (paths / sequences) */
+	/** number of empty containers (paths / sequences / tasks) */
 	public int emptyContainerCount() {
 		int result = 0;
 		Iterator<Path> itP = paths.iterator();
@@ -409,6 +492,19 @@ public class Configuration implements IConfiguration {
 		while (itS.hasNext()) {
 			Sequence s = itS.next();
 			if (s.entryCount() == 0)
+				result++;
+		}
+		Iterator<Task> itT = tasks.iterator();
+		int taskNumber = 0;
+		while (itT.hasNext()) {
+			Task t = itT.next();
+			if (t.entryCount() == 0)
+				result++;
+		}
+		Iterator<SwitchProducer> itSP = switchproducers.iterator();
+		while (itSP.hasNext()) {
+			SwitchProducer sp = itSP.next();
+			if (sp.entryCount() == 0)
 				result++;
 		}
 		return result;
@@ -427,6 +523,7 @@ public class Configuration implements IConfiguration {
 		result += unsetTrackedESModuleParameterCount();
 		result += unsetTrackedServiceParameterCount();
 		result += unsetTrackedModuleParameterCount();
+		result += unsetTrackedEDAliasParameterCount();
 		return result;
 	}
 
@@ -463,7 +560,7 @@ public class Configuration implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked service parameters */
+	/** number of unset tracked service parameters */
 	public int unsetTrackedServiceParameterCount() {
 		int result = 0;
 		for (ServiceInstance svc : services)
@@ -471,11 +568,27 @@ public class Configuration implements IConfiguration {
 		return result;
 	}
 
-	/** number of unsert tracked module parameters */
+	/** number of unset tracked module parameters */
 	public int unsetTrackedModuleParameterCount() {
 		int result = 0;
 		for (ModuleInstance mod : modules)
 			result += mod.unsetTrackedParameterCount();
+		return result;
+	}
+
+	/** number of unset tracked EDAlias parameters */
+	public int unsetTrackedEDAliasParameterCount() {
+		int result = 0;
+		for (EDAliasInstance eda : edaliases)
+			result += eda.unsetTrackedParameterCount();
+		return result;
+	}
+	
+	/** number of unset tracked global EDAlias parameters */
+	public int unsetTrackedGlobalEDAliasParameterCount() {
+		int result = 0;
+		for (EDAliasInstance geda : globalEDAliases)
+			result += geda.unsetTrackedParameterCount();
 		return result;
 	}
 
@@ -529,6 +642,12 @@ public class Configuration implements IConfiguration {
 		if (result != null)
 			return result;
 		result = module(name);
+		if (result != null)
+			return result;
+		result = edAlias(name);
+		if (result != null)
+			return result;
+		result = globalEDAlias(name);
 		if (result != null)
 			return result;
 		System.err.println("Configuration::instance(): can't find '" + name + "'");
@@ -591,7 +710,87 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	// public void sortPSets() { Collections.sort(psets); hasChanged=true; }
+	//
+	// Global EDAliases (have no reference methods)
+	//
+
+	/** number of global EDAliases */
+	public int globalEDAliasCount() {
+		return globalEDAliases.size();
+	}
+
+	/** get i-th global EDAlias */
+	public EDAliasInstance globalEDAlias(int i) {
+		return globalEDAliases.get(i);
+	}
+
+	/** get global EDAlias by name */
+	public EDAliasInstance globalEDAlias(String globalEDAliasName) {
+		for (EDAliasInstance ge : globalEDAliases)
+			if (ge.name().equals(globalEDAliasName))
+				return ge;
+		return null;
+	}
+
+	/** index of a certain global EDAlias */
+	public int indexOfGlobalEDAlias(EDAliasInstance globalEDAlias) {
+		return globalEDAliases.indexOf(globalEDAlias);
+	}
+
+	/** retrieve global EDAlias iterator */
+	public Iterator<EDAliasInstance> globalEDAliasIterator() {
+		return globalEDAliases.iterator();
+	}
+
+	/** insert an global EDAlias */
+	public EDAliasInstance insertGlobalEDAlias(String instanceName) {
+
+		EDAliasInstance instance = null;
+
+		try {
+			instance = new EDAliasInstance(instanceName);
+			if (instance.referenceCount() == 0) {
+				globalEDAliases.add(instance);
+				instance.setConfig(this);
+				hasChanged = true;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+		return instance;
+	}
+
+	/** insert a pre-existing global EDAlias */
+	public boolean insertGlobalEDAlias(int i, EDAliasInstance edAlias) {
+		if (globalEDAliases.indexOf(edAlias) < 0 && edAlias.referenceCount() == 0) {
+			globalEDAliases.add(i, edAlias);
+			edAlias.setConfig(this);
+			hasChanged = true;
+			return true;
+		}
+		return false;
+	}
+	
+	/** insert a pre-existing global EDAlias 
+	 * @throws DataException */
+	public EDAliasInstance insertGlobalEDAlias(int i, String edAliasName) throws DataException {
+		EDAliasInstance globalEDAlias = new EDAliasInstance(edAliasName);
+		globalEDAliases.add(i, globalEDAlias);
+		globalEDAlias.setConfig(this);
+		hasChanged = true;
+		return globalEDAlias;
+	}
+
+	/** remove a global EDAlias*/
+	public void removeGlobalEDAlias(EDAliasInstance globalEDAlias) {
+		globalEDAliases.remove(globalEDAlias);
+		hasChanged = true;
+	}
+
+	/** sort global EDAliases */
+	public void sortGlobalEDAliases() {
+		Collections.sort(globalEDAliases);
+	}
 
 	//
 	// EDSources
@@ -937,14 +1136,14 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	/** insert ModuleReference at i-th position into a path/sequence */
+	/** insert ModuleReference at i-th position into a path/sequence/task */
 	public ModuleReference insertModuleReference(ReferenceContainer container, int i, ModuleInstance instance) {
 		ModuleReference reference = (ModuleReference) instance.createReference(container, i);
 		hasChanged = true;
 		return reference;
 	}
 
-	/** insert ModuleReference at i-th position into a path/sequence */
+	/** insert ModuleReference at i-th position into a path/sequence/task */
 	public ModuleReference insertModuleReference(ReferenceContainer container, int i, String templateName,
 			String instanceName) {
 		ModuleInstance instance = insertModule(templateName, instanceName);
@@ -954,6 +1153,240 @@ public class Configuration implements IConfiguration {
 	/** sort Modules */
 	public void sortModules() {
 		Collections.sort(modules);
+	}
+
+	//
+	// EDAliases
+	//
+
+	/** number of EDAliases */
+	public int edAliasCount() {
+		return edaliases.size();
+	}
+
+	/** get i-th EDAlias */
+	public EDAliasInstance edAlias(int i) {
+		return edaliases.get(i);
+	}
+
+	/** get EDAlias by name */
+	public EDAliasInstance edAlias(String edAliasName) {
+		for (EDAliasInstance e : edaliases)
+			if (e.name().equals(edAliasName))
+				return e;
+		return null;
+	}
+
+	/** index of a certain EDAlias */
+	public int indexOfEDAlias(EDAliasInstance edAlias) {
+		return edaliases.indexOf(edAlias);
+	}
+
+	/** retrieve EDAlias iterator */
+	public Iterator<EDAliasInstance> edAliasIterator() {
+		return edaliases.iterator();
+	}
+
+	/** insert an EDAlias */
+	public EDAliasInstance insertEDAlias(String instanceName) {
+
+		EDAliasInstance instance = null;
+
+		try {
+			instance = new EDAliasInstance(instanceName);
+			if (instance.referenceCount() == 0) {
+				edaliases.add(instance);
+				instance.setConfig(this);
+				hasChanged = true;
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
+		return instance;
+	}
+
+	/** insert a pre-existing EDAlias */
+	public boolean insertEDAlias(int i, EDAliasInstance edAlias) {
+		if (edaliases.indexOf(edAlias) < 0 && edAlias.referenceCount() == 0) {
+			edaliases.add(i, edAlias);
+			edAlias.setConfig(this);
+			hasChanged = true;
+			return true;
+		}
+		return false;
+	}
+	
+	public EDAliasInstance insertEDAlias(int i, String edAliasName) throws DataException {
+		EDAliasInstance edAlias = new EDAliasInstance(edAliasName);
+		edaliases.add(i, edAlias);
+		edAlias.setConfig(this);
+		hasChanged = true;
+		return edAlias;
+	}
+
+	/** remove a EDAlias reference */
+	public void removeEDAliasReference(EDAliasReference edAlias) {
+		EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
+		edAlias.remove();
+		if (instance.referenceCount() == 0) {
+			int index = edaliases.indexOf(instance);
+			edaliases.remove(index);
+		}
+		hasChanged = true;
+	}
+
+	/** insert EDAliasReference at i-th position into a path/sequence/task */
+	public EDAliasReference insertEDAliasReference(ReferenceContainer container, int i, EDAliasInstance instance) {
+		EDAliasReference reference = (EDAliasReference) instance.createReference(container, i);
+		hasChanged = true;
+		return reference;
+	}
+
+	/** insert EDAliasReference at i-th position into a path/sequence/task */
+	public EDAliasReference insertEDAliasReference(ReferenceContainer container, int i, String instanceName) {
+		EDAliasInstance instance = insertEDAlias(instanceName);
+		return (instance != null) ? insertEDAliasReference(container, i, instance) : null;
+	}
+
+	/** sort EDAliases */
+	public void sortEDAliases() {
+		Collections.sort(edaliases);
+	}
+
+	//
+	// SwitchProducers
+	//
+
+	/** number of SwitchProducers */
+	public int switchProducerCount() {
+		return switchproducers.size();
+	}
+
+	/** get i-th SwitchProducer */
+	public SwitchProducer switchProducer(int i) {
+		return switchproducers.get(i);
+	}
+
+	/** get SwitchProducer by name */
+	public SwitchProducer switchProducer(String switchProducerName) {
+		for (SwitchProducer s : switchproducers)
+			if (s.name().equals(switchProducerName))
+				return s;
+		return null;
+	}
+
+	/** index of a certain SwitchProducer */
+	public int indexOfSwitchProducer(SwitchProducer switchProducer) {
+		return switchproducers.indexOf(switchProducer);
+	}
+
+	/** retrieve switch producers iterator */
+	public Iterator<SwitchProducer> switchProducerIterator() {
+		return switchproducers.iterator();
+	}
+
+	/** retrieve switch producers iterator */
+	public Iterator<SwitchProducer> orderedSwitchProducerIterator() {
+		ArrayList<SwitchProducer> result = new ArrayList<SwitchProducer>();
+		Iterator<SwitchProducer> itS = switchProducerIterator();
+		while (itS.hasNext())
+			result.add(itS.next());
+		boolean isOrdered = false;
+		while (!isOrdered) {
+			isOrdered = true;
+			int indexS = 0;
+			while (indexS < result.size()) {
+				SwitchProducer switchProducer = result.get(indexS);
+				int indexMax = -1;
+				itS = switchProducer.switchProducerIterator();
+				while (itS.hasNext()) {
+					int index = result.indexOf(itS.next());
+					if (index > indexMax)
+						indexMax = index;
+				}
+				if (indexMax > indexS) {
+					isOrdered = false;
+					result.remove(indexS);
+					result.add(indexMax, switchProducer);
+				} else {
+					indexS++;
+				}
+			}
+		}
+		return result.iterator();
+	}
+
+	/** insert switch producer */
+	public SwitchProducer insertSwitchProducer(int i, String switchProducerName) {
+		SwitchProducer switchProducer = new SwitchProducer(switchProducerName);
+		switchproducers.add(i, switchProducer);
+		switchProducer.setConfig(this);
+		hasChanged = true;
+		return switchProducer;
+	}
+
+	/** move a switch producer to another position within switch producers */
+	public boolean moveSwitchProducer(SwitchProducer switchProducer, int targetIndex) {
+		int currentIndex = switchproducers.indexOf(switchProducer);
+		if (currentIndex < 0)
+			return false;
+		if (currentIndex == targetIndex)
+			return true;
+		if (targetIndex > switchproducers.size())
+			return false;
+		if (currentIndex < targetIndex)
+			targetIndex--;
+		switchproducers.remove(currentIndex);
+		switchproducers.add(targetIndex, switchProducer);
+		hasChanged = true;
+		return true;
+	}
+
+	/** remove a switch producer */
+	public void removeSwitchProducer(SwitchProducer switchProducer) {
+		while (switchProducer.referenceCount() > 0) {
+			SwitchProducerReference reference = (SwitchProducerReference) switchProducer.reference(0);
+			reference.remove();
+		}
+
+		// remove all modules and EDAliases from this switchProducer
+		while (switchProducer.entryCount() > 0) {
+			Reference reference = switchProducer.entry(0);
+			reference.remove();
+			if (reference instanceof ModuleReference) {
+				ModuleReference module = (ModuleReference) reference;
+				ModuleInstance instance = (ModuleInstance) module.parent();
+				if (instance.referenceCount() == 0) {
+					int index = modules.indexOf(instance);
+					modules.remove(index);
+				}
+			} else if (reference instanceof EDAliasReference) {
+				EDAliasReference edAlias = (EDAliasReference) reference;
+				EDAliasInstance instance = (EDAliasInstance) edAlias.parent();
+				if (instance.referenceCount() == 0) {
+					int index = edaliases.indexOf(instance);
+					edaliases.remove(index);
+				}
+			}
+		}
+
+		int index = switchproducers.indexOf(switchProducer);
+		switchproducers.remove(index);
+		hasChanged = true;
+	}
+
+	/** insert a switch producer into another path */
+	public SwitchProducerReference insertSwitchProducerReference(ReferenceContainer parent, int i,
+			SwitchProducer switchProducer) {
+		SwitchProducerReference reference = (SwitchProducerReference) switchProducer.createReference(parent, i);
+		hasChanged = true;
+		return reference;
+	}
+
+	/** sort Switch producers */
+	public void sortSwitchProducers() {
+		Collections.sort(switchproducers);
+		hasChanged = true;
 	}
 
 	//
@@ -1175,7 +1608,7 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	/** insert a path reference into another path/sequence */
+	/** insert a path reference into another path/sequence/task */
 	public PathReference insertPathReference(ReferenceContainer parentPath, int i, Path path) {
 		PathReference reference = (PathReference) path.createReference(parentPath, i);
 		hasChanged = true;
@@ -1301,7 +1734,7 @@ public class Configuration implements IConfiguration {
 			reference.remove();
 		}
 
-		// remove all modules from this sequence
+		// remove all modules and EDAliases from this sequence
 		while (sequence.entryCount() > 0) {
 			Reference reference = sequence.entry(0);
 			reference.remove();
@@ -1330,6 +1763,134 @@ public class Configuration implements IConfiguration {
 	/** sort Sequences */
 	public void sortSequences() {
 		Collections.sort(sequences);
+		hasChanged = true;
+	}
+
+	//
+	// Tasks
+	//
+
+	/** number of Tasks */
+	public int taskCount() {
+		return tasks.size();
+	}
+
+	/** get i-th Task */
+	public Task task(int i) {
+		return tasks.get(i);
+	}
+
+	/** get Task by name */
+	public Task task(String taskName) {
+		for (Task t : tasks)
+			if (t.name().equals(taskName))
+				return t;
+		return null;
+	}
+
+	/** index of a certain Task */
+	public int indexOfTask(Task task) {
+		return tasks.indexOf(task);
+	}
+
+	/** retrieve task iterator */
+	public Iterator<Task> taskIterator() {
+		return tasks.iterator();
+	}
+
+	/** retrieve task iterator */
+	public Iterator<Task> orderedTaskIterator() {
+		ArrayList<Task> result = new ArrayList<Task>();
+		Iterator<Task> itT = taskIterator();
+		while (itT.hasNext())
+			result.add(itT.next());
+		boolean isOrdered = false;
+		while (!isOrdered) {
+			isOrdered = true;
+			int indexT = 0;
+			while (indexT < result.size()) {
+				Task task = result.get(indexT); // take iterator on subtasks of the main task
+				int indexMax = -1;
+				itT = task.taskIterator();
+				while (itT.hasNext()) {
+					int index = result.indexOf(itT.next());
+					if (index > indexMax)
+						indexMax = index;
+				}
+				if (indexMax > indexT) {
+					isOrdered = false;
+					result.remove(indexT);
+					result.add(indexMax, task);
+				} else {
+					indexT++;
+				}
+			}
+		}
+		return result.iterator();
+	}
+
+	/** insert task */
+	public Task insertTask(int i, String taskName) {
+		Task task = new Task(taskName);
+		tasks.add(i, task);
+		task.setConfig(this);
+		hasChanged = true;
+		return task;
+	}
+
+	/** move a task to another position within tasks */
+	public boolean moveTask(Task task, int targetIndex) {
+		int currentIndex = tasks.indexOf(task);
+		if (currentIndex < 0)
+			return false;
+		if (currentIndex == targetIndex)
+			return true;
+		if (targetIndex > tasks.size())
+			return false;
+		if (currentIndex < targetIndex)
+			targetIndex--;
+		tasks.remove(currentIndex);
+		tasks.add(targetIndex, task);
+		hasChanged = true;
+		return true;
+	}
+
+	/** remove a task */
+	public void removeTask(Task task) {
+		while (task.referenceCount() > 0) {
+			TaskReference reference = (TaskReference) task.reference(0);
+			reference.remove();
+		}
+
+		// remove all modules from this task
+		while (task.entryCount() > 0) {
+			Reference reference = task.entry(0);
+			reference.remove();
+			if (reference instanceof ModuleReference) {
+				ModuleReference module = (ModuleReference) reference;
+				ModuleInstance instance = (ModuleInstance) module.parent();
+				if (instance.referenceCount() == 0) {
+					int index = modules.indexOf(instance);
+					modules.remove(index);
+				}
+			}
+		}
+
+		int index = tasks.indexOf(task);
+		tasks.remove(index);
+		hasChanged = true;
+	}
+
+	/** insert a task reference into another path */
+	public TaskReference insertTaskReference(ReferenceContainer parent, int i, Task task) {
+		TaskReference reference = (TaskReference) task.createReference(parent, i);
+		hasChanged = true;
+		return reference;
+	}
+
+	/** sort Tasks */
+	public void sortTasks() {
+		Collections.sort(tasks);
 		hasChanged = true;
 	}
 

@@ -236,10 +236,12 @@ public class ConfigurationTreeDropTarget extends DropTarget {
 				|| (sourceNode instanceof ESSourceInstance && selectedNode == model.essourcesNode())
 				|| (sourceNode instanceof ESModuleInstance && selectedNode == model.esmodulesNode())
 				|| (sourceNode instanceof ServiceInstance && selectedNode == model.servicesNode())
-				|| ((sourceNode instanceof ModuleInstance || sourceNode instanceof Sequence
-						|| sourceNode instanceof Reference)
+				|| ((sourceNode instanceof ModuleInstance || sourceNode instanceof EDAliasInstance 
+						|| sourceNode instanceof Sequence || sourceNode instanceof Task 
+						|| sourceNode instanceof SwitchProducer || sourceNode instanceof Reference)
 						&& (selectedNode instanceof ReferenceContainer || selectedNode == model.pathsNode()
-								|| selectedNode == model.sequencesNode()))
+								|| selectedNode == model.sequencesNode() || selectedNode == model.tasksNode()
+								|| selectedNode == model.switchProducersNode()))
 				|| ((sourceNode instanceof Path) && (selectedNode == model.pathsNode()))
 				|| ((sourceNode instanceof EventContent) && (selectedNode == model.contentsNode()))
 				|| (sourceNode instanceof Parameter))
@@ -269,7 +271,13 @@ public class ConfigurationTreeDropTarget extends DropTarget {
 				|| ((sourceNode instanceof ModuleInstance || sourceNode instanceof ReferenceContainer
 						|| sourceNode instanceof Reference)
 						&& (targetNode instanceof ReferenceContainer || targetNode instanceof Reference
-								|| targetNode == model.pathsNode() || targetNode == model.sequencesNode()))
+								|| targetNode == model.pathsNode() || targetNode == model.sequencesNode()
+								|| targetNode == model.tasksNode() || targetNode == model.switchProducersNode()))
+				||  ((sourceNode instanceof EDAliasInstance || sourceNode instanceof ReferenceContainer
+						|| sourceNode instanceof Reference)
+						&& (targetNode instanceof ReferenceContainer || targetNode instanceof Reference
+								|| targetNode == model.pathsNode() || targetNode == model.sequencesNode()
+								|| targetNode == model.tasksNode() || targetNode == model.switchProducersNode()))
 				|| (sourceNode instanceof EventContent
 						&& (targetNode == model.contentsNode() || targetNode instanceof EventContent))
 				|| (sourceNode instanceof Parameter && targetNode instanceof Parameter))

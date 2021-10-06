@@ -41,7 +41,6 @@ public class AsciiModuleWriter implements IModuleWriter {
 		this.converterEngine = converterEngine;
 	}
 
-
 	protected String decorate( String name )
 	{
 		return name;

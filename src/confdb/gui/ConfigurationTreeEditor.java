@@ -57,7 +57,7 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 
 		if (toBeEdited == null)
 			return null;
-
+		
 		IConfiguration config = (IConfiguration) treeModel.getRoot();
 
 		if (toBeEdited instanceof Referencable) {
@@ -69,11 +69,19 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 					// Bug 83721: Update Sequences and Paths root container.
 					// propagateModuleName(referencable, treeModel.sequencesNode());
 					treeModel.nodeStructureChanged(treeModel.sequencesNode());
+					treeModel.nodeStructureChanged(treeModel.tasksNode());
+					treeModel.nodeStructureChanged(treeModel.switchProducersNode());
 					treeModel.nodeStructureChanged(treeModel.pathsNode());
 
+				} else if (referencable instanceof EDAliasInstance) {
+					EDAliasInstance globalEDAliasInstance = (EDAliasInstance) referencable;
+					globalEDAliasInstance.setNameAndPropagate(name);
 				} else if (referencable instanceof Path) {
 					Path path = (Path) referencable;
 					path.setNameAndPropagate(name);
+				} else if (referencable instanceof SwitchProducer) {
+					SwitchProducer switchProducer = (SwitchProducer) referencable;
+					switchProducer.setNameAndPropagate(name);				
 				} else {
 					referencable.setName(name);
 				}
@@ -102,6 +110,17 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 		} else if (toBeEdited instanceof ModuleReference) {
 			ModuleReference reference = (ModuleReference) toBeEdited;
 			ModuleInstance instance = (ModuleInstance) reference.parent();
+			try {
+				instance.setName(name);
+				treeModel.nodeChanged(instance);
+				for (int i = 0; i < instance.referenceCount(); i++)
+					treeModel.nodeChanged(instance.reference(i));
+			} catch (DataException e) {
+				System.err.println(e.getMessage());
+			}
+		} else if (toBeEdited instanceof EDAliasReference) {
+			EDAliasReference reference = (EDAliasReference) toBeEdited;
+			EDAliasInstance instance = (EDAliasInstance) reference.parent();
 			try {
 				instance.setName(name);
 				treeModel.nodeChanged(instance);

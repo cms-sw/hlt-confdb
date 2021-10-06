@@ -1,8 +1,49 @@
+2021-10-06 Bogdan Sataric & Sam Harper
+    * tag V03-00-04
+	* bumped version to V3 to reflect new features
+	    * the V02-08 series is now renamed V03-00
+    * initial public release of the condbv2 database upgrade for tasks and switch producers
+    * updates database connections for the run2/run3 databases
+	* disables global edalias support while it is still being tested
+	* handles the prescale module in paths when cloning correctly
+	* adds a new module inserter dialog
+	* DB connect dialog does now does not close untill it either successfully connects or the cancel button is clicked
+	* DB connection now shows the actual error...
+	* users now can only write to the /user directory in Run3 and Dev databases
+	* updates Oracle driver to version 21c
+
+	
+2021-08-06 Philipp Brummer
+    * tag V02-08-03
+    * bug fix: change HtmlSwitchProducerWriter class name to match expected spelling (HTML to Html)
+    * reported in CMSHLT-2161
+
+2021-07-15 Sam Harper
+	* tag V02-08-02
+	* bug fix: fixes SP EDAliases being mistakenly written out to the menu
+
+2021-06-09 Sam Harper 
+	* tag V02-08-01
+	* bug fixes to parsing empty strings and ESInputTags introduced in V2-08-0, they now properly use "\"\""  as the empty value and empty is now unset
+	    * configs writen with V02-08-01 and empty strings/tags now need to be fixed as they will appear to be unset
+	* properly fixes ESInputTag parsing
+	* fixes ESInputTag python output 
+	* fixes DeepCloning crashes with Tasks/SPs
+	* fixes issue in making unreadable configs when a Task/SP exist but not in a paths 
+	* fixes EDAlias importing
+	* minor adjustments to outputed python formating
+
+2021-06-09 Sam Harper 
+	* tag V02-08-00
+	* add support for Aliases, SwitchProducers, Tasks
+	* updates output modules to EvFOutputModule
+	* note: still experimental version for GPU support
+
 2021-06-07 Sam Harper
 	* tag V02-07-02
 	* update database ip address
- 
-2021-06-07 Sam Harper
+
+2021-06-07 Sam Harper 
 	* tag V02-07-01
 	* add support for large screen resolutions
 	* update database connection parameters

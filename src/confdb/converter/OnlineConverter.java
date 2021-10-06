@@ -127,9 +127,8 @@ public class OnlineConverter extends ConverterBase
     protected void finalize() throws Throwable
     {
 	super.finalize();
-	ConfDB db = getDatabase();
-	if ( db != null && disconnectOnFinalize )
-	    db.disconnect();
+	if ( disconnectOnFinalize )
+	    disconnect();
     }
 	
     

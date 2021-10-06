@@ -21,24 +21,30 @@ public class ConverterBase
 	
 	
     public ConverterBase( String format, Connection connection ) throws ConverterException
-    {
+    {   
     	database = new ConfDB();
     	try {
     		database.connect( connection );
     		converterEngine = ConverterFactory.getConverterEngine( format );
     	} catch (Exception e) {
+			//make sure we clean up our connection
+			try {
+				database.disconnect();
+			} catch (DatabaseException dbexcept) {
+				//no action needed
+			}
     		throw new ConverterException( "can't construct converter", e );
     	}
     }
 	
     public ConverterBase( String format, String dbType, String dbUrl, String dbUser, String dbPwrd ) throws ConverterException
-    {
+    {       
     	this( format );
     	initDB( dbType, dbUrl, dbUser, dbPwrd );
     }
   
     protected ConverterBase( String format ) throws ConverterException
-    {
+    {     
 		try {
 			converterEngine = ConverterFactory.getConverterEngine( format );
 		} catch (Exception e) {
@@ -52,6 +58,11 @@ public class ConverterBase
     	try {
     		database.connect( dbType, dbUrl, dbUser, dbPwrd );
     	} catch (Exception e) {
+			try {
+				database.disconnect();
+			} catch (DatabaseException dbexcept){
+				//no action needed
+			}
     		throw new ConverterException( "can't init database connection", e );
     	}
     }
@@ -62,7 +73,14 @@ public class ConverterBase
     	return database;
     }
 	
-    public ConverterEngine getConverterEngine() 
+	public void disconnect() throws DatabaseException
+	{
+		ConfDB db = getDatabase();
+		if ( db != null ) 
+			db.disconnect();
+	}
+    
+	public ConverterEngine getConverterEngine() 
     {
     	return converterEngine;
     }

@@ -6,7 +6,7 @@ package confdb.data;
  * @author Philipp Schieferdecker
  *
  * A Common interface for anything that can be referenced: module
- * instance, path, sequence.
+ * instance, path, sequence, task, EDAlias or SwitchProducer.
  */
 public interface Referencable {
 	/** name of this referencable */

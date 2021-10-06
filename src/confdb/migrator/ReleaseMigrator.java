@@ -65,6 +65,15 @@ public class ReleaseMigrator {
 			PSetParameter pset = sourceConfig.pset(i);
 			targetConfig.insertPSet((PSetParameter) pset.clone(null));
 		}
+		
+		// migrate global EDAliases
+		for (int i = 0; i < sourceConfig.globalEDAliasCount(); i++) {
+			EDAliasInstance source = sourceConfig.globalEDAlias(i);
+			EDAliasInstance target = targetConfig.insertGlobalEDAlias(source.name());
+			if (target != null) {
+				migrateParameters(source, target);
+			}
+		}
 
 		// migrate EDSources
 		for (int i = 0; i < sourceConfig.edsourceCount(); i++) {
@@ -141,6 +150,15 @@ public class ReleaseMigrator {
 				missingTemplateCount++;
 			}
 		}
+		
+		// migrate EDAliases
+		for (int i = 0; i < sourceConfig.edAliasCount(); i++) {
+			EDAliasInstance source = sourceConfig.edAlias(i);
+			EDAliasInstance target = targetConfig.insertEDAlias(source.name());
+			if (target != null) {
+				migrateParameters(source, target);
+			}
+		}
 
 		// migrate Paths
 		for (int i = 0; i < sourceConfig.pathCount(); i++) {
@@ -154,6 +172,19 @@ public class ReleaseMigrator {
 			Sequence source = sourceConfig.sequence(i);
 			Sequence target = targetConfig.insertSequence(i, source.name());
 		}
+
+		// migrate Tasks
+		for (int i = 0; i < sourceConfig.taskCount(); i++) {
+			Task source = sourceConfig.task(i);
+			Task target = targetConfig.insertTask(i, source.name());
+		}
+		
+		// migrate SwitchProducers
+		for (int i = 0; i < sourceConfig.switchProducerCount(); i++) {
+			SwitchProducer source = sourceConfig.switchProducer(i);
+			SwitchProducer target = targetConfig.insertSwitchProducer(i, source.name());
+		}
+
 
 		// migrate eventcontent
 		for (int i = 0; i < sourceConfig.contentCount(); i++) {
@@ -217,6 +248,20 @@ public class ReleaseMigrator {
 			migrateReferences(source, target);
 		}
 
+		// migrate References within Tasks
+		for (int i = 0; i < sourceConfig.taskCount(); i++) {
+			Task source = sourceConfig.task(i);
+			Task target = targetConfig.task(i);
+			migrateReferences(source, target);
+		}
+		
+		// migrate References within SwitchProducers
+		for (int i = 0; i < sourceConfig.switchProducerCount(); i++) {
+			SwitchProducer source = sourceConfig.switchProducer(i);
+			SwitchProducer target = targetConfig.switchProducer(i);
+			migrateReferences(source, target);
+		}
+
 		// migrate eventcontent
 		for (int i = 0; i < sourceConfig.contentCount(); i++) {
 			EventContent source = sourceConfig.content(i);
@@ -272,8 +317,14 @@ public class ReleaseMigrator {
 	/** set the target parameters according to the source parameters */
 	private void migrateParameters(Instance source, Instance target) {
 		if (source.parameterCount() != target.parameterCount()) {
-			String msg = "PARAMETER COUNT MISMATCH: '" + source.template().name() + "' source="
-					+ source.parameterCount() + " target=" + target.parameterCount();
+			String msg = "";
+			if (source.template() != null) {
+				msg = "PARAMETER COUNT MISMATCH: '" + source.template().name() + "' source="
+						+ source.parameterCount() + " target=" + target.parameterCount();
+			} else {
+				msg = "PARAMETER COUNT MISMATCH: '" + source.name() + "' source="
+						+ source.parameterCount() + " target=" + target.parameterCount();
+			}
 			messages.add(msg);
 		}
 
@@ -301,28 +352,51 @@ public class ReleaseMigrator {
 					String valueAsString = sourceParameter.valueAsString();
 					target.updateParameter(parameterName, parameterType, valueAsString);
 				} else {
-					String msg = "PARAMETER TYPE MISMATCH: " + source.template().type() + " '"
+					String msg = "";
+					if (source.template() != null) {
+						msg = "PARAMETER TYPE MISMATCH: " + source.template().type() + " '"
 							+ source.template().name() + "' : " + "source=" + sourceParameter.type() + " " + "target="
 							+ parameterType;
+					} else {
+						msg = "PARAMETER TYPE MISMATCH: " + source.name() + "' : " + 
+								"source=" + sourceParameter.type() + " " + "target="
+								+ parameterType;
+					}
 					messages.add(msg);
 					mismatchParameterTypeCount++;
 				}
 			} else {
-				String msg = "MISSING SOURCE PARAMETER: " + source.template().type() + " '" + source.template().name()
+				String msg = "";
+				if (source.template() != null) {
+					msg = "MISSING SOURCE PARAMETER: " + source.template().type() + " '" + source.template().name()
 						+ "' : " + parameterName;
+				} else {
+					msg = "MISSING SOURCE PARAMETER:" + source.name() + "' : " + parameterName;
+				}
 				messages.add(msg);
 				missingParameterCount++;
 			}
 		}
 
 		// consider added untracked top-level parameters!
-		for (int i = source.template().parameterCount(); i < source.parameterCount(); i++) {
-			Parameter sourceParameter = source.parameter(i);
-			if (source.isParameterRemovable(sourceParameter)) {
-				target.updateParameter(sourceParameter.name(), sourceParameter.type(), sourceParameter.valueAsString());
-			} else {
-				System.err
-						.println("ERROR: this is not a removable parameter:" + sourceParameter + ", WHAT THE F!@# !?");
+		if (source.template() != null)
+			for (int i = source.template().parameterCount(); i < source.parameterCount(); i++) {
+				Parameter sourceParameter = source.parameter(i);
+				if (source.isParameterRemovable(sourceParameter)) {
+					target.updateParameter(sourceParameter.name(), sourceParameter.type(), sourceParameter.valueAsString());
+				} else {
+					System.err
+							.println("ERROR: this is not a removable parameter:" + sourceParameter + ", WHAT THE F!@# !?");
+				}
+			}
+
+		//copying objects which dont have templates, ie EDAliases
+		//to avoid unintended side effects right now (08/06/21), limit 
+		//explictly to EDAliasInstance
+		if (source.template() == null && source instanceof EDAliasInstance) {
+			for (int paramNr = 0; paramNr < source.parameterCount(); paramNr++) {
+				Parameter param = source.parameter(paramNr);
+				target.updateParameter(param);
 			}
 		}
 
@@ -344,7 +418,10 @@ public class ReleaseMigrator {
 
 	}
 
-	/** migrate references from source Path/Sequence to target Path/Sequence */
+	/**
+	 * migrate references from source Path/Sequence/Task/SwitchProducer to target
+	 * Path/Sequence/Task/SwitchProducer
+	 */
 	private void migrateReferences(ReferenceContainer source, ReferenceContainer target) {
 		int iTarget = 0;
 		for (int i = 0; i < source.entryCount(); i++) {
@@ -362,6 +439,18 @@ public class ReleaseMigrator {
 				SequenceReference targetReference = targetConfig.insertSequenceReference(target, iTarget++,
 						targetSequence);
 				targetReference.setOperator(reference.getOperator());
+			} else if (reference instanceof TaskReference) {
+				Task sourceTask = (Task) reference.parent();
+				Task targetTask = targetConfig.task(sourceConfig.indexOfTask(sourceTask));
+				TaskReference targetReference = targetConfig.insertTaskReference(target, iTarget++, targetTask);
+				targetReference.setOperator(reference.getOperator());
+			} else if (reference instanceof SwitchProducerReference) {
+				SwitchProducer sourceSwitchProducer = (SwitchProducer) reference.parent();
+				SwitchProducer targetSwitchProducer = 
+						targetConfig.switchProducer(sourceConfig.indexOfSwitchProducer(sourceSwitchProducer));
+				SwitchProducerReference targetReference = 
+						targetConfig.insertSwitchProducerReference(target, iTarget++, targetSwitchProducer);
+				targetReference.setOperator(reference.getOperator());
 			} else if (reference instanceof ModuleReference) {
 				ModuleInstance sourceModule = (ModuleInstance) reference.parent();
 				ModuleInstance targetModule = targetConfig.module(sourceModule.name());
@@ -370,9 +459,21 @@ public class ReleaseMigrator {
 							targetModule);
 					targetReference.setOperator(reference.getOperator());
 				} else {
-					String msg = "MODULE MISSING FROM PATH/SEQUENCE: " + sourceModule.template().type() + " '"
+					String msg = "MODULE MISSING FROM PATH/SEQUENCE/TASK/SWITCHPRODUCER: " + sourceModule.template().type() + " '"
 							+ sourceModule.name() + "' / " + sourceModule.template().name() + " missing from "
 							+ source.name();
+					messages.add(msg);
+				}
+			} else if (reference instanceof EDAliasReference) {
+				EDAliasInstance sourceEDAlias = (EDAliasInstance) reference.parent();
+				EDAliasInstance targetEDAlias = targetConfig.edAlias(sourceEDAlias.name());
+				if (targetEDAlias != null) {
+					EDAliasReference targetReference = targetConfig.insertEDAliasReference(target, iTarget++,
+							targetEDAlias);
+					targetReference.setOperator(reference.getOperator());
+				} else {
+					String msg = "EDALIAS MISSING FROM SEQUENCEPRODUCER: "
+							+ sourceEDAlias.name() + " missing from " + source.name();
 					messages.add(msg);
 				}
 			} else if (reference instanceof OutputModuleReference) {
@@ -386,7 +487,7 @@ public class ReleaseMigrator {
 					targetReference.setOperator(reference.getOperator());
 
 				} else {
-					String msg = "MODULE MISSING FROM PATH/SEQUENCE: " + " '" + sourceOutputModule.name() + "' / "
+					String msg = "MODULE MISSING FROM PATH/SEQUENCE/TASK: " + " '" + sourceOutputModule.name() + "' / "
 							+ " missing from " + source.name();
 					messages.add(msg);
 				}

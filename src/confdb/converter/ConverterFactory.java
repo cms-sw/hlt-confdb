@@ -53,8 +53,11 @@ public class ConverterFactory {
 		converterEngine.setESModuleWriter(getESModuleWriter());
 		converterEngine.setServiceWriter(getServiceWriter());
 		converterEngine.setModuleWriter(getModuleWriter());
+		converterEngine.setEDAliasWriter(getEDAliasWriter());
 		converterEngine.setPathWriter(getPathWriter());
 		converterEngine.setSequenceWriter(getSequenceWriter());
+		converterEngine.setTaskWriter(getTaskWriter());
+		converterEngine.setSwitchProducerWriter(getSwitchProducerWriter());
 		converterEngine.setOutputWriter(getOutputWriter());
 
 		return converterEngine;
@@ -101,10 +104,23 @@ public class ConverterFactory {
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		return (IModuleWriter) getWriter("ModuleWriter");
 	}
+	
+	public IEDAliasWriter getEDAliasWriter()
+			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		return (IEDAliasWriter) getWriter("EDAliasWriter");
+	}
 
 	public ISequenceWriter getSequenceWriter()
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		return (ISequenceWriter) getWriter("SequenceWriter");
+	}
+
+	public ITaskWriter getTaskWriter() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		return (ITaskWriter) getWriter("TaskWriter");
+	}
+	
+	public ISwitchProducerWriter getSwitchProducerWriter() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		return (ISwitchProducerWriter) getWriter("SwitchProducerWriter");
 	}
 
 	public IOutputWriter getOutputWriter()

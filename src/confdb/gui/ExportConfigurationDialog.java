@@ -70,7 +70,7 @@ public class ExportConfigurationDialog extends JDialog {
 	private JButton jButtonConnect = new JButton();
 	private JButton jButtonExport = new JButton();
 	private JButton jButtonCancel = new JButton();
-
+	private UserPermissionsManager userPermissions = null;
 	//
 	// construction
 	//
@@ -81,7 +81,7 @@ public class ExportConfigurationDialog extends JDialog {
 		this.jFrame = jFrame;
 		this.releaseTag = releaseTag;
 		targetDB = new ConfDB();
-
+		this.userPermissions = new UserPermissionsManager(targetDB);
 		setContentPane(createContentPane());
 
 		jTextFieldConfigName.setText(targetName);
@@ -235,8 +235,14 @@ public class ExportConfigurationDialog extends JDialog {
 	}
 
 	private void jButtonExportActionPerformed(ActionEvent e) {
-		validChoice = true;
-		setVisible(false);
+		if(userPermissions.hasWritePermission(targetDir().name())){
+			validChoice = true;
+			setVisible(false);
+		}else{
+			String errMsg = "You dont have admin privileges and therefore can only save under /users. If you believe this is an error, please contact the STORM convenors. Please choose a different location";
+				JOptionPane.showMessageDialog((JFrame) getParent(), errMsg, "Permissions Error", JOptionPane.ERROR_MESSAGE,
+							null);
+		}
 	}
 
 	private void jButtonCancelActionPerformed(ActionEvent e) {

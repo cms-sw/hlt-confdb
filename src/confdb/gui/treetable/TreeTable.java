@@ -3,6 +3,11 @@ package confdb.gui.treetable;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
+
+import confdb.data.IConfiguration;
+import confdb.data.Parameter;
+import confdb.gui.ParameterTreeModel;
+
 import javax.swing.table.*;
 
 import java.awt.*;
@@ -27,39 +32,49 @@ public class TreeTable extends JTable
     /** table cell renderer for the tree column in the table */
     private TreeTableTableCellRenderer cellRenderer = null;
 
-    
+	/** root of the tree = configuration */
+	private IConfiguration config = null;
+	    
     //
     // construction
     //
 
-    /** standard constructor */
-    public TreeTable(AbstractTreeTableTreeModel treeModel)
-    {
+	/** standard constructor */
+	public TreeTable(AbstractTreeTableTreeModel treeModel, IConfiguration config) 
+	{
 	super();
 	cellRenderer = new TreeTableTableCellRenderer(treeModel);
+	this.config = config;
 	setModel(new TreeTableTableModel(cellRenderer, treeModel));
-	
+
 	ListToTreeSelectionModelWrapper selectionWrapper =
-	    new ListToTreeSelectionModelWrapper();
+		    new ListToTreeSelectionModelWrapper();
 	cellRenderer.setSelectionModel(selectionWrapper);
 	setSelectionModel(selectionWrapper.getListSelectionModel());
-	
+
 	DefaultTableCellRenderer alignCenter = new DefaultTableCellRenderer();
 	alignCenter.setHorizontalAlignment(SwingConstants.CENTER);
-	
+
 	setDefaultRenderer(TreeTableTreeModel.class, cellRenderer);
 	setDefaultRenderer(String.class, alignCenter);
 	setDefaultRenderer(Boolean.class, new CheckBoxTableCellRenderer());
 	setDefaultEditor(TreeTableTreeModel.class, new TreeTableTableCellEditor());
-    
+
 	setShowGrid(false);
 	setIntercellSpacing(new Dimension(0,0));
 	if (cellRenderer.getRowHeight()<1) setRowHeight(18);
-	
+
 	getTableHeader().setReorderingAllowed(false);
-    }
-    
-    
+	}
+
+	//
+	// member functions
+	//
+
+	public void setConfiguration(IConfiguration config) {
+		this.config = config;
+	}
+
     //
     // member functions
     //
@@ -71,14 +86,13 @@ public class TreeTable extends JTable
 			cellEditor.stopCellEditing();	// Stop editing saving the value. 
 			//cellEditor.cancelCellEditing(); // cancel editing but does not save the value.
     }
-    
-    
+
     /** set the renderer of the tree */
     public void setTreeCellRenderer(TreeCellRenderer treeCellRenderer)
     {
 	cellRenderer.setCellRenderer(treeCellRenderer);
     }
-    
+
     /** call the tree updateUI whenever the table updateUI is called */
     public void updateUI()
     {
@@ -89,14 +103,14 @@ public class TreeTable extends JTable
 					 "Tree.foreground",
 					 "Tree.font");
     }
-    
+
     /** make sure the UI never tries to paint the editor [?] */
     public int getEditingRow()
     {
 	return (getColumnClass(editingColumn) == TreeTableTreeModel.class) ?
 	    -1 : editingRow;
     }
-    
+
     /** pass the new row height to the tree */
     public void setRowHeight(int rowHeight)
     {
@@ -104,7 +118,7 @@ public class TreeTable extends JTable
 	if (cellRenderer != null && cellRenderer.getRowHeight() != rowHeight)
 	    cellRenderer.setRowHeight(getRowHeight());
     }
-    
+
     /** get the tree which is shared between the models */
     public JTree getTree() { return cellRenderer; }
     
@@ -127,25 +141,23 @@ public class TreeTable extends JTable
     /**
      * TreeTableTableCellRenderer
      */
-    public class TreeTableTableCellRenderer extends JTree implements TableCellRenderer
+	public class TreeTableTableCellRenderer extends JTree implements TableCellRenderer
     {
 	//
 	// member data
 	//
-	
+
 	/** last [table/tree] row to be rendered */
 	protected int visibleRow;
-	
-	
+
 	//
 	// construction
 	//
-	
+
 	/** standard constructor */
-	public TreeTableTableCellRenderer(TreeModel treeModel)
-	{
-	    super(treeModel); // JTree!
-	    setRootVisible(false);
+	public TreeTableTableCellRenderer(TreeModel treeModel) {
+		super(treeModel); // JTree!
+		setRootVisible(false);
 	}
 	
 	
@@ -206,13 +218,36 @@ public class TreeTable extends JTable
 	    if(isSelected) setBackground(table.getSelectionBackground());
 	    else           setBackground(table.getBackground());
 	    visibleRow = row;
-	    return this;
-	}
-	
+			
+		DefaultTreeCellRenderer renderer = null;
+		TreeCellRenderer treeCellRenderer = getCellRenderer();
+		if (treeCellRenderer instanceof DefaultTreeCellRenderer) {
+			renderer = (DefaultTreeCellRenderer) treeCellRenderer;
+			renderer.setTextSelectionColor(UIManager.getColor("Table.selectionForeground"));
+		}
+
+		String name = table.getValueAt(row, column).toString();
+		int index = -1;
+		index = name.indexOf("___EDALIASRED___");
+
+		if (index != -1) {
+			name = name.replace("___EDALIASRED___","");
+		}
+		if (index != -1) {
+			if (column == 0) {
+				renderer.setTextNonSelectionColor(Color.RED);
+				renderer.setTextSelectionColor(Color.RED);
+			}
+		} else {
+			renderer.setTextNonSelectionColor(Color.BLACK);
+			renderer.setTextSelectionColor(Color.BLACK);
+		}
+
+		return this;
+		}
 
     } // class TreeTableTableCellRenderer
-    
-    
+
     /**
      * TreeTableTableCellEditor
      */
@@ -222,7 +257,7 @@ public class TreeTable extends JTable
 	//
 	// member functions
 	//
-	
+
 	/** TableCellEditor interface: getTableCellEditorComponent() */
 	public Component getTableCellEditorComponent(JTable  table,
 						     Object  value,
@@ -232,7 +267,7 @@ public class TreeTable extends JTable
 	{
 	    return cellRenderer;
 	}
-	
+
 	/** return false, forward mouse events to the tree */
 	public boolean isCellEditable(EventObject e)
 	{
@@ -258,13 +293,12 @@ public class TreeTable extends JTable
 	    }
 	    return false;
 	}
-	
+
 	/** get the cell editor value */
 	public Object getCellEditorValue() { return null; }
 	
     } // class TreeTableTableCellEditor
-    
-    
+
     /**
      * ListToTreeSelectionModelWrapper
      */
@@ -273,14 +307,14 @@ public class TreeTable extends JTable
 	//
 	// member data
 	//
-	
+
 	/** indicate if the ListSelectionModel is being updated. */
 	protected boolean updatingListSelectionModel;
-	
+
 	//
 	// construction
 	//
-	
+
 	/** standard constructor */
 	public ListToTreeSelectionModelWrapper()
 	{
@@ -288,13 +322,13 @@ public class TreeTable extends JTable
 	    getListSelectionModel()
 		.addListSelectionListener(createListSelectionListener());
 	}
-	
+
 	/** retrieve the list selection model */
 	public ListSelectionModel getListSelectionModel()
 	{
 	    return listSelectionModel;
 	}
-	
+
 	/** reset row selection, set updating-flag */
 	public void resetRowSelection()
 	{
@@ -308,7 +342,7 @@ public class TreeTable extends JTable
 		}
 	    }
 	}
-	
+
 	/** create instance of ListSelectionHandler */
 	protected ListSelectionListener createListSelectionListener()
 	{
@@ -321,10 +355,10 @@ public class TreeTable extends JTable
 	    if(!updatingListSelectionModel) {
 		updatingListSelectionModel = true;
 		try {
-		    // This is way expensive, ListSelectionModel needs an
-		    // enumerator for iterating.
-		    int min = listSelectionModel.getMinSelectionIndex();
-		    int max = listSelectionModel.getMaxSelectionIndex();
+			// This is way expensive, ListSelectionModel needs an
+			// enumerator for iterating.
+			int min = listSelectionModel.getMinSelectionIndex();
+			int max = listSelectionModel.getMaxSelectionIndex();
 
 		    clearSelection();
 		    if(min!=-1 && max!=-1) {
@@ -364,6 +398,7 @@ public class TreeTable extends JTable
 
 	} // class ListSelectionHandler
 	
-    } // class ListToTreeSelectionModelWrapper
-    
+
+	} // class ListToTreeSelectionModelWrapper
+
 } // class TreeTable
