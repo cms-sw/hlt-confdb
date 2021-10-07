@@ -130,10 +130,17 @@ public class DirectoryTreeMouseListener extends MouseAdapter implements ActionLi
 			directoryTree.setSelectionPath(newTreePath);
 			directoryTree.startEditingAtPath(newTreePath);
 		} else if (actionCmd.equals(RMV_DIRECTORY)) {
-			Directory parentDir = selDir.parentDir();
-			int iChildDir = parentDir.indexOfChildDir(selDir);
-			parentDir.removeChildDir(selDir);
-			directoryTreeModel.nodeRemoved(parentDir, iChildDir, selDir);
+			try {
+				database.removeDirectory(selDir);
+				Directory parentDir = selDir.parentDir();
+				int iChildDir = parentDir.indexOfChildDir(selDir);
+				parentDir.removeChildDir(selDir);
+				directoryTreeModel.nodeRemoved(parentDir, iChildDir, selDir);
+			} catch (DatabaseException ex) {
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(null, ex.toString(), "DB Exception Removing Dir", JOptionPane.ERROR_MESSAGE,
+							null);
+			}
 		}
 	}
 
@@ -166,12 +173,8 @@ public class DirectoryTreeMouseListener extends MouseAdapter implements ActionLi
 
 	/** TreeModelListener: treeNodesRemoved() */
 	public void treeNodesRemoved(TreeModelEvent e) {
-		Directory dirToBeRemoved = (Directory) (e.getChildren()[0]);
-		try {
-			database.removeDirectory(dirToBeRemoved);
-		} catch (DatabaseException ex) {
-			ex.printStackTrace();
-		}
+		//the db operation is now done before removing the tree node 
+		//to see if it succeeds
 	}
 
 	/** TreeModelListener: treeNodesInserted() */
