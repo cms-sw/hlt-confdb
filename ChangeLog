@@ -1,3 +1,8 @@
+2021-10-07 Sam Harper
+    * tag V03-00-05
+	* bug fix: directory now not removed from gui if the db operation to remove failures
+
+
 2021-10-06 Bogdan Sataric & Sam Harper
     * tag V03-00-04
 	* bumped version to V3 to reflect new features
