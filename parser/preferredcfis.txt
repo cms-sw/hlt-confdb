@@ -81,4 +81,4 @@ JetMETCorrections/Configuration		DefaultJEC_cff.py
 JetMETCorrections/Configuration         JetCorrectionServices_cff.py
 JetMETCorrections/Configuration         CorrectedJetProducers_cff.py
 JetMETCorrections/Configuration         JetCorrectionProducers_cff.py
-GeometryReaders/XMLIdealGeometryESSource	cmsGeometryDB_cff.py
+Geometry/VeryForwardGeometry            geometryRPFromDB_cfi.py
