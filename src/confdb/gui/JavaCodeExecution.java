@@ -31,6 +31,7 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// globalPSetUpdate35309("CkfBaseTrajectoryFilter");
 		// runChecker();
 		// runCode27220();
 		// runCode14317();
@@ -127,6 +128,28 @@ public class JavaCodeExecution {
 				}
 			}
 		}
+	}
+
+	private void globalPSetUpdate35309(String componentType) {
+		PSetParameter pset = null;
+		for (int i = 0; i < config.psetCount(); i++) {
+			pset = config.pset(i);
+			if (pset.parameter("ComponentType") != null) {
+				String ComponentType = pset.parameter("ComponentType").valueAsString();
+				ComponentType = ComponentType.substring(1, ComponentType.length() - 1);
+				if (ComponentType.equals(componentType)) {
+					if (pset.parameter("highEtaSwitch") == null) {
+						DoubleParameter para = new DoubleParameter("highEtaSwitch", 5.0, true);
+						pset.addParameter(para);
+					}
+					if (pset.parameter("minHitsAtHighEta") == null) {
+						Int32Parameter para = new Int32Parameter("minHitsAtHighEta", 5, true);
+						pset.addParameter(para);
+					}
+				}
+			}
+		}
+		config.psets().setHasChanged();
 	}
 
 	private void runCode27220() {
