@@ -61,7 +61,6 @@ public class OutputModuleComparison extends Comparison {
 			} else
 				return RESULT_CHANGED;
 		} else {
-			System.out.println("OutputModuleComparison: NOT ignoreStreams");
 			if (comparisonCount() == 0 && oldOutputModule.name().equals(newOutputModule.name())
 					&& oldOutputModule.className().equals(newOutputModule.className())
 					&& oldOutputModule.parentStream().name().equals(newOutputModule.parentStream().name()))
