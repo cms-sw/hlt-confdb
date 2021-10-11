@@ -4587,10 +4587,16 @@ public class ConfigurationTreeActions {
 		itS = content.streamIterator();
 		while (itS.hasNext()) {
 			OutputModule output = itS.next().outputModule();
-			PSetParameter psetSelectEvents = (PSetParameter) output.parameter(0);
-			model.nodeChanged(psetSelectEvents.parameter(0));
-			if (output.referenceCount() > 0)
-				model.nodeStructureChanged(output.reference(0));
+			Iterator<Parameter> paramIt = output.parameterIterator();
+			while(paramIt.hasNext()){
+				Parameter param = paramIt.next();
+				if(param.name()=="SelectEvents"){
+					PSetParameter psetSelectEvents = (PSetParameter) param;
+					model.nodeChanged(psetSelectEvents.parameter(0));
+					if (output.referenceCount() > 0)
+						model.nodeStructureChanged(output.reference(0));
+				}
+			}
 		}
 
 		model.updateLevel1Nodes();
