@@ -626,23 +626,30 @@ public class ConfDbGUI {
 		dbDialog.setLocationRelativeTo(frame);
 		dbDialog.setVisible(true);
 
-		if (!dbDialog.validChoice())
-			return;
-		if (database.dbUrl().equals(new String()))
-			return;
+		boolean notConnected = true;
+		while(dbDialog.validChoice() && notConnected){		
+
+			if (database.dbUrl().equals(new String()))
+				continue;
 		
-		String dbType = dbDialog.getDbType();
-		String dbHost = dbDialog.getDbHost();
-		String dbPort = dbDialog.getDbPort();
-		String dbName = dbDialog.getDbName();
-		String dbUser = dbDialog.getDbUser();
-		String dbPwrd = dbDialog.getDbPassword();
-		String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
-		try {
-			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);				
-		} catch (DatabaseException e) {
-			String msg = "Failed to connect to DB: " + e.getMessage();
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			String dbType = dbDialog.getDbType();
+			String dbHost = dbDialog.getDbHost();
+			String dbPort = dbDialog.getDbPort();
+			String dbName = dbDialog.getDbName();
+			String dbUser = dbDialog.getDbUser();
+			String dbPwrd = dbDialog.getDbPassword();
+			String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
+			try {
+				sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);	
+				notConnected = false;
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to DB: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+				dbDialog.setVisible(true);
+			}
+		}
+
+		if (notConnected){
 			return;
 		}
 
@@ -1486,30 +1493,38 @@ public class ConfDbGUI {
 		dbDialog.setLocationRelativeTo(frame);
 		dbDialog.setVisible(true);
 
-		if (!dbDialog.validChoice())
-			return;
-		String dbType = dbDialog.getDbType();
-		String dbHost = dbDialog.getDbHost();
-		String dbPort = dbDialog.getDbPort();
-		String dbName = dbDialog.getDbName();
-		String dbUser = dbDialog.getDbUser();
-		String dbPwrd = dbDialog.getDbPassword();
-		String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
-		try {
-			sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);
-			// ((DatabaseInfoPanel)jPanelDbConnection).connectedToDatabase(dbType,
-			// dbHost, dbPort,dbName,dbUser);
-		} catch (DatabaseException e) {
-			String msg = "Failed to connect to DB: " + e.getMessage();
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+		boolean notConnected = true;
+		while(dbDialog.validChoice() && notConnected){			
+			String dbType = dbDialog.getDbType();
+			String dbHost = dbDialog.getDbHost();
+			String dbPort = dbDialog.getDbPort();
+			String dbName = dbDialog.getDbName();
+			String dbUser = dbDialog.getDbUser();
+			String dbPwrd = dbDialog.getDbPassword();
+			String dbUrl = sourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
+			try {
+				sourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);
+				notConnected = false;
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to DB: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+				dbDialog.setVisible(true);				
+			}
+		}
+		if(notConnected){
 			return;
 		}
 
-		PickConfigurationDialog cfgDialog = new PickConfigurationDialog(frame, "Open Configuration from Other Database",sourceDB);
-		cfgDialog.fixReleaseTag(currentRelease.releaseTag());
-		cfgDialog.pack();
-		cfgDialog.setLocationRelativeTo(frame);
-		cfgDialog.setVisible(true);
+		PickConfigurationDialog cfgDialog = new PickConfigurationDialog(frame, "Import Configuration from Other Database",sourceDB);
+		if(!cfgDialog.fixReleaseTag(currentRelease.releaseTag())){
+			String errMsg = "The target database does not have any configs with release "+currentRelease.releaseTag();
+			JOptionPane.showMessageDialog(frame, errMsg, "Release "+currentRelease.releaseTag()+" not in DB", JOptionPane.ERROR_MESSAGE,
+							null);
+		}else{
+			cfgDialog.pack();
+			cfgDialog.setLocationRelativeTo(frame);
+			cfgDialog.setVisible(true);
+		}
 
 		if (cfgDialog.validChoice() && cfgDialog.configInfo().releaseTag().equals(currentRelease.releaseTag())) {
 			ImportConfigurationFromDBThread worker = new ImportConfigurationFromDBThread(cfgDialog.configInfo(),sourceDB);
@@ -1517,16 +1532,15 @@ public class ConfDbGUI {
 			jProgressBar.setIndeterminate(true);
 			jProgressBar.setVisible(true);
 			jProgressBar.setString("Importing Configuration ...");
-		}
+		}else{
 		//clean up after outselves
-		//try {
-		//	sourceDB.disconnect();
-		//} catch (DatabaseException e) {
-		//	String msg = "Failed to connect to disconnect from db: " + e.getMessage();
-		//	JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
-		//}
-		
-
+			try {
+				sourceDB.disconnect();
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.INFORMATION_MESSAGE);
+			}
+		}
 	}
 
 	/** export the current configuration to a new database */
@@ -2144,7 +2158,7 @@ public class ConfDbGUI {
 		protected String construct() throws DatabaseException {
 			startTime = System.currentTimeMillis();
 			
-			
+
 			SoftwareRelease otherDBRelease = new SoftwareRelease();
 			Configuration otherDBConfig = this.otherDatabase.loadConfiguration(configInfo, otherDBRelease);
 
@@ -2262,7 +2276,12 @@ public class ConfDbGUI {
 			importConfig = new Configuration(configInfo, importRelease);
 			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, importConfig);
 			releaseMigrator.migrate();
-			
+			try {
+				database.disconnect();
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			}	
 			
 			return new String("Done!");
 		}
