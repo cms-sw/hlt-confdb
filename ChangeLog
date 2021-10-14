@@ -1,4 +1,11 @@
 2021-10-07 Sam Harper
+    * tag V03-00-06
+	* bug fix: selectEvents no longer assumed to be first entry of an output module
+	* bug fix: other db no longer closes prematurely
+	* start script now does clean before building just to be save
+
+
+2021-10-07 Sam Harper
     * tag V03-00-05
 	* bug fix: directory now not removed from gui if the db operation to remove failures
 

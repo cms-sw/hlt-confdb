@@ -2772,7 +2772,6 @@ public class ConfDB {
 					sequenceId = rs.getInt(1);
 					result.put(sequenceName, sequenceId);
 					idToSequence.put(sequenceId, sequence);
-					System.out.println("sequenceId: " + sequenceId);
 				} else
 					result.put(sequenceName, -sequenceId);
 

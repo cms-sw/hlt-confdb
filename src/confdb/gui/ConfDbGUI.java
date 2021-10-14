@@ -665,12 +665,13 @@ public class ConfDbGUI {
 
 			// System.out.println("ElapsedTime: " + worker.getElapsedTime());
 
-		}
-		try {
-			sourceDB.disconnect();
-		} catch (DatabaseException e) {
-			String msg = "Failed to connect to disconnect from db: " + e.getMessage();
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+		}else{
+			try {
+				sourceDB.disconnect();
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			}	
 		}
 	}
 
@@ -2143,7 +2144,7 @@ public class ConfDbGUI {
 		protected String construct() throws DatabaseException {
 			startTime = System.currentTimeMillis();
 			
-
+			
 			SoftwareRelease otherDBRelease = new SoftwareRelease();
 			Configuration otherDBConfig = this.otherDatabase.loadConfiguration(configInfo, otherDBRelease);
 
@@ -2153,6 +2154,12 @@ public class ConfDbGUI {
 			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, config);
 			releaseMigrator.migrate();
 			setCurrentConfig(config);
+			try {
+				otherDatabase.disconnect();
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			}			
 
 			return new String("Done!");
 		}		
