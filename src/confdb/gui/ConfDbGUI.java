@@ -1517,16 +1517,15 @@ public class ConfDbGUI {
 			jProgressBar.setIndeterminate(true);
 			jProgressBar.setVisible(true);
 			jProgressBar.setString("Importing Configuration ...");
-		}
+		}else{
 		//clean up after outselves
-		//try {
-		//	sourceDB.disconnect();
-		//} catch (DatabaseException e) {
-		//	String msg = "Failed to connect to disconnect from db: " + e.getMessage();
-		//	JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
-		//}
-		
-
+			try {
+				sourceDB.disconnect();
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			}
+		}
 	}
 
 	/** export the current configuration to a new database */
@@ -2144,7 +2143,7 @@ public class ConfDbGUI {
 		protected String construct() throws DatabaseException {
 			startTime = System.currentTimeMillis();
 			
-			
+
 			SoftwareRelease otherDBRelease = new SoftwareRelease();
 			Configuration otherDBConfig = this.otherDatabase.loadConfiguration(configInfo, otherDBRelease);
 
@@ -2262,7 +2261,12 @@ public class ConfDbGUI {
 			importConfig = new Configuration(configInfo, importRelease);
 			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, importConfig);
 			releaseMigrator.migrate();
-			
+			try {
+				database.disconnect();
+			} catch (DatabaseException e) {
+				String msg = "Failed to connect to disconnect from db: " + e.getMessage();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			}	
 			
 			return new String("Done!");
 		}
