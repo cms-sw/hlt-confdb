@@ -2,6 +2,8 @@
     * tag V03-00-06
 	* bug fix: selectEvents no longer assumed to be first entry of an output module
 	* bug fix: other db no longer closes prematurely
+	* bug fix: Import from DB now gives warning if the release doesnt exist on target DB rather than trying all releases
+	* QoL: open other db dialog now stays still it connects sucessfully or is dismissed by the user
 	* start script now does clean before building just to be save
 
 
