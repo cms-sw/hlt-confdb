@@ -10,4 +10,5 @@ SWING=
 #PROFILE=-Xrunhprof:heap=sites,cpu=samples,depth=10
 PROFILE=
 
+ant clean
 ant -f $BASE/build.xml gui && java -Doracle.jdbc.timezoneAsRegion=false -Dswing.aatext=true $SWING $PROFILE -classpath $BASE/lib/cmssw-evf-confdb-gui.jar:$BASE/lib/cmssw-python.jar:$BASE/ext/ojdbc8.jar:$BASE/ext/jython.jar confdb.gui.ConfDbGUI
