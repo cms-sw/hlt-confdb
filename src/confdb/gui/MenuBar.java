@@ -281,7 +281,7 @@ public class MenuBar {
 		toolMenuConvertToTasksItem = new JMenuItem(toolMenuConvertToTasks);
 		toolMenuConvertToTasksItem.setActionCommand(toolMenuConvertToTasks);
 		toolMenuConvertToTasksItem.addActionListener(listener);
-		//toolMenu.add(toolMenuConvertToTasksItem);
+		toolMenu.add(toolMenuConvertToTasksItem);
 		toolMenuReplaceItem = new JMenuItem(toolMenuReplace, KeyEvent.VK_R);
 		toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 		toolMenuReplaceItem.addActionListener(listener);

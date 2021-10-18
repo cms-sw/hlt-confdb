@@ -5763,6 +5763,7 @@ class ConfigToTaskConverter {
 				convertMod(mod);
 			}
 		}
+		((ConfigurationTreeModel) this.tree.getModel()).setConfiguration(this.cfg);
 	}
 
 }
