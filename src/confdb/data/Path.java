@@ -255,6 +255,10 @@ public class Path extends ReferenceContainer {
 		return "hltPre" + name.substring(first, last).replace("_", "");
 	}
 
+	static public String rmVersion(String name){
+		return name.replaceAll("_v[0-9]+$","");
+	}
+
 	/** set the name and propagate it to all relevant modules */
 	public void setNameAndPropagate(String name) throws DataException {
 		String oldName = name();

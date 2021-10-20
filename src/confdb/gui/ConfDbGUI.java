@@ -5698,49 +5698,97 @@ class ConfigToTaskConverter {
 	private Configuration cfg;
 	private JTree tree;
 
+	static class NamePair {
+		public String orgName;
+		public String newName;
+		public NamePair(String orgName,String newName){
+			this.orgName = orgName;
+			this.newName = newName;
+		} 
+	}
+
 	public ConfigToTaskConverter(Configuration cfg,JTree tree){
 		this.cfg = cfg;
 		this.tree = tree;
 	}
 
-	private ArrayList<Sequence> getSequences(ModuleInstance mod){
-		ArrayList<Sequence> modSequences = new ArrayList<Sequence>();
-		Iterator<Sequence> seqIt = this.cfg.sequenceIterator();
-		while (seqIt.hasNext()){
-			Sequence seq = seqIt.next();
-			Reference ref = seq.entry(mod.name());
+	private ArrayList<ReferenceContainer> getRefContainers(ModuleInstance mod,Iterator<? extends ReferenceContainer> refContIt){
+		ArrayList<ReferenceContainer> modRefConts = new ArrayList<ReferenceContainer>();
+		
+		while (refContIt.hasNext()){
+			ReferenceContainer refCont = refContIt.next();
+			Reference ref = refCont.entry(mod.name());
 			if(ref !=null) {
-				//System.err.println("adding seq "+seq.name()+ " "+mod.name());
-				modSequences.add(seq);
+				modRefConts.add(refCont);
 			}
 		}
-		return modSequences;
+		return modRefConts;
 	}
 
-	private void generateTasks(ArrayList<Sequence> sequences,ModuleInstance mod){
-		//a task with this name may already exist but it is an error if it exists
-		//and is not on the sequence
-		for( int seqNr=0;seqNr<sequences.size();seqNr++) {
-			Sequence seq = sequences.get(seqNr);
-			String taskName = seq.name().replace("Sequence","Task");
-			if(taskName==seq.name()){
-				taskName+="Task";
+	static private String getTaskName(ReferenceContainer refCont){
+		String taskName = null;
+
+		if( refCont instanceof Path){
+			taskName = Path.rmVersion(refCont.name()).replaceAll("_","")+"Task";
+		}else if (refCont instanceof Sequence) {
+			taskName = refCont.name().replace("Sequence","Task");			
+		}else{
+			taskName = refCont.name()+"Task";
+		}
+		
+		if(taskName==refCont.name()){
+			taskName+="Task";				
+		}
+		return taskName;
+	}
+
+	// a clash is generated if the proposed task name already exists and is not attached to the
+	// reference container 
+	// a clash is also generated if any object has the name of Task which is not a task
+	static public ArrayList<NamePair> checkNameClashes(Iterator<? extends ReferenceContainer> refContIt,Configuration cfg){
+		ArrayList<NamePair> nameClashes = new ArrayList<NamePair>();
+		while(refContIt.hasNext()) {
+			ReferenceContainer refCont = refContIt.next();
+			String taskName = getTaskName(refCont);
+			if(!cfg.isUniqueQualifier(taskName)){ //this name exists somewhere
+				Task task = cfg.task(taskName);
+				//task exists and is not already on the refcont, this is an error
+				if(task!=null && refCont.entry(task.name())==null){
+					nameClashes.add(new NamePair(refCont.name(),taskName));
+				//task does not exist therefore another type with this name must exist
+				}else if(task==null){
+					nameClashes.add(new NamePair(refCont.name(),taskName));
+				}
 			}
+		}
+		return nameClashes;
+	}
+
+	//generates the task and moves the module to it
+	//the calling function is responsible for ensuring that
+	//there is not a name clash of the newly generated task
+	//with other objects in the menu
+	private void generateTasks(ArrayList<ReferenceContainer> refConts,ModuleInstance mod){
+		for( int refContNr=0;refContNr<refConts.size();refContNr++) {
+			ReferenceContainer refCont = refConts.get(refContNr);
+			String taskName = getTaskName(refCont);
 			Task task = this.cfg.task(taskName);
 			if(task==null){				
 				task = this.cfg.insertTask(this.cfg.taskCount(),taskName);
 			}
-			if(seq.entry(task.name())==null){
-				this.cfg.insertTaskReference(seq,0,task);
+			if(refCont.entry(task.name())==null){
+				this.cfg.insertTaskReference(refCont,0,task);
 			}
+
 			this.cfg.insertModuleReference(task,0,mod);
-			while(removeMod(seq,mod)){}
+			while(removeMod(refCont,mod)){}
 		}
 	}
 
-	private void convertMod(ModuleInstance mod){
-		ArrayList<Sequence> seqs = getSequences(mod);	
-		generateTasks(seqs,mod);
+	private void convertMod(ModuleInstance mod){		
+		ArrayList<ReferenceContainer> refConts = getRefContainers(mod,this.cfg.sequenceIterator());
+		refConts.addAll(getRefContainers(mod,this.cfg.pathIterator()));	
+		generateTasks(refConts,mod);
 	}
 
 	public boolean removeMod(ReferenceContainer cont,ModuleInstance mod){
@@ -5756,14 +5804,31 @@ class ConfigToTaskConverter {
 	}
 
 	public void convert(){
-		for(int modNr = 0; modNr < this.cfg.moduleCount(); modNr++) {
-			ModuleInstance mod = this.cfg.module(modNr);
-			String moduleType = mod.template().type();
-			if (moduleType.equals("EDProducer") ) {
-				convertMod(mod);
+
+		ArrayList<NamePair> seqClashes = checkNameClashes(this.cfg.sequenceIterator(),this.cfg);
+		ArrayList<NamePair> pathClashes = checkNameClashes(this.cfg.pathIterator(),this.cfg);
+		if(!seqClashes.isEmpty() || !pathClashes.isEmpty()){
+			ArrayList<String> errMsgs = new ArrayList<String>();
+			String errMsg = new String("Taskify failed due to follwing name clashes: \n");
+			for(NamePair nameClash : seqClashes) {
+				errMsg+=nameClash.newName+" exists and is not a Task on "+nameClash.orgName+"\n";
 			}
+			for(NamePair nameClash : pathClashes) {
+				errMsg+=nameClash.newName+" exists and is not a Task on "+nameClash.orgName+"\n";
+			}
+			errMsg+="\nPlease rename the offending objects to allow Taskify to proceed";
+			JOptionPane.showMessageDialog(null, errMsg, "Taskify Failed", JOptionPane.ERROR_MESSAGE,
+						null);
+		}else{
+			for(int modNr = 0; modNr < this.cfg.moduleCount(); modNr++) {
+				ModuleInstance mod = this.cfg.module(modNr);
+				String moduleType = mod.template().type();
+				if (moduleType.equals("EDProducer") ) {
+					convertMod(mod);
+				}
+			}	
+			((ConfigurationTreeModel) this.tree.getModel()).setConfiguration(this.cfg);
 		}
-		((ConfigurationTreeModel) this.tree.getModel()).setConfiguration(this.cfg);
-	}
+	}	
 
 }
