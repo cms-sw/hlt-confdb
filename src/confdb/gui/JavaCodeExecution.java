@@ -31,6 +31,7 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// NoiseCleanedClusterShape();
 		// globalPSetUpdate35309("CkfBaseTrajectoryFilter");
 		// runChecker();
 		// runCode27220();
@@ -126,6 +127,21 @@ public class JavaCodeExecution {
 				} else {
 					System.err.println("Error: HLTPrescaler instance " + module.name() + " is in more than one path.");
 				}
+			}
+		}
+	}
+
+        private void NoiseCleanedClusterShape() {
+		ModuleInstance module = null;
+		InputTagParameter inputtag = null;
+		for (int i = 0; i < config.moduleCount(); i++) {
+			module = config.module(i);
+			if (module.template().name().equals("HLTEgammaGenericFilter")) {
+			    inputtag = (InputTagParameter) module.parameter("varTag", "InputTag");
+			    if (inputtag.instance().equals("sigmaIEtaIEta5x5")) {
+				inputtag.setInstance("sigmaIEtaIEta5x5NoiseCleaned");
+				module.setHasChanged();
+			    }
 			}
 		}
 	}
