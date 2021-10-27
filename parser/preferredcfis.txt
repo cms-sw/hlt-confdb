@@ -1,3 +1,4 @@
+CalibTracker/SiPixelESProducers         SiPixelQualityESProducer_cfi.py
 CalibCalorimetry/HcalPlugins            HcalTimeSlew_cff.py
 RecoMuon/L2MuonSeedGenerator            L2OfflineMuonSeeds_cfi.py
 RecoMuon/GlobalTrackingTools            MuonTrackingRegionBuilderHLT_cfi.py
