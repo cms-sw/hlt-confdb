@@ -263,7 +263,7 @@ public class MenuBar {
 		configMenuConvertItem.addActionListener(listener);
 		configMenu.add(configMenuConvertItem);
 		configMenu.addSeparator();
-
+		
 		JMenu toolMenu = new JMenu("Tools");
 		toolMenu.setMnemonic(KeyEvent.VK_T);
 		jMenuBar.add(toolMenu);

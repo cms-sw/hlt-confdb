@@ -4587,15 +4587,10 @@ public class ConfigurationTreeActions {
 		itS = content.streamIterator();
 		while (itS.hasNext()) {
 			OutputModule output = itS.next().outputModule();
-			Iterator<Parameter> paramIt = output.parameterIterator();
-			while(paramIt.hasNext()){
-				Parameter param = paramIt.next();
-				if(param.name()=="SelectEvents"){
-					PSetParameter psetSelectEvents = (PSetParameter) param;
-					model.nodeChanged(psetSelectEvents.parameter(0));
-					if (output.referenceCount() > 0)
-						model.nodeStructureChanged(output.reference(0));
-				}
+			PSetParameter psetSelectEvents = (PSetParameter) output.parameter("SelectEvents");
+			model.nodeChanged(psetSelectEvents.parameter(0));
+			if (output.referenceCount() > 0) {
+				model.nodeStructureChanged(output.reference(0));
 			}
 		}
 
@@ -4772,7 +4767,7 @@ public class ConfigurationTreeActions {
 		Iterator<Stream> itS = content.streamIterator();
 		while (itS.hasNext()) {
 			OutputModule output = itS.next().outputModule();
-			PSetParameter psetSelectEvents = (PSetParameter) output.parameter(0);
+			PSetParameter psetSelectEvents = (PSetParameter) output.parameter("SelectEvents");
 			model.nodeChanged(psetSelectEvents.parameter(0));
 			if (output.referenceCount() > 0)
 				model.nodeStructureChanged(output.reference(0));
@@ -4825,7 +4820,7 @@ public class ConfigurationTreeActions {
 	 * 
 	 * Iterator<Stream> itS = content.streamIterator(); while (itS.hasNext()) {
 	 * OutputModule output = itS.next().outputModule(); PSetParameter
-	 * psetSelectEvents = (PSetParameter)output.parameter(0);
+	 * psetSelectEvents = (PSetParameter)output.parameter("SelectEvents");
 	 * model.nodeChanged(psetSelectEvents.parameter(0)); if
 	 * (output.referenceCount()>0) model.nodeStructureChanged(output.reference(0));
 	 * }
@@ -4868,7 +4863,7 @@ public class ConfigurationTreeActions {
 		Iterator<Stream> itS = content.streamIterator();
 		while (itS.hasNext()) {
 			OutputModule output = itS.next().outputModule();
-			PSetParameter psetSelectEvents = (PSetParameter) output.parameter(0);
+			PSetParameter psetSelectEvents = (PSetParameter) output.parameter("SelectEvents");
 			model.nodeChanged(psetSelectEvents.parameter(0));
 			if (output.referenceCount() > 0)
 				model.nodeStructureChanged(output.reference(0));
@@ -4925,7 +4920,7 @@ public class ConfigurationTreeActions {
 			Iterator<Stream> itS = content.streamIterator();
 			while (itS.hasNext()) {
 				OutputModule output = itS.next().outputModule();
-				PSetParameter psetSelectEvents = (PSetParameter) output.parameter(0);
+				PSetParameter psetSelectEvents = (PSetParameter) output.parameter("SelectEvents");
 				model.nodeChanged(psetSelectEvents.parameter(0));
 				if (output.referenceCount() > 0)
 					model.nodeStructureChanged(output.reference(0));
@@ -5351,7 +5346,7 @@ public class ConfigurationTreeActions {
 			Iterator<Stream> itS = content.streamIterator();
 			while (itS.hasNext()) {
 				OutputModule output = itS.next().outputModule();
-				PSetParameter psetSelectEvents = (PSetParameter) output.parameter(0);
+				PSetParameter psetSelectEvents = (PSetParameter) output.parameter("SelectEvents");
 				model.nodeChanged(psetSelectEvents.parameter(0));
 				if (output.referenceCount() > 0)
 					model.nodeStructureChanged(output.reference(0));
