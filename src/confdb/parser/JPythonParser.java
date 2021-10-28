@@ -861,8 +861,7 @@ public class JPythonParser
         PyObject    value   = parameterObject.invoke("value");
 
         String string_value = value.toString();
-        if (string_value == "") string_value = "\"\""; // equivalent to cms.string("");
-
+        if (string_value.equals("")) string_value = "\"\""; // equivalent to cms.string("");    
         string_value = cleanBrackets(string_value); //Needed!
 
         if (type == "PSet") {
