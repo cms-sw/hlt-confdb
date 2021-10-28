@@ -1,8 +1,7 @@
 2021-10-18 Sam Harper
     * tag V03-00-07
 	* added Mateusz to admins
-	* read only setup for the P5 database added 
-	* added "Taskify" button which converts the menus to task based
+	* read only setup for the P5 database added 	
 	* forbiding the saving of menus which have streams that have unassinged paths
 	
 2021-10-07 Sam Harper
