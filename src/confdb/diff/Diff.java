@@ -1431,6 +1431,12 @@ public class Diff {
 				Referencable parent2 = reference2.parent();
 				Referencable parent1 = (reference1 == null) ? null : reference1.parent();
 
+				//dont compare object of different type
+				if(parent1!=null && parent1.getClass()!=parent2.getClass()){
+					reference1 = null;
+					parent1 = null;
+				}
+
 				Comparison r = compareReferences(reference1, reference2);
 				if (r.isChanged())
 					result.addComparison(r);
