@@ -1831,6 +1831,24 @@ public class ConfDbGUI {
 			return false;
 		}
 
+		boolean unassignedPaths = false;
+		String streamsWithUnassigned = new String("");
+		Iterator<Stream> streamIt = currentConfig.streamIterator();
+		while (streamIt.hasNext()) {
+			Stream stream = streamIt.next();
+			if(stream.unassignedPathCount()!=0){
+				unassignedPaths = true;				
+				if(!streamsWithUnassigned.isEmpty()){
+					streamsWithUnassigned+=" ";
+				}
+				streamsWithUnassigned += stream.name();
+			}
+		}
+		if(unassignedPaths){
+			String msg = "current configuration has following streams \"" + streamsWithUnassigned+ "\"with unassigned paths, those paths must be removed from the streams before saving/converting!";			
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
 		return true;
 	}
 
