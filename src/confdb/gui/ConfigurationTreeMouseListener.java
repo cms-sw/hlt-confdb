@@ -1399,8 +1399,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 3) {
 			Stream stream = (Stream) node;
 
+			// we are disabling the option to directly add a path 
+			//to a stream as we see no reason why we need this feature
+			//as you should add to the primary dataset directly
 			JMenu addPathMenu = new ScrollableMenu("Add Path");
-			popupStreams.add(addPathMenu);
+			//popupStreams.add(addPathMenu);
 
 			menuItem = new JMenuItem("Add Primary Dataset");
 			menuItem.addActionListener(streamListener);
