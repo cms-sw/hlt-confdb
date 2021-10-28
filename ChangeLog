@@ -4,6 +4,8 @@
 	* read only setup for the P5 database added 	
 	* forbidding the saving of menus which have streams that have unassinged paths
 	* disabling the option to directly adding a path to a stream
+	* parsing bug fix for empty strings
+	* diff bug fix where objects with same name but different type (eg module vs switch producer) no longer causes a crash
 	
 2021-10-07 Sam Harper
     * tag V03-00-06
