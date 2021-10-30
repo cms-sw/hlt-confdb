@@ -38,7 +38,7 @@ public class PythonPathWriter implements IPathWriter
 			if(nonTaskStr.isEmpty() || taskStr.isEmpty()){
 			    str += nonTaskStr + taskStr;
 			}else{
-			    str += nonTaskStr + ","+taskStr;
+			    str += nonTaskStr + " , " + taskStr;
 			}
 		}
 		
