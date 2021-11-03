@@ -1849,6 +1849,50 @@ public class ConfDbGUI {
 			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
+
+		Iterator<ModuleInstance> modIt = currentConfig.moduleIterator();
+		String taskModsOnSeqsPaths = new String();
+		int nrRows = 3;
+		while(modIt.hasNext()){
+			ModuleInstance mod = modIt.next();
+			ArrayList<Path> paths = new ArrayList<Path>();
+			ArrayList<Sequence> seqs = new ArrayList<Sequence>();
+			ArrayList<Task> tasks = new ArrayList<Task>();
+			for(int refNr=0;refNr<mod.referenceCount();refNr++){
+				Reference ref = mod.reference(refNr);
+				if(ref.container() instanceof Path){
+					paths.add((Path) ref.container());
+				}else if(ref.container() instanceof Sequence){
+					seqs.add((Sequence) ref.container());
+				}else if (ref.container() instanceof Task){
+					tasks.add((Task) ref.container());
+				}
+			}
+			if(tasks.size()!=0 && seqs.size()+paths.size()!=0){
+				nrRows+=4;
+				taskModsOnSeqsPaths+="\nmodule "+mod.name()+"\n   tasks:";
+				for(Task task: tasks) taskModsOnSeqsPaths+=" "+task.name();
+				taskModsOnSeqsPaths+="\n   sequences:";
+				for(Sequence seq: seqs) taskModsOnSeqsPaths+=" "+seq.name();
+				taskModsOnSeqsPaths+="\n   paths:";
+				for(Path path: paths) taskModsOnSeqsPaths+=" "+path.name();
+				taskModsOnSeqsPaths+="\n";
+			}
+		}
+		if(!taskModsOnSeqsPaths.isEmpty()){
+			String msg = new String("current configuration has modules on tasks which are directly on Sequences/Paths which is forbidden\nplease remove the offending modules below from the tasks or seq/paths\n");
+			msg+=taskModsOnSeqsPaths;			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(nrRows,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		
+
 		return true;
 	}
 
