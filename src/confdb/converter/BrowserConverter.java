@@ -270,6 +270,9 @@ public class BrowserConverter extends OfflineConverter
         String  dbName      =  "cms_cond.cern.ch";
         String  dbUser      = "cms_hltdev_reader";
         String  dbPwrd      =        "convertme!";
+        boolean dbProxy     =               false;
+        String  dbProxyHost =         "localhost";
+        String  dbProxyPort =               "8080";
 
         HashMap<String, String> cnvArgs = new HashMap<String, String>();
 
@@ -307,6 +310,15 @@ public class BrowserConverter extends OfflineConverter
             }
             else if (arg.equals("-s") || arg.equals("--dbpwrd")) {
                 iarg++; dbPwrd = args[iarg];
+            }
+            else if (arg.equals("-x") || arg.equals("--dbproxy")) {
+                dbProxy = true;
+            }
+            else if (arg.equals("--dbproxyport")) {
+                iarg++; dbProxyPort = args[iarg];
+            }
+            else if (arg.equals("--dbproxyhost")) {
+                iarg++; dbProxyHost = args[iarg];
             }
             else if (arg.startsWith("--no")) {
                 String key = arg.substring(2);
@@ -359,10 +371,17 @@ public class BrowserConverter extends OfflineConverter
             System.exit(1);
         }
 
-        System.err.println("dbURl  = " + dbUrl);
-        System.err.println("dbUser = " + dbUser);
-        System.err.println("dbPwrd = " + dbPwrd);
+        System.err.println("dbURl       = " + dbUrl);
+        System.err.println("dbUser      = " + dbUser);
+        System.err.println("dbPwrd      = " + dbPwrd);
+        System.err.println("dbProxy     = " + dbProxy);
+        System.err.println("dbProxyHost = " + dbProxyHost);
+        System.err.println("dbProxyPort = " + dbProxyPort);
 
+        if(dbProxy){
+            System.setProperty("socksProxyHost", dbProxyHost);
+			System.setProperty("socksProxyPort", dbProxyPort);
+        }
         try {
             ModifierInstructions modifications = new ModifierInstructions();
             modifications.interpretArgs(cnvArgs);
