@@ -1,3 +1,9 @@
+2021-11-04 Sam Harper
+    * tag V03-00-08
+	* forbid the saving of menus with modules on a task which are also directly on a sequence or path
+	* added proxy support for browserconverter which is used by hltGetConfiguration and friends
+	* update deploy script to write shd512 sums
+
 2021-10-18 Sam Harper
     * tag V03-00-07
 	* added Mateusz to admins
