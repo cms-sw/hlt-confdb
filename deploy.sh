@@ -30,6 +30,10 @@ cp -a lib/*.jar ext/signed/*.jar $BASE/gui/
 cp -a src/conf/confdb.version $BASE/
 cp -a javaws/WebContent/index.html javaws/WebContent/start.jnlp $BASE/gui/
 
+for jar in $(ls $BASE/lib/*.jar); do
+    sha512sumname=$(echo $jar | sed 's/.jar$/_sha512/g')
+    sha512sum $jar | awk '{print $1}' > $sha512sumname
+done
 sed -i "s#\$\$codebase#$URL#" $BASE/gui/start.jnlp
 
 echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` successfully deployed at ${URL}start.jnlp"
