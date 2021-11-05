@@ -1,10 +1,25 @@
 #! /bin/bash -e
 
-# set the target directory
-VERSION=${1:-v2}
+#we get the branch from 
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+VERSION=`git rev-parse --abbrev-ref HEAD | sed s/confdb//g`
+VALID_VERSIONS=("v2" "v3" "v3-beta" "v3-test")
+PROD_VERSIONS=("v2" "v3")
+if [[ ! " ${VALID_VERSIONS[*]} " =~ " ${VERSION} " ]]; then
+    echo "branch $BRANCH gives version $VERSION which is not a valid version, which are:"
+    echo "   ${VALID_VERSIONS[@]}"
+    echo "exiting"
+    exit
+fi
+
+if [[ ! " ${PROD_VERSIONS[*]} " =~ " ${VERSION} " ]]; then
+    echo "non production version $VERSION detected, appending git hash to version number"
+    sed -i -E 's/(^confdb.version=V)([0-9\-]+)/\1\2-31f04d99d48a011b1d7e161fba1f5f2212c2b1db/g' src/conf/confdb.version 
+fi
 
 BASE=$HOME/www/$VERSION
 URL=https://confdb.web.cern.ch/confdb/$VERSION/gui/
+
 
 # buld everything from scratch
 ant clean
@@ -30,10 +45,10 @@ cp -a lib/*.jar ext/signed/*.jar $BASE/gui/
 cp -a src/conf/confdb.version $BASE/
 cp -a javaws/WebContent/index.html javaws/WebContent/start.jnlp $BASE/gui/
 
-for jar in $(ls $BASE/lib/*.jar); do
-    sha512sumname=$(echo $jar | sed 's/.jar$/_sha512/g')
-    sha512sum $jar | awk '{print $1}' > $sha512sumname
-done
 sed -i "s#\$\$codebase#$URL#" $BASE/gui/start.jnlp
 
 echo "ConfDB GUI version `cat $BASE/confdb.version | grep confdb.version | cut -d= -f2` successfully deployed at ${URL}start.jnlp"
+if [[ ! " ${PROD_VERSIONS[*]} " =~ " ${VERSION} " ]]; then
+    echo "restoring branch confdb.version"
+    git checkout src/conf/confdb.version 
+fi
