@@ -167,7 +167,7 @@ public class JPythonParser
             pyCmd("import sys");
             pyCmd("sys.path.append('"+path+"')");   // add the .py file's path
             pyCmd("import pycimport");              // load bytecode .pyc files if available
-            pyCmd("pyPath = '/'.join(sys.exec_prefix.split('/')[:-1])+'/python'"); //get .../hlt-confdb/python path
+            pyCmd("pyPath = '/'.join(sys.exec_prefix.split('/')[:-1])+'/python'"); //get .../hlt-confdb/python path from .../hlt-confdb/ext
             pyCmd("print(pyPath)");
             pyCmd("sys.path.append(pyPath)");
 
