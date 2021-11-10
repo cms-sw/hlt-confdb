@@ -131,6 +131,7 @@ public class JPythonParser
 
     /** exec py cmd */
     public void pyCmd(String pycmd) {
+        System.out.println(pycmd);
         pythonInterpreter.exec(pycmd);
     }
 
@@ -166,7 +167,9 @@ public class JPythonParser
             pyCmd("import sys");
             pyCmd("sys.path.append('"+path+"')");   // add the .py file's path
             pyCmd("import pycimport");              // load bytecode .pyc files if available
-	    pyCmd("sys.path.append('python')");
+            pyCmd("pyPath = '/'.join(sys.exec_prefix.split('/')[:-1])+'/python'"); //get .../hlt-confdb/python path
+            pyCmd("print(pyPath)");
+            pyCmd("sys.path.append(pyPath)");
 
             /////////////////////////////////////////////////////////
 
