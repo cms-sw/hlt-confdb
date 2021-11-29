@@ -1,3 +1,9 @@
+2021-11-29 Marino Missiroli
+    * tag V03-01-00
+	* adds whitespaces around comma preceding Tasks in Paths/EndPaths (changes python output)
+	* allows JPythonParser to work from any folder
+	* changes name of cms.Schedule to "schedule" (changes python output)
+
 2021-11-04 Sam Harper
     * tag V03-00-08
 	* forbid the saving of menus with modules on a task which are also directly on a sequence or path
@@ -7,12 +13,12 @@
 2021-10-18 Sam Harper
     * tag V03-00-07
 	* added Mateusz to admins
-	* read only setup for the P5 database added 	
+	* read only setup for the P5 database added
 	* forbidding the saving of menus which have streams that have unassinged paths
 	* disabling the option to directly adding a path to a stream
 	* parsing bug fix for empty strings
 	* diff bug fix where objects with same name but different type (eg module vs switch producer) no longer causes a crash
-	
+
 2021-10-07 Sam Harper
     * tag V03-00-06
 	* bug fix: selectEvents no longer assumed to be first entry of an output module
