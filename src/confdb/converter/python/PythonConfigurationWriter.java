@@ -214,7 +214,7 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 		}
 
 		if (conf.pathCount() > 0) {
-			str.append("\n" + object + "HLTSchedule = cms.Schedule( *(");
+			str.append("\n" + object + "schedule = cms.Schedule( *(");
 			for (int i = 0; i < conf.pathCount(); i++) {
 				Path path = conf.path(i);
 				//we need the "," when there is just one path
