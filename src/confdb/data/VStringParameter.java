@@ -126,6 +126,8 @@ public class VStringParameter extends VectorParameter
     /** i-th value of a vector type parameter */
     public Object value(int i) { return values.get(i); }
 
+	public ArrayList<String> values() { return values; }
+
     /** set i-th value of a vector-type parameter */
     public boolean setValue(int i,String valueAsString)
     {

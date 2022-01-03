@@ -232,11 +232,11 @@ public class OutputModule extends ParameterContainer implements Referencable {
 	/** update value of 'SelectEvents' parameter */
 	private void updateSelectEvents() {
 		StringBuffer valueAsString = new StringBuffer();
-		Iterator<Path> itP = parentStream().pathIterator();
+		Iterator<PrimaryDataset> itP = parentStream().datasetIterator();
 		while (itP.hasNext()) {
 			if (valueAsString.length() > 0)
 				valueAsString.append(",");
-			valueAsString.append(itP.next().name());
+			valueAsString.append(itP.next().datasetPath().name());
 		}
 		vstringSelectEvents.setValue(valueAsString.toString());
 	}
