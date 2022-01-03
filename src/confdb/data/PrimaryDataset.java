@@ -30,6 +30,11 @@ public class PrimaryDataset extends DatabaseEntry
     /** parent stream */
     private Stream parentStream = null;
     
+    /** path representing the dataset **/
+    private Path datasetPath = null;
+
+    /** filter module selecting dataset's paths **/
+    private ModuleInstance datasetModule = null;
 
     //
     // construction
@@ -40,6 +45,7 @@ public class PrimaryDataset extends DatabaseEntry
     {
 	this.name         = name.replaceAll("\\W", "");
 	this.parentStream = parentStream;
+    createDatasetPath();
     }
     
     
@@ -65,6 +71,10 @@ public class PrimaryDataset extends DatabaseEntry
     
     /** get the parent stream */
     public Stream parentStream() { return parentStream; }
+
+    public Path datasetPath() { return datasetPath; }
+
+    public ModuleInstance datasetModule() { return datasetModule; }
 
     /** set name of this stream */
     public void setName(String name) {
@@ -166,6 +176,25 @@ public class PrimaryDataset extends DatabaseEntry
 	paths.clear();
 	setHasChanged();
         parentStream.setHasChanged();
+    }
+
+    public String datasetPathName()
+    {
+        return "Dataset_"+name();
+    }
+    public String datasetModuleName()
+    {
+        return "hltDataset"+name();
+    }
+
+    /** create the path representing the path **/ 
+    public void createDatasetPath()
+    {        
+        Configuration cfg = (Configuration) parentStream.parentContent().config();
+        this.datasetModule = cfg.insertModule("TriggerResultsFilter",datasetModuleName());
+        this.datasetPath = cfg.insertPath(cfg.pathCount(),datasetPathName());
+        cfg.insertModuleReference(this.datasetPath,0,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
+        cfg.insertModuleReference(this.datasetPath,1,this.datasetModule);
     }
 
 }

@@ -4944,6 +4944,10 @@ public class ConfigurationTreeActions {
 
 		int index = config.indexOfDataset(dataset);
 		model.nodeInserted(model.datasetsNode(), index);
+		index = config.indexOfPath(dataset.datasetPath());
+		model.nodeInserted(model.pathsNode(), index);
+		
+
 		if (model.streamMode().equals("datasets"))
 			model.nodeInserted(dataset.parentStream(), dataset.parentStream().indexOfDataset(dataset));
 

@@ -1984,7 +1984,10 @@ public class ConfDB {
 				Path path = pathIt.next();
 				// System.err.println("Iterating path "+path.name()+": "+
 				// "id="+path.databaseId());
-				int databaseId = pathToId.get(path);
+				//so streams and datasets can create paths on creation
+				//therefore we may have paths which exist but are not yet in
+				//the database, so we do a getOrDefault to allow this case
+				int databaseId = pathToId.getOrDefault(path,0);
 				path.setDatabaseId(databaseId);
 			}
 
