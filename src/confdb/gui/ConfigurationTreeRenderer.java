@@ -218,8 +218,17 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 				if (unresolvedCount > 0)
 					result += " <font color=#0000ff>[" + unresolvedCount + "]</font>";
 			}
-			if (!path.isStdPath())
-				result += " <font color=#ff11a9>[endpath]</font>";
+			if (!path.isStdPath()){
+				if (path.isEndPath()) {
+					result += " <font color=#ff11a9>[endpath]</font>";
+				}else if(path.isFinalPath()) {
+					result += " <font color=#ff11a9>[finalpath]</font>";
+				}else if(path.isDatasetPath()) {
+					result += " <font color=#ff11a9>[datasetpath]</font>";
+				}else{
+					result += " <font color=#ff11a9>[unknownpathtype]</font>";
+				}
+			}
 			result += "</html>";
 		} else if (node instanceof PathReference) {
 			PathReference reference = (PathReference) node;
