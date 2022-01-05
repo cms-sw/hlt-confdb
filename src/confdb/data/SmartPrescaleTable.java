@@ -100,7 +100,7 @@ public class SmartPrescaleTable {
                 }
             } else {
                 path = config.path(strPath);
-                if ((path != null) && (path.isSetAsEndPath())) path = null;
+                if ((path != null) && (!path.isStdPath())) path = null;
             }
         }
         return (path != null);
@@ -139,7 +139,7 @@ public class SmartPrescaleTable {
         hasAccessToHLTResults = false;
 
         for (Path p: paths) {
-            if (p.isSetAsEndPath()) {
+            if (!p.isStdPath()) {
                 hasAccessToHLTResults = true;
                 if (p.hasOutputModule()) {
                     Iterator < OutputModule > outputIterator = p.outputIterator();

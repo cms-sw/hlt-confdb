@@ -15,6 +15,8 @@ public class HtmlPathWriter implements IPathWriter
 		String str = indent;
 		if ( path.isEndPath() )
 			str += "endpath ";
+		else if (path.isFinalPath() )
+			str += "finalpath ";
 		else
 			str += "path ";
 		str += decorateName( path.name() ) + " = ";

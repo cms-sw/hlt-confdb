@@ -15,13 +15,25 @@ public class Path extends ReferenceContainer {
 	//
 	// member data
 	//
+	public enum Type {
+		STD(0),
+		END(1),
+		FINAL(2),
+		DATASET(3);
+
+		public final int value;
+
+		private Type(int value){
+			this.value = value;
+		} 
+
+	} 
 
 	/** collection of event contents this path is associated with */
 	private ArrayList<EventContent> contents = new ArrayList<EventContent>();
 
-	/** flag indicating that the path was set to be an endpath */
-	private boolean isSetAsEndPath = false;
-
+	private Type pathType = Type.STD; 
+	
 	/** field indicating a short description of a particular path */
 	private String description = "";
 	/**
@@ -59,7 +71,7 @@ public class Path extends ReferenceContainer {
 	public void setFields(Path src) {
 		setDescription(src.getDescription());
 		setContacts(src.getContacts());
-		setAsEndPath(src.isSetAsEndPath());
+		this.pathType = src.pathType;
 	}
 
 	public String getDescription() {
@@ -89,36 +101,53 @@ public class Path extends ReferenceContainer {
 		setHasChanged();
 	}
 
-	/** chek if this path contains an output module */
-	public boolean isEndPath() {
-		if (isSetAsEndPath)
-			return true;
-		return hasOutputModule();
+	public Type pathType() {
+		return this.pathType;
 	}
 
-	/** is this path *set* to be an endpath? *Not* the same as above! */
-	public boolean isSetAsEndPath() {
-		return isSetAsEndPath;
+	public boolean isEndPath() {
+		return this.pathType  == Type.END;
+	}
+
+	public boolean isFinalPath() {
+		return this.pathType == Type.FINAL;
+	}
+
+	public boolean isDatasetPath(){
+		return this.pathType == Type.DATASET;
+	}
+
+	public boolean isStdPath(){
+		return this.pathType == Type.STD;
 	}
 
 	/** set this path to be an endpath */
-	public boolean setAsEndPath(boolean isSetAsEndPath) {
-		if (this.isSetAsEndPath == isSetAsEndPath)
+	public boolean setAsEndPath(){
+		return setType(Type.END);
+	}
+	
+	public boolean setAsFinalPath(){
+		return setType(Type.FINAL);
+	}
+
+	public boolean setAsStdPath() {
+		return setType(Type.STD);
+	}
+
+	public boolean setAsDatasetPath() {
+		return setType(Type.DATASET);
+	}
+	
+
+	public boolean setType(Type type) {
+		if(this.pathType == type){
 			return true;
+		}else{
+			this.pathType = type;
+			setHasChanged();
+			return true;
+		}
 
-		/*
-		 * if (hasEDProducer()) {
-		 * System.err.println("Can't declare path '"+name()+"' as endpath: "+
-		 * "it contains one or more EDProducer(s)."); return false; } if (hasEDFilter())
-		 * { System.err.println("Can't declare path '"+name()+"' as endpath: "+
-		 * "it contains one or more EDFilter(s)."); return false; } if (hasHLTFilter())
-		 * { System.err.println("Can't declare path '"+name()+"' as endpath: "+
-		 * "it contains one or more HLTFilter(s)."); return false; }
-		 */
-
-		this.isSetAsEndPath = isSetAsEndPath;
-		setHasChanged();
-		return true;
 	}
 
 	/** insert a path entry */

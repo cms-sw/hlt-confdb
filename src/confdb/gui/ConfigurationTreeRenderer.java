@@ -142,7 +142,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			if (node instanceof PathReference)
 				node = ((Reference) node).parent();
 			Path path = (Path) node;
-			return (path.isEndPath()) ? endpathIcon : pathIcon;
+			return (path.isStdPath()) ? pathIcon : endpathIcon;
 		} else if (node instanceof Sequence || node instanceof SequenceReference) {
 			return sequenceIcon;
 		} else if (node instanceof Task || node instanceof TaskReference) {
@@ -203,7 +203,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 			int unsetCount = path.unsetTrackedParameterCount();
 			int unresolvedCount = path.unresolvedESInputTagCount();
 			result = "<html>";
-			if (!path.isEndPath() && path.datasetCount() == 0)
+			if (path.isStdPath() && path.datasetCount() == 0)
 				result += "<font color=#ff0000>" + getText() + "</font>";
 			else
 				result += getText();
@@ -218,7 +218,7 @@ public class ConfigurationTreeRenderer extends DefaultTreeCellRenderer {
 				if (unresolvedCount > 0)
 					result += " <font color=#0000ff>[" + unresolvedCount + "]</font>";
 			}
-			if (path.isEndPath())
+			if (!path.isStdPath())
 				result += " <font color=#ff11a9>[endpath]</font>";
 			result += "</html>";
 		} else if (node instanceof PathReference) {

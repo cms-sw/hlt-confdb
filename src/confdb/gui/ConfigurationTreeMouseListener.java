@@ -1602,7 +1602,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			while (itP.hasNext()) {
 				Path path = itP.next();
-				if (path.isEndPath())
+				if (!path.isStdPath())
 					continue;
 				Stream stream = dataset.parentStream();
 
@@ -2942,9 +2942,16 @@ class PathItemListener implements ItemListener {
 	}
 
 	/** ItemListener.itemStateChanged() */
+	//FIX ME: set correct logic here to impliment rules for hcanging
+	//path type
 	public void itemStateChanged(ItemEvent e) {
 		JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getItemSelectable();
-		ConfigurationTreeActions.setPathAsEndpath(tree, item.isSelected());
+		if(item.isSelected()){
+			ConfigurationTreeActions.setPathAsEndPath(tree);
+		}else{
+			ConfigurationTreeActions.setPathAsStdPath(tree);
+		}
+		
 	}
 
 }

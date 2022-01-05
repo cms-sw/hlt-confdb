@@ -11,8 +11,10 @@ public class AsciiPathWriter implements IPathWriter
 		String str = indent;
 		if ( path.isEndPath() )
 			str += "endpath ";
-		else
-			str += "path ";
+		else if ( path.isFinalPath() ) 
+			str += "finalpath ";
+		else 
+			str += "path";
 		str += decorateName( path.name() ) + " = { ";
 		for ( int i = 0; i < path.entryCount(); i++  )
 		{

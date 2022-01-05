@@ -912,25 +912,9 @@ public class ConfDbGUI {
 					// update/add:"+pathName);
 					external = importConfig.path(pathName);
 					if (external == null) {
-						// System.out.println("ConfDbGUI.diffConfiguration: path not found in
-						// importConfig - skip!");
-						// } else if ( ((Path)external).isEndPath() ) {
-						// System.out.println("ConfDbGUI.diffConfiguration: path is endpath - skip!");
+					
 					} else {
-						/*
-						 * ReferenceContainer internal = currentConfig.path(external.name()); if
-						 * (internal==null) { // System.out.
-						 * println("ConfDbGUI.diffConfiguration: path not found in currentConfig - add!"
-						 * ); internal =
-						 * currentConfig.insertPath(currentConfig.pathCount(),external.name());
-						 * ((Path)internal).setAsEndPath(((Path)external).isSetAsEndPath()); } //
-						 * System.out.println("ConfDbGUI.diffConfiguration: start "+pathName+" "
-						 * +external.name()+" "+internal.name()); // result =
-						 * ConfigurationTreeActions.DeepImportContainerEntriesSimulation(currentConfig,
-						 * importConfig, external, internal);
-						 */
-						// System.out.println("ConfDbGUI.diffConfiguration: start "+pathName+"
-						// "+external.name());
+									
 						result = ConfigurationTreeActions.DeepImportReferenceContainer(jTreeCurrentConfig, importConfig,
 								external);
 						if (!result)
@@ -972,8 +956,8 @@ public class ConfDbGUI {
 			if (pathComparison.result() == Comparison.RESULT_CHANGED) {
 				path = (Path) pathComparison.newContainer();
 
-				// no re-versioning of endpaths
-				if (path.isSetAsEndPath())
+				// no re-versioning of finalpaths, endpaths, datasetpaths
+				if (!path.isStdPath())
 					break;
 
 				oldName = path.name();

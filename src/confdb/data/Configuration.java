@@ -606,7 +606,7 @@ public class Configuration implements IConfiguration {
 	public int pathNotAssignedToStreamCount() {
 		int result = 0;
 		for (Path p : paths) {
-			if (p.isEndPath())
+			if (!p.isStdPath())
 				continue;
 			if (p.streamCount() == 0)
 				result++;
@@ -618,7 +618,7 @@ public class Configuration implements IConfiguration {
 	public int pathNotAssignedToDatasetCount() {
 		int result = 0;
 		for (Path p : paths) {
-			if (p.isEndPath())
+			if (!p.isStdPath())
 				continue;
 			if (p.datasetCount() == 0)
 				result++;

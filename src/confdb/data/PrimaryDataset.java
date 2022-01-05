@@ -205,7 +205,7 @@ public class PrimaryDataset extends DatabaseEntry
         this.pathFilterParam = (VStringParameter) this.pathFilter.findParameter("triggerConditions");
 
         this.datasetPath = cfg.insertPath(cfg.pathCount(),datasetPathName());
-        this.datasetPath.setAsEndPath(true);
+        this.datasetPath.setAsDatasetPath();
         cfg.insertModuleReference(this.datasetPath,0,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
         cfg.insertModuleReference(this.datasetPath,1,this.pathFilter);
     }

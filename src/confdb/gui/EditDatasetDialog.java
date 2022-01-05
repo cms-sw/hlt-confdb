@@ -122,7 +122,7 @@ public class EditDatasetDialog extends JDialog {
 		Iterator<Path> itP = config.pathIterator();
 		while (itP.hasNext()) {
 			Path path = itP.next();
-			if (!path.isEndPath())
+			if (path.isStdPath())
 				paths.add(path);
 		}
 		Collections.sort(paths);

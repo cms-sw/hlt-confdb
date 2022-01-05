@@ -637,17 +637,30 @@ public class ConfigurationTreeActions {
 		model.updateLevel1Nodes();
 	}
 
-	/** set a path as endpath */
-	public static void setPathAsEndpath(JTree tree, boolean isEndPath) {
+	public static void setPathType(JTree tree,Path.Type pathType) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		IConfiguration config = (IConfiguration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
-
 		Path path = (Path) treePath.getLastPathComponent();
-		path.setAsEndPath(isEndPath);
-		// config.setHasChanged(true);
+		path.setType(pathType);		
 		model.nodeChanged(path);
 	}
+
+	public static void setPathAsStdPath(JTree tree) {
+		setPathType(tree,Path.Type.END);
+	}
+
+	public static void setPathAsEndPath(JTree tree) {
+		setPathType(tree,Path.Type.END);
+	}
+
+	public static void setPathAsFinalPath(JTree tree) {
+		setPathType(tree,Path.Type.FINAL);
+	}
+
+	public static void setPathAsDatasetPath(JTree tree) {
+		setPathType(tree,Path.Type.DATASET);
+	}
+	
 
 	/** insert a new path */
 	public static boolean insertPath(JTree tree) {

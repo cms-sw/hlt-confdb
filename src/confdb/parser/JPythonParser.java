@@ -693,7 +693,7 @@ public class JPythonParser
         for (Object key : keys) {
             String pathName = (String) key;
             Path path = configuration.insertPath(configuration.pathCount(), pathName);
-            path.setAsEndPath(true);
+            path.setAsEndPath();
             PyObject value = pydict.__getitem__(new PyString((String) key));
             parsePath(value);
         }

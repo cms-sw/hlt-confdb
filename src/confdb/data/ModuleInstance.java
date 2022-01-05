@@ -96,12 +96,13 @@ public class ModuleInstance extends Instance implements Referencable {
 		for (Path path : paths)
 			pathSet.add(path);
 
-		// as well as endpaths for outputmodules/eventcontents
+		// as well as finalpaths for outputmodules/eventcontents
+		// only final paths can have output modules
 		if (config() != null) {
 			Iterator<Path> itP = config().pathIterator();
 			while (itP.hasNext()) {
 				Path path = itP.next();
-				if (path.isEndPath()) {
+				if (path.isFinalPath()) {
 					pathSet.add(path);
 				}
 			}
