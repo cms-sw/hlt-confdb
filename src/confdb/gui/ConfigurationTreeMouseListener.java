@@ -764,12 +764,45 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupPaths.add(removePathMenu);
 
 			popupPaths.addSeparator();
-			JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("endpath");
-			cbMenuItem.setState(path.isEndPath());
-			if (path.hasOutputModule())
-				cbMenuItem.setEnabled(false);
-			cbMenuItem.addItemListener(new PathItemListener(tree));
-			popupPaths.add(cbMenuItem);
+			
+			JMenu setPathTypeMenu = new JMenu("Set Path Type");
+			JRadioButtonMenuItem stdPathItem = new JRadioButtonMenuItem("StdPath",path.isStdPath());
+			JRadioButtonMenuItem endPathItem = new JRadioButtonMenuItem("EndPath",path.isEndPath());
+			JRadioButtonMenuItem finalPathItem = new JRadioButtonMenuItem("FinalPath",path.isFinalPath());
+			JRadioButtonMenuItem datasetPathItem = new JRadioButtonMenuItem("DatasetPath",path.isDatasetPath());
+			stdPathItem.setActionCommand("std");
+			endPathItem.setActionCommand("end");
+			finalPathItem.setActionCommand("final");
+			datasetPathItem.setActionCommand("dataset");
+
+			ButtonGroup pathTypeButtons = new ButtonGroup();
+			pathTypeButtons.add(stdPathItem);
+			pathTypeButtons.add(endPathItem);
+			pathTypeButtons.add(finalPathItem);
+			pathTypeButtons.add(datasetPathItem);
+			
+			setPathTypeMenu.add(stdPathItem);
+			setPathTypeMenu.add(endPathItem);
+			setPathTypeMenu.add(finalPathItem);
+			setPathTypeMenu.add(datasetPathItem);
+
+			//you can never set/unset manually a dataset path
+			//the fact the button exists is more to let the user see it was selected
+			//and thats why they cant select other options
+			datasetPathItem.setEnabled(false);
+
+			if (path.isDatasetPath()){
+				stdPathItem.setEnabled(false);
+				endPathItem.setEnabled(false);
+				finalPathItem.setEnabled(false);
+			}
+
+			stdPathItem.addActionListener(new PathTypeListener(tree));
+			endPathItem.addActionListener(new PathTypeListener(tree));
+			finalPathItem.addActionListener(new PathTypeListener(tree));
+			datasetPathItem.addActionListener(new PathTypeListener(tree));
+
+			popupPaths.add(setPathTypeMenu);
 
 			JMenu repPathMenu = createAddRepPathMenu(path, false);
 			popupPaths.add(repPathMenu);
@@ -2952,6 +2985,35 @@ class PathItemListener implements ItemListener {
 			ConfigurationTreeActions.setPathAsStdPath(tree);
 		}
 		
+	}
+
+}
+
+class PathTypeListener implements ActionListener {
+	/** reference to tree */
+	private JTree tree = null;
+
+	/** constructor */
+	public PathTypeListener(JTree tree) {
+		this.tree = tree;
+	}
+
+	/** ItemListener.itemStateChanged() */
+	//FIX ME: set correct logic here to impliment rules for hcanging
+	//path type
+	public void actionPerformed(ActionEvent e) {
+		
+		JMenuItem source = (JMenuItem) (e.getSource());		
+		String action = source.getActionCommand();	
+		if (action.equals("std") ){
+			ConfigurationTreeActions.setPathAsStdPath(tree);
+		}else if (action.equals("end") ){
+			ConfigurationTreeActions.setPathAsEndPath(tree);
+		}else if (action.equals("final") ){
+			ConfigurationTreeActions.setPathAsFinalPath(tree);
+		}else if (action.equals("dataset") ){
+			ConfigurationTreeActions.setPathAsDatasetPath(tree);
+		}
 	}
 
 }
