@@ -646,7 +646,7 @@ public class ConfigurationTreeActions {
 	}
 
 	public static void setPathAsStdPath(JTree tree) {
-		setPathType(tree,Path.Type.END);
+		setPathType(tree,Path.Type.STD);
 	}
 
 	public static void setPathAsEndPath(JTree tree) {
