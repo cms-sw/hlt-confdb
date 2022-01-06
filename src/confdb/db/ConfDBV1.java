@@ -1141,8 +1141,9 @@ public class ConfDBV1 {
 						path.setDescription(pathDesc);
 						path.setContacts(pathCont);
 					}
-
-					path.setAsEndPath(flag);
+					if(flag){ 
+						path.setAsEndPath();
+					}
 					path.setDatabaseId(id);
 					idToPaths.put(id, path);
 				} else if (type.equals("Sequence")) {
@@ -1929,7 +1930,7 @@ public class ConfDBV1 {
 				path.hasChanged();
 				String pathName = path.name();
 				int pathId = path.databaseId();
-				boolean pathIsEndPath = path.isSetAsEndPath();
+				boolean pathIsEndPath = path.isEndPath();
 				String description = path.getDescription();
 				String contacts = path.getContacts();
 
