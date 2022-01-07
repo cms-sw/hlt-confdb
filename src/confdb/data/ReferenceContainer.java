@@ -264,6 +264,19 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 		return outputs.iterator();
 	}
 
+	/** create iterator for all Modules of a given Type */
+	public Iterator<ModuleInstance> moduleIterator(String modType) {
+		ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
+		getModulesAmongEntries(entryIterator(), modules);
+		return modules.iterator();
+	}
+	
+	public ArrayList<ModuleInstance> moduleArray(String modType) {
+		ArrayList<ModuleInstance> modules = new ArrayList<ModuleInstance>();
+		getModulesAmongEntries(entryIterator(), modules);
+		return modules;
+	}
+
 	/** create iterator for all contained References */
 	public Iterator<Reference> recursiveReferenceIterator() {
 		ArrayList<Reference> references = new ArrayList<Reference>();
@@ -587,6 +600,28 @@ abstract public class ReferenceContainer extends DatabaseEntry implements Compar
 			} else if (entry instanceof TaskReference) {
 				Task task = (Task) entry.parent();
 				getOutputsAmongEntries(task.entryIterator(), outputs);
+			}
+		}
+	}
+
+	private void getModulesAmongEntries(Iterator<Reference> itEntry, ArrayList<ModuleInstance> modules,String modType) {
+		while (itEntry.hasNext()) {
+			Reference entry = itEntry.next();
+			if (entry instanceof ModuleReference) {
+				ModuleInstance module = (ModuleInstance) entry.parent();
+				if(module.template().type().equals(modType)){
+					modules.add(module);
+				}
+			} else if (entry instanceof PathReference) {
+				PathReference ref = (PathReference) entry;
+				Path path = (Path) ref.parent();
+				getModulesAmongEntries(path.entryIterator(), modules);
+			} else if (entry instanceof SequenceReference) {
+				Sequence sequence = (Sequence) entry.parent();
+				getModulesAmongEntries(sequence.entryIterator(), modules);
+			} else if (entry instanceof TaskReference) {
+				Task task = (Task) entry.parent();
+				getModulesAmongEntries(task.entryIterator(), modules);
 			}
 		}
 	}

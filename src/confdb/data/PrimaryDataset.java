@@ -190,26 +190,63 @@ public class PrimaryDataset extends DatabaseEntry
     {
         return "Dataset_"+name();
     }
-    public String pathFilterName()
+    public String pathFilterDefaultName()
     {
         return "hltDataset"+name();
+    }
+
+    public static String datasetPathBeginSequenceName()
+    {
+        return "HLTDatasetPathBeginSequence";
     }
 
     /** create the path representing the path including its modules **/ 
     public void createDatasetPath()
     {        
         Configuration cfg = (Configuration) parentStream.parentContent().config();
-        this.pathFilter = cfg.insertModule("TriggerResultsFilter",pathFilterName());
-        InputTagParameter trigResultTag = new InputTagParameter("hltResults","TriggerResults","","@currentProcess", true);
-        this.pathFilter.updateParameter(trigResultTag.name(),trigResultTag.type(),trigResultTag.valueAsString());
-        this.pathFilterParam = (VStringParameter) this.pathFilter.findParameter("triggerConditions");
+        this.datasetPath = cfg.path(datasetPathName());
+        if(this.datasetPath==null) {
+            this.datasetPath = cfg.insertPath(cfg.pathCount(),datasetPathName());
+            this.datasetPath.setAsDatasetPath();
+            Sequence beginSeq = cfg.sequence(datasetPathBeginSequenceName());
+            if( beginSeq == null){
+                beginSeq = cfg.insertSequence(cfg.sequenceCount(),datasetPathBeginSequenceName());
+            }
+            cfg.insertSequenceReference(this.datasetPath, 0, beginSeq);
+            cfg.insertModuleReference(this.datasetPath,1,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
+            addPathFilter(cfg);
+        }else{
+            ArrayList<ModuleInstance> trigFiltArray = this.datasetPath.moduleArray("TriggerResultsFilter");
+            if(trigFiltArray.size()==0){
+                System.err.println("Error, datasetPath "+this.datasetPath+" has no TriggerResultFilters when it should have exactly one, creating it");
+                addPathFilter(cfg);
+            }else{
 
-        this.datasetPath = cfg.insertPath(cfg.pathCount(),datasetPathName());
-        this.datasetPath.setAsDatasetPath();
-        cfg.insertModuleReference(this.datasetPath,0,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
-        cfg.insertModuleReference(this.datasetPath,1,this.pathFilter);
+                if(trigFiltArray.size()>1){
+                    System.err.println("Error, datasetPath "+this.datasetPath+" has "+trigFiltArray.size()+" TriggerResultFilters when it should have exactly one, taking first one");
+                }
+                setPathFilter(trigFiltArray.get(0));   
+            }
+        }
     }
 
+    private void addPathFilter(Configuration cfg) {
+        
+        ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),"TriggerResultsFilter",pathFilterDefaultName());
+
+        ModuleInstance pathFilter = (ModuleInstance) pathFilterRef.parent();        
+        InputTagParameter trigResultTag = new InputTagParameter("hltResults","TriggerResults","","@currentProcess", true);
+        pathFilter.updateParameter(trigResultTag.name(),trigResultTag.type(),trigResultTag.valueAsString());
+        setPathFilter(pathFilter);
+    }
+
+    private void setPathFilter(ModuleInstance pathFilter){
+        this.pathFilter = pathFilter;
+        this.pathFilterParam = (VStringParameter) this.pathFilter.findParameter("triggerConditions");
+        if(this.pathFilterParam==null){
+            System.err.println("error dataset's path filter "+this.pathFilter.name()+" has no trigger conditions parameter, this should not be possible");
+        }
+    }
     /* here we sync the paths listed in the filter module with the paths
        assigned to the dataset
        life is a little hard as the path may be prescaled in the dataset 

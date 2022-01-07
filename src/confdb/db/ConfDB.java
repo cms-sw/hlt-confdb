@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.LinkedList;
@@ -1861,20 +1862,37 @@ public class ConfDB {
 					continue;
 				if (stream == null)
 					continue;
-
-				EventContent eventContent = stream.parentContent();
-				stream.insertPath(path);
-				path.addToContent(eventContent);
-
-				// System.err.println("Adding Path to dataset "+datasetId+" id "+pathId+"
-				// streamid "+streamId);
-
 				if (primaryDataset == null)
 					continue;
-				// System.err.println("Adding Path to dataset "+datasetId+" id "+pathId+"
-				// streamid "+streamId);
-				primaryDataset.insertPath(path);
 
+				//there two styles of datasets (new style and old style)
+				//new style: a dataset simply contains single path with a specific name (datasetPathName) and its TriggerResultFilter
+				//contains the list of paths
+				//old style: paths are directly contained in the dataset
+				EventContent eventContent = stream.parentContent();
+				if(path.name().equals(primaryDataset.datasetPathName())){
+					//new style
+					HashSet<String> pathsOfDatasetNames = getPathNamesFromTriggerResultsFilter(path);
+					for(String pathOfDatasetName : pathsOfDatasetNames){
+						Path pathOfDataset = config.path(pathOfDatasetName);
+						if(pathOfDataset==null){
+							System.err.println("Path \""+pathOfDataset+"\" in Dataset "+primaryDataset.name()+" dataset path's trigger filter results does not exist, this is likely a serious error");
+							continue;
+						}				
+						primaryDataset.insertPath(pathOfDataset);
+						pathOfDataset.addToContent(eventContent);
+						stream.insertPath(pathOfDataset);
+					}
+
+				}else{
+					primaryDataset.insertPath(path);
+					path.addToContent(eventContent);
+					stream.insertPath(path);
+				}
+
+				
+				
+				
 				stream.setDatabaseId(streamId);
 				primaryDataset.setDatabaseId(datasetId);
 			}
@@ -1962,8 +1980,17 @@ public class ConfDB {
 			Iterator<Sequence> sequenceIt = config.sequenceIterator();
 			while (sequenceIt.hasNext()) {
 				Sequence sequence = sequenceIt.next();
-				int databaseId = sequenceToId.get(sequence);
-				sequence.setDatabaseId(databaseId);
+				//so datasets can create paths on creation and that path it creates
+				//a sequence so it may not yet exist in the database
+				//so for that specific sequence we allow 				
+				if(sequence.name().equals(PrimaryDataset.datasetPathBeginSequenceName())){
+					int databaseId = sequenceToId.getOrDefault(sequence,0);
+					sequence.setDatabaseId(databaseId);	
+				}else{
+					int databaseId = sequenceToId.get(sequence);
+					sequence.setDatabaseId(databaseId);
+				}
+				
 			}
 
 			Iterator<Task> taskIt = config.taskIterator();
@@ -7326,6 +7353,28 @@ public class ConfDB {
 
 		return value;
 	}
+
+	//maybe this should be a Path method
+	private static HashSet<String> getPathNamesFromTriggerResultsFilter(Path datasetPath){
+		HashSet<String> pathNames = new HashSet<String>();
+		Iterator<ModuleInstance> trigResultsFilters = datasetPath.moduleIterator("TriggerResultsFilter");
+		while ( trigResultsFilters.hasNext() ){
+
+			ModuleInstance trigResFilt = trigResultsFilters.next();
+			
+			VStringParameter filtParam =  (VStringParameter) trigResFilt.findParameter("triggerConditions");
+			if(filtParam == null){
+				System.err.println("Error: TriggerFilterResults module exists without a triggerConditions parameter, this means datasets will not be populated");
+				continue;
+			}
+			ArrayList<String> pathNamesFilt = filtParam.values();
+			for (String pathName : pathNamesFilt){
+				pathNames.add(pathName);	
+			}
+			
+		}	
+		return pathNames;
+	} 
 
 	//
 	// MAIN
