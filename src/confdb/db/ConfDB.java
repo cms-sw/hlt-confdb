@@ -2195,7 +2195,10 @@ public class ConfDB {
 			HashMap<String, Integer> moduleHashMap = insertModules(config);
 
 			insertEventContentStatements(configId, config, eventContentHashMap);
+			//inserts path -> pd assoc which does not use path based datasets
 			insertPathStreamPDAssoc(pathHashMap, streamHashMap, primaryDatasetHashMap, config, configId);
+			//inserts path-> pd assoc for those datasets with use dataset paths
+			insertPathStreamPDAssocPathDatasets(pathHashMap, streamHashMap, primaryDatasetHashMap, config, configId);
 
 			/*
 			 * sv notyet // insert parameter bindings / values
@@ -4117,20 +4120,24 @@ public class ConfDB {
 			// if(streamId<0) continue;
 
 			for (int j = 0; j < stream.pathCount(); j++) {
-				Path path = stream.path(j);
-				int pathId = pathHashMap.get(path.name());
+				Path path = stream.path(j);				
 				// PrimaryDataset primaryDataset = stream.dataset(path); //TODO Here we have a
 				// problem. there could be more than one.
 				ArrayList<PrimaryDataset> primaryDatasets = stream.datasets(path);
-				int datasetId = -1;
 
-				// Make relation between Stream and Path, datasetId = -1.
-				if (primaryDatasets.size() == 0) {
+				for (int ds = 0; ds < primaryDatasets.size(); ds++) {
+					PrimaryDataset primaryDataset = primaryDatasets.get(ds);
+					if(primaryDataset.datasetPath()!=null){
+						//has a dataset path, thus new style and not to be added by this function
+						continue;
+					}
+					int datasetId = primaryDatasetHashMap.get(primaryDataset.name());
+					// datasetId = primaryDataset.databaseId();
 					try {
-						if (streamId > 0) {
+						if ((streamId > 0) || (datasetId > 0)) {
 							psInsertPathStreamPDAssoc.setInt(1, path.databaseId());
-							psInsertPathStreamPDAssoc.setInt(2, streamId);
-							psInsertPathStreamPDAssoc.setInt(3, datasetId);
+							psInsertPathStreamPDAssoc.setInt(2, stream.databaseId());
+							psInsertPathStreamPDAssoc.setInt(3, primaryDataset.databaseId());
 							psInsertPathStreamPDAssoc.executeUpdate();
 						}
 					} catch (SQLException e) {
@@ -4138,29 +4145,41 @@ public class ConfDB {
 								+ "(batch insert): " + e.getMessage();
 						throw new DatabaseException(errMsg, e);
 					}
-				} else {
-					// Next loop makes one or more than one relations between
-					// datasets/Streams/Paths.
-					for (int ds = 0; ds < primaryDatasets.size(); ds++) {
-						PrimaryDataset primaryDataset = primaryDatasets.get(ds);
-						datasetId = primaryDatasetHashMap.get(primaryDataset.name());
-						// datasetId = primaryDataset.databaseId();
-						try {
-							if ((streamId > 0) || (datasetId > 0)) {
-								psInsertPathStreamPDAssoc.setInt(1, path.databaseId());
-								psInsertPathStreamPDAssoc.setInt(2, stream.databaseId());
-								psInsertPathStreamPDAssoc.setInt(3, primaryDataset.databaseId());
-								psInsertPathStreamPDAssoc.executeUpdate();
-							}
-						} catch (SQLException e) {
-							String errMsg = "ConfDB::Event Content(config=" + config.toString() + ") failed "
-									+ "(batch insert): " + e.getMessage();
-							throw new DatabaseException(errMsg, e);
-						}
-					}
-				} // end
+				}
 			}
 		}
+	}
+
+	private void insertPathStreamPDAssocPathDatasets(HashMap<String, Integer> pathHashMap, HashMap<String, Integer> streamHashMap, HashMap<String, Integer> primaryDatasetHashMap, Configuration config, int configId)throws DatabaseException {
+		for (int streamNr = 0; streamNr < config.streamCount(); streamNr++) {
+			Stream stream = config.stream(streamNr);
+			int streamId = streamHashMap.get(stream.name());
+			if(streamId!=stream.databaseId()){
+				System.err.println("stream db id mis match "+streamId+" vs "+stream.databaseId());
+			}
+			for(int datasetNr = 0; datasetNr < stream.datasetCount(); datasetNr++){
+				PrimaryDataset dataset = stream.dataset(datasetNr);
+				int datasetId = primaryDatasetHashMap.get(dataset.name());
+				if(datasetId!=dataset.databaseId()){
+					System.err.println("datset db id mis match "+datasetId+" vs "+dataset.databaseId());
+				}
+				if (dataset.datasetPath() != null) {
+					try {
+						if ((streamId > 0) || (datasetId > 0)) {
+							psInsertPathStreamPDAssoc.setInt(1, dataset.datasetPath().databaseId());
+							psInsertPathStreamPDAssoc.setInt(2, stream.databaseId());
+							psInsertPathStreamPDAssoc.setInt(3, dataset.databaseId());
+							psInsertPathStreamPDAssoc.executeUpdate();
+						}
+					} catch (SQLException e) {
+						String errMsg = "ConfDB::Event Content(config=" + config.toString() + ") failed "
+								+ "(batch insert): " + e.getMessage();
+						throw new DatabaseException(errMsg, e);
+					}
+				}
+			}
+		}
+
 	}
 
 	/** insert all instance parameters */

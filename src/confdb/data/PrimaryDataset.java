@@ -10,10 +10,29 @@ import java.util.function.Predicate;
  * PrimaryDataset
  * --------------
  * @author Philipp Schieferdecker
+ * updated by Sam Harper
  *
  * PrimaryDatasets are a set (!) of paths assigned with the parent
  * stream. Each path can only be assigned to one of the PDs assigned
  * with a single stream.
+ * 
+ * Primary dataset definations have now been reworked such that they can be defined by a 
+ * path containing a TriggerResults filter which applies the path selection for the dataset
+ * 
+ * This is known as a DatasetPath and contains a begin sequence shared amounst all the dataset paths 
+ * which allows us to add things like L1 digis which we dont know apriori, a prescale module and a
+ * TriggerResults filter which selects the actual paths of the dataset
+ * 
+ * Old style datasets are still supported, if the dataset path doesnt exist, then its an old style
+ * dataset and behaves as it did
+ * 
+ * In the update of this, its not clear to me about the rules for hasChanged()
+ * In theory a PathDataset Dataset is no longer "changing" when a path is added/rmed 
+ * from a db perspective, only the dataset Path is changing. 
+ * However for some reason its triggered as "changed" whenever any 
+ * path that belongs it changes. Need to understand why that is the case and whether
+ * we can update what defines a "change"  
+ * 
  */
 public class PrimaryDataset extends DatabaseEntry
                             implements Comparable<PrimaryDataset>
@@ -38,6 +57,8 @@ public class PrimaryDataset extends DatabaseEntry
     private ModuleInstance pathFilter = null;
 
     /** the parameter of the filter module selecting paths **/
+    /** note because we are maniputating this directly, we need to call **/
+    /** the pathFilters "hasChanged" method whenever we do so **/
     private VStringParameter pathFilterParam = null;
 
     //
@@ -71,7 +92,21 @@ public class PrimaryDataset extends DatabaseEntry
 		break;
 	    }
 	}
+    //doing this because this is done for standard paths
+    //i'll be honest, I dont know why...
+    if(this.datasetPath!=null){
+        if(this.datasetPath.hasChanged()){
+            setHasChanged();
+        }
+    }
 	return super.hasChanged();
+    }
+
+    public void setHasChanged(){
+        if(this.pathFilter!=null){
+            this.pathFilter.setHasChanged();
+        }
+        super.setHasChanged();
     }
     
     /** get the parent stream */
@@ -158,8 +193,8 @@ public class PrimaryDataset extends DatabaseEntry
 	if (parentStream.indexOfPath(path)<0) parentStream.insertPath(path);
 	//else parentStream.setHasChanged();
 	paths.add(path);
-	Collections.sort(paths);
-    updatePathFilter();
+    addToPathFilter(path.name());
+    Collections.sort(paths);    
 	setHasChanged();
 	
 	return true;
@@ -171,9 +206,10 @@ public class PrimaryDataset extends DatabaseEntry
 	int index = paths.indexOf(path);
 	if (index<0) return false;
 	paths.remove(index);
-    updatePathFilter();
+    rmFromPathFilter(path.name());
 	setHasChanged();
-        //parentStream.setHasChanged();
+    //re-enabled this line as streams can only have paths inside datasets
+    parentStream.setHasChanged();
 	return true;
     }
     
@@ -181,7 +217,7 @@ public class PrimaryDataset extends DatabaseEntry
     public void clear()
     {
 	paths.clear();
-    updatePathFilter();
+    clearPathFilter();
 	setHasChanged();
         parentStream.setHasChanged();
     }
@@ -247,6 +283,7 @@ public class PrimaryDataset extends DatabaseEntry
             System.err.println("error dataset's path filter "+this.pathFilter.name()+" has no trigger conditions parameter, this should not be possible");
         }
     }
+
     /* here we sync the paths listed in the filter module with the paths
        assigned to the dataset
        life is a little hard as the path may be prescaled in the dataset 
@@ -274,5 +311,37 @@ public class PrimaryDataset extends DatabaseEntry
             }
         }
     }
+    
+    private boolean addToPathFilter(String pathname){
+        if(this.pathFilterParam!=null){
+            this.pathFilterParam.addValue(pathname);
+            this.pathFilter.setHasChanged();
+            return true;
+        }else{
+            return false;
+        }
+    }
 
+    private boolean rmFromPathFilter(String pathname){
+        if(this.pathFilterParam==null){
+            return false;
+        }else{
+            if(this.pathFilterParam.values().removeIf(x -> (x.split(" / ")[0].equals(pathname)))){
+                this.pathFilter.setHasChanged();
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+
+    private boolean clearPathFilter(){
+        if(this.pathFilterParam==null){
+            return false;
+        }else{
+            this.pathFilterParam.values().clear();
+            this.pathFilter.setHasChanged();
+            return true;
+        }
+    }
 }

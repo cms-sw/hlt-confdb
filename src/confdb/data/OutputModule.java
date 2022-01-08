@@ -234,9 +234,21 @@ public class OutputModule extends ParameterContainer implements Referencable {
 		StringBuffer valueAsString = new StringBuffer();
 		Iterator<PrimaryDataset> itP = parentStream().datasetIterator();
 		while (itP.hasNext()) {
-			if (valueAsString.length() > 0)
-				valueAsString.append(",");
-			valueAsString.append(itP.next().datasetPath().name());
+			PrimaryDataset dataset = itP.next();
+			if(dataset.datasetPath()!=null){
+				if (valueAsString.length() > 0){
+					valueAsString.append(",");
+				}
+				valueAsString.append(dataset.datasetPath().name());
+			}else{
+				Iterator<Path> pathIt = dataset.pathIterator();
+				while(pathIt.hasNext()){
+					if (valueAsString.length() > 0) {
+						valueAsString.append(",");
+					}
+					valueAsString.append(pathIt.next().name());
+				}
+			}
 		}
 		vstringSelectEvents.setValue(valueAsString.toString());
 	}
