@@ -153,6 +153,10 @@ public class Configuration implements IConfiguration {
 		contents.clear();
 	}
 
+	public String hltOutputPathDefaultName(){
+		return "HLTOutput";
+	}
+
 	/** set the configuration info */
 	public void setConfigInfo(ConfigInfo configInfo) {
 		if (!configInfo.releaseTag().equals(releaseTag()))
@@ -1638,6 +1642,57 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
+	/** inserts the output path implimented as a FinalPath responsible for 
+	 * running all outputmodule
+	 * it does not insert it if there are no output modules
+	 */
+	public Path insertOutputPath(){
+		if(!hasDatasetPath()){
+			return null;
+		}
+		Path outPath = outputPath();
+		if(outPath!=null){
+			return outPath;
+		}else{
+			outPath = path(hltOutputPathDefaultName());
+			if(outPath!=null){				
+				return outPath;
+			}else{
+				if(streamCount()!=0){
+					outPath = insertPath(pathCount(),hltOutputPathDefaultName());
+					Iterator<OutputModule> outputIt = outputIterator();
+					while(outputIt.hasNext()){						
+						insertOutputModuleReference(outPath,outPath.entryCount(),outputIt.next());
+					}
+					return outPath;
+				}
+				return null;
+			}
+		}
+
+	}
+	
+	public Path addToOutputPath(OutputModule outMod){
+		Path outPath = insertOutputPath();
+		OutputModuleReference outModRef = new OutputModuleReference(null, outMod);
+		if(outPath!=null && !outPath.containsEntry(outModRef)){
+			insertOutputModuleReference(outPath,outPath.entryCount(),outMod);
+		}
+		return outPath;
+	}
+
+	/** the output path is the FinalPath containing the output modules 
+	 * this assumes that there is exactly one FinalPath in the menu
+	*/
+	public Path outputPath(){
+		for(Path path : paths){
+			if(path.isFinalPath()){
+				return path;
+			}
+		}
+		return null;
+	}
+
 	//
 	// Sequences
 	//
@@ -2070,6 +2125,28 @@ public class Configuration implements IConfiguration {
 		}
 		Collections.sort(datasets);
 		return datasets.iterator();
+	}
+
+	/**
+	 * returns true if any Dataset has a DatasetPath
+	 */
+	public boolean hasDatasetPath() {
+		//dont use datasetIterator as requires looping over all streams/datasets to 
+		//construct it, this is faster as we loop just till we get one with a
+		//dataset path which will likely be the first one
+		for(EventContent content : contents){
+			Iterator<Stream> streamIt = content.streamIterator();
+			while(streamIt.hasNext()){
+				Iterator<PrimaryDataset> datasetIt = streamIt.next().datasetIterator();
+			
+				while(datasetIt.hasNext()){
+					if(datasetIt.next().datasetPath()!=null){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	//

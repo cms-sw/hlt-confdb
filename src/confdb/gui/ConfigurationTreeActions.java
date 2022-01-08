@@ -4574,13 +4574,6 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	public static boolean insertOutputFinalPath(JTree tree) {
-		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		Configuration config = (Configuration) model.getRoot();
-		
-		return true;
-	}
-
 	/** import event content */
 	public static boolean importContent(JTree tree, EventContent external) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -4671,6 +4664,10 @@ public class ConfigurationTreeActions {
 
 		TreePath newTreePath = treePath.pathByAddingChild(stream);
 		tree.setSelectionPath(newTreePath);
+
+		if(config.addToOutputPath(stream.outputModule())!=null){
+			model.nodeStructureChanged(model.pathsNode());
+		}
 
 		return true;
 	}
