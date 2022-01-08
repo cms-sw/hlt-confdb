@@ -4574,6 +4574,13 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
+	public static boolean insertOutputFinalPath(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		
+		return true;
+	}
+
 	/** import event content */
 	public static boolean importContent(JTree tree, EventContent external) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -5016,6 +5023,30 @@ public class ConfigurationTreeActions {
 
 		return inserted;
 	}
+
+	
+	/**
+	 * converts all datasets of a config to the new path based ones
+	 * does this by just generating the DatasetPath
+	 * in general this is just to ease migration and will become redudant in time
+	 */
+
+	public static boolean convertPDsToPathBased(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		Iterator<PrimaryDataset> datasetIt = config.datasetIterator();
+		while(datasetIt.hasNext()){
+			PrimaryDataset dataset = datasetIt.next();
+			dataset.createDatasetPath();
+		}		
+		model.nodeStructureChanged(model.getRoot());
+		model.updateLevel1Nodes();
+		
+		return true;
+	}
+	
+
+
 
 	/**
 	 * movePrimaryDataset Uses sourceTree and targetTree to retrieve the transferred

@@ -99,6 +99,7 @@ public class CreateDatasetDialog extends JDialog {
 		String datasetName = jTextFieldDatasetName.getText();
 		Stream stream = (Stream) jComboBoxStream.getSelectedItem();
 		dataset = stream.insertDataset(datasetName);
+		dataset.createDatasetPath();
 		setVisible(false);
 	}
 

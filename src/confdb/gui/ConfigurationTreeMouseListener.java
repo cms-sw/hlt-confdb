@@ -1601,6 +1601,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (config.streamCount() == 0)
 				menuItem.setEnabled(false);
 			popupDatasets.add(menuItem);
+			
+			menuItem = new JMenuItem("Convert To Path Based");
+			menuItem.addActionListener(datasetListener);
+			menuItem.setActionCommand("CONVERT");
+			popupDatasets.add(menuItem);
+			
 		} else if (depth == 3) {
 			PrimaryDataset dataset = (PrimaryDataset) node;
 
@@ -2917,6 +2923,8 @@ class DatasetMenuListener implements ActionListener {
 			dlg.setVisible(true);
 			if (dlg.isSuccess())
 				ConfigurationTreeActions.insertPrimaryDataset(tree, dlg.dataset());
+		} else if(action.equals("CONVERT")) {
+			ConfigurationTreeActions.convertPDsToPathBased(tree);
 		} else if (action.equals("ADDPATH")) {
 
 			// if (cmd.startsWith("<html><b>")) cmd = cmd.substring(9);

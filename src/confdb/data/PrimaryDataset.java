@@ -69,9 +69,8 @@ public class PrimaryDataset extends DatabaseEntry
     public PrimaryDataset(String name,Stream parentStream)
     {
 	this.name         = name.replaceAll("\\W", "");
-	this.parentStream = parentStream;
-    createDatasetPath();
-    updatePathFilter();
+	this.parentStream = parentStream;    
+    //updatePathFilter();
     }
     
     
