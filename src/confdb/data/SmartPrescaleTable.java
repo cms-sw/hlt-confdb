@@ -25,6 +25,8 @@ public class SmartPrescaleTable {
     private boolean hasAccessToHLTResults;
     public ModuleInstance module;
     private IConfiguration config;
+    //if this represents a primary datasets, this is non null
+    private PrimaryDataset dataset = null;
 
     //
     // construction
@@ -93,7 +95,9 @@ public class SmartPrescaleTable {
     public boolean checkHLTPathExists(String strPath) {
         Path path = null;
         if (hasAccessToHLTResults) {
-            if (streams.size() > 0) {
+            if (dataset!=null){
+                path = dataset.path(strPath);
+            } else if (streams.size() > 0) {
                 for (int j = 0; j < streams.size(); j++) {
                     path = streams.get(j).path(strPath);
                     if (path != null) break;
@@ -149,10 +153,16 @@ public class SmartPrescaleTable {
                         streams.add(stream);
                     }
                 }
+                if (p.isDatasetPath()){
+                    hasAccessToHLTResults = true;
+                    //a datsetpath is format Dataset_<DatasetName>                     
+                    dataset = config.dataset(p.name().substring(8));             
+                }
             }
         }
-
-        if (((InputTagParameter) module.parameter("hltResults")).valueAsString().length() <= 2) hasAccessToHLTResults = false;
+        //dataset paths dont get it via trigger results
+        //in fact all paths probably wont from now on (usePathStatus=true)
+        if (((InputTagParameter) module.parameter("hltResults")).valueAsString().length() <= 2 && dataset==null) hasAccessToHLTResults = false;
 
         hasAccessToL1TResults = (((InputTagParameter) module.parameter("l1tResults")).valueAsString().length() > 2);
 

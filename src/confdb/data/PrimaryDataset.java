@@ -269,10 +269,22 @@ public class PrimaryDataset extends DatabaseEntry
         
         ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),"TriggerResultsFilter",pathFilterDefaultName());
 
-        ModuleInstance pathFilter = (ModuleInstance) pathFilterRef.parent();        
-        InputTagParameter trigResultTag = new InputTagParameter("hltResults","TriggerResults","","@currentProcess", true);
+        ModuleInstance pathFilter = (ModuleInstance) pathFilterRef.parent(); 
+
+        InputTagParameter trigResultTag = new InputTagParameter("hltResults","","","", true);
         pathFilter.updateParameter(trigResultTag.name(),trigResultTag.type(),trigResultTag.valueAsString());
+        if(pathFilter.template().findParameter("usePathStatus")!=null){
+            BoolParameter usePathStatus= new BoolParameter("usePathStatus",true,true);
+            pathFilter.updateParameter(usePathStatus.name(),usePathStatus.type(),usePathStatus.valueAsString());
+        }
+        InputTagParameter l1ResultTag = new InputTagParameter("l1tResults","","","", true);
+        pathFilter.updateParameter(l1ResultTag.name(),l1ResultTag.type(),l1ResultTag.valueAsString());
+    
         setPathFilter(pathFilter);
+        clearPathFilter();        
+        for(Path path : paths){ 
+            addToPathFilter(path.name());
+        }
     }
 
     private void setPathFilter(ModuleInstance pathFilter){
