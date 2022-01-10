@@ -1642,43 +1642,62 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	/** inserts the output path implimented as a FinalPath responsible for 
+	/** gets the output path implimented as a FinalPath responsible for 
 	 * running all outputmodule
-	 * it does not insert it if there are no output modules
+	 * it if does not exist it is inserted
+	 * the criteria for an output path existing is at least one dataset present
+	 * with a DatasetPath
 	 */
-	public Path insertOutputPath(){
+	public Path getOrCreateOutputPath(){
 		if(!hasDatasetPath()){
 			return null;
 		}
 		Path outPath = outputPath();
-		if(outPath!=null){
-			return outPath;
-		}else{
+		if(outPath==null){
 			outPath = path(hltOutputPathDefaultName());
-			if(outPath!=null){				
-				return outPath;
-			}else{
-				if(streamCount()!=0){
-					outPath = insertPath(pathCount(),hltOutputPathDefaultName());
-					Iterator<OutputModule> outputIt = outputIterator();
-					while(outputIt.hasNext()){						
-						insertOutputModuleReference(outPath,outPath.entryCount(),outputIt.next());
-					}
-					return outPath;
-				}
-				return null;
+			if(outPath==null){				
+				outPath = insertPath(pathCount(),hltOutputPathDefaultName());
+				outPath.setAsFinalPath();
 			}
 		}
+		return outPath;
+	}
 
+	/** adds all output modules which are eligible to the output path
+	 * returns true if something was actually inserted
+	 */
+	public boolean addAllToOutputPath(){
+		Path outPath = getOrCreateOutputPath();
+		boolean changed = false;
+		if(outPath!=null){
+			Iterator<OutputModule> outputIt = outputIterator();
+			while(outputIt.hasNext()){	
+				OutputModule outMod = outputIt.next();									
+				if(addToOutputPath(outPath,outMod)!=-1){
+					changed = true;
+				}
+			}
+		}
+		return changed;
+	}
+	/** adds the output module to the output path
+	 * if certain conditions are met (ie it has a dataset with a datasetpath)
+	 * returns the index the module was inserted at */
+	public int addToOutputPath(OutputModule outMod){
+		return addToOutputPath(getOrCreateOutputPath(),outMod);
 	}
 	
-	public Path addToOutputPath(OutputModule outMod){
-		Path outPath = insertOutputPath();
+	/** adds the output module to the output path
+	 * if certain conditions are met (ie it has a dataset with a datasetpath)
+	 * returns the index the module was inserted at */
+	public int addToOutputPath(Path outPath,OutputModule outMod){
 		OutputModuleReference outModRef = new OutputModuleReference(null, outMod);
-		if(outPath!=null && !outPath.containsEntry(outModRef)){
-			insertOutputModuleReference(outPath,outPath.entryCount(),outMod);
+		if(outPath!=null && outMod.parentStream().hasDatasetPath() && !outPath.containsEntry(outModRef)){
+			int index = outPath.entryCount();
+			insertOutputModuleReference(outPath,index,outMod);
+			return index;
 		}
-		return outPath;
+		return -1;
 	}
 
 	/** the output path is the FinalPath containing the output modules 
@@ -1692,7 +1711,6 @@ public class Configuration implements IConfiguration {
 		}
 		return null;
 	}
-
 	//
 	// Sequences
 	//

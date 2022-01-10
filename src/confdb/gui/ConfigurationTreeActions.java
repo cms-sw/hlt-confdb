@@ -4665,10 +4665,6 @@ public class ConfigurationTreeActions {
 		TreePath newTreePath = treePath.pathByAddingChild(stream);
 		tree.setSelectionPath(newTreePath);
 
-		if(config.addToOutputPath(stream.outputModule())!=null){
-			model.nodeStructureChanged(model.pathsNode());
-		}
-
 		return true;
 	}
 
@@ -4964,6 +4960,17 @@ public class ConfigurationTreeActions {
 		index = config.indexOfPath(dataset.datasetPath());
 		model.nodeInserted(model.pathsNode(), index);
 		
+		//a streams output module goes the output path if it has a dataset with 
+		//a dataset path, thus we may need to add it here
+		//we check if the output path changes in this operation (it may be created)
+		Path oldOutPath = config.outputPath();
+		int outModIndex = config.addToOutputPath(dataset.parentStream().outputModule());
+		if(oldOutPath == config.outputPath()){			
+			model.nodeInserted(oldOutPath,outModIndex);
+			//model.nodeChanged(oldOutPath);
+		}else{
+			model.nodeInserted(model.pathsNode(),config.pathCount()-1);
+		}
 
 		if (model.streamMode().equals("datasets"))
 			model.nodeInserted(dataset.parentStream(), dataset.parentStream().indexOfDataset(dataset));
@@ -5036,6 +5043,9 @@ public class ConfigurationTreeActions {
 			PrimaryDataset dataset = datasetIt.next();
 			dataset.createDatasetPath();
 		}		
+		//now we need to make the output path as its triggered by path based datasets
+		config.addAllToOutputPath();
+		
 		model.nodeStructureChanged(model.getRoot());
 		model.updateLevel1Nodes();
 		

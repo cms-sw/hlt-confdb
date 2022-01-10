@@ -266,6 +266,15 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	return null;
     }
     
+    public boolean hasDatasetPath() {
+        for(PrimaryDataset dataset: datasets){
+            if(dataset.datasetPath()!=null){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** retrieve primary dataset which contains specified path */
     /*
     public PrimaryDataset dataset(Path path)

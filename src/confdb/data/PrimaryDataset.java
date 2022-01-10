@@ -263,8 +263,6 @@ public class PrimaryDataset extends DatabaseEntry
                 setPathFilter(trigFiltArray.get(0));   
             }
         }
-        //this is triggered by a datasetPath existing as a hack to limit it to new style configs
-        cfg.insertOutputPath();
     }
 
     private void addPathFilter(Configuration cfg) {
