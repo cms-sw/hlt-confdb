@@ -1411,9 +1411,10 @@ public class ConfDB {
 
 					path.setDescription(pathDesc);
 					path.setContacts(pathCont);
-					if(flag) {
-						path.setAsEndPath();
-					}
+					//so we repurposed the flag field for paths to represent different path types
+					//hence we have to re get it as an int
+					Path.Type pathType = Path.Type.values()[rsInstances.getInt(5)];
+					path.setType(pathType);
 					path.setDatabaseId(id);
 					idToPaths.put(id, path);
 				} else if (type.equals("Sequence")) {
@@ -2625,7 +2626,7 @@ public class ConfDB {
 				path.hasChanged();
 				String pathName = path.name();
 				int pathId = path.databaseId();
-				boolean pathIsEndPath = path.isEndPath();
+				Path.Type pathType = path.pathType();
 				String description = path.getDescription();
 				String contacts = path.getContacts();
 				int vpathId = -1;
@@ -2689,11 +2690,7 @@ public class ConfDB {
 						 */
 
 					psInsertPathIds.setInt(1, id_path);
-					if (pathIsEndPath) {
-						psInsertPathIds.setInt(2, 1);
-					} else {
-						psInsertPathIds.setInt(2, 0);
-					}
+					psInsertPathIds.setInt(2, pathType.value);
 					// psInsertPathIds.setInt(3,crc32);
 					psInsertPathIds.setNull(3, Types.INTEGER);// crc
 					// psInsertPathIds.setInt(4,111111);
@@ -2707,23 +2704,7 @@ public class ConfDB {
 					// System.err.println("insertPath: created vpathid "+vpathId);
 					pathId = vpathId; // if not using h_ tables
 
-					/*
-					 * only for h_ tables psCheckHPathIdCrc.setInt(1,crc32);
-					 * rs=psCheckHPathIdCrc.executeQuery(); if (rs.next()) { pathId=rs.getInt(1);
-					 * System.out.println("insertPath: found crc in pathid "+pathId); } else {
-					 * psInsertHPathIds.setInt(1,crc32); psInsertHPathIds.setInt(2,111111);
-					 * psInsertHPathIds.executeUpdate(); rs = psInsertHPathIds.getGeneratedKeys();
-					 * rs.next(); pathId=rs.getInt(1);
-					 * System.out.println("insertPath: created pathid "+pathId);
-					 * 
-					 * psInsertHPathId2Path.setInt(1,id_path);
-					 * psInsertHPathId2Path.setInt(2,pathId);
-					 * psInsertHPathId2Path.setBoolean(3,pathIsEndPath);
-					 * psInsertHPathId2Path.executeUpdate();
-					 * 
-					 * psInsertHPathId2Uq.setInt(1,vpathId); psInsertHPathId2Uq.setInt(2,pathId);
-					 * psInsertHPathId2Uq.executeUpdate(); }
-					 */
+					
 
 					result.put(pathName, pathId);
 					idToPath.put(pathId, path);
@@ -6394,6 +6375,7 @@ public class ConfDB {
 							+ "FROM   u_pathids       p                       " + "WHERE  p.id = ?                ");
 			preparedStatements.add(psSelectPathExtraFields);
 
+			//not used?
 			psInsertPathDescription = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO u_paths (name,isEndPath, description, contact) " + "VALUES(?, ?, ?, ?)", keyColumn);
 			preparedStatements.add(psInsertPathDescription);
