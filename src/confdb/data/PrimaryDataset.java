@@ -27,12 +27,18 @@ import java.util.function.Predicate;
  * dataset and behaves as it did
  * 
  * In the update of this, its not clear to me about the rules for hasChanged()
- * In theory a PathDataset Dataset is no longer "changing" when a path is added/rmed 
+ * In theory a DatasetPath Dataset is no longer "changing" when a path is added/rmed 
  * from a db perspective, only the dataset Path is changing. 
  * However for some reason its triggered as "changed" whenever any 
  * path that belongs it changes. Need to understand why that is the case and whether
- * we can update what defines a "change"  
- * 
+ * we can update what defines a "change"
+ *   
+ * note: we found a bug where if a path is not a member of a stream but is checked in the hasChanged
+ * of a dataset (ie the DatasetPath), it'll cause the dataset to reset its datasetId itself if
+ * hasChanged is called. This is bad as the this  can happen when the dataset is already inserted
+ * it is still mystifying to me why a dataset changes if its path changes, surely that should only
+ * happen if its name is changed as nothing else is stored as part of the dataset 
+ * long story short: the DatasetPath is excluded from hasChanged as it doesnt change the dataset
  */
 public class PrimaryDataset extends DatabaseEntry
                             implements Comparable<PrimaryDataset>
@@ -88,23 +94,15 @@ public class PrimaryDataset extends DatabaseEntry
 	for (Path p : paths){
 	    if(p.hasChanged()){
 		setHasChanged();
+        System.err.println("path change "+p.name()+" "+name());
 		break;
 	    }
 	}
-    //doing this because this is done for standard paths
-    //i'll be honest, I dont know why...
-    if(this.datasetPath!=null){
-        if(this.datasetPath.hasChanged()){
-            setHasChanged();
-        }
-    }
+    
 	return super.hasChanged();
     }
 
     public void setHasChanged(){
-        if(this.pathFilter!=null){
-            this.pathFilter.setHasChanged();
-        }
         super.setHasChanged();
     }
     
@@ -117,12 +115,20 @@ public class PrimaryDataset extends DatabaseEntry
 
     /** set name of this stream */
     public void setName(String name) {
-	this.name = name.replaceAll("\\W", "");
-	setHasChanged();
-	for (Path p : paths) {
-	    p.setHasChanged();
-	}
-
+        String oldName = new String(this.name);
+	    this.name = name.replaceAll("\\W", "");
+	    setHasChanged();
+	    for (Path p : paths) {
+	        p.setHasChanged();
+	    }
+        if(this.datasetPath!=null){
+            try{
+                this.datasetPath.setNameAndPropagate(datasetPathName());
+                this.pathFilter.setNameAndPropagate(pathFilter.name().replace(oldName,name));
+            } catch (DataException e) {
+                System.err.println(e.getMessage());
+            }
+        }
     }
     
     /** overload 'toString()' */
@@ -246,8 +252,14 @@ public class PrimaryDataset extends DatabaseEntry
             Sequence beginSeq = cfg.sequence(datasetPathBeginSequenceName());
             if( beginSeq == null){
                 beginSeq = cfg.insertSequence(cfg.sequenceCount(),datasetPathBeginSequenceName());
+                //this is only to save time, if this module exists we add it
+                //usually they want it, if not the user can adjust it later
+                ModuleInstance l1Digis = cfg.module("hltGtStage2Digis");
+                if(l1Digis!=null){
+                    cfg.insertModuleReference(beginSeq,0,l1Digis);
+                }
             }
-            cfg.insertSequenceReference(this.datasetPath, 0, beginSeq);
+            cfg.insertSequenceReference(this.datasetPath, 0, beginSeq);            
             cfg.insertModuleReference(this.datasetPath,1,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
             addPathFilter(cfg);
         }else{

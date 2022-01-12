@@ -5213,6 +5213,13 @@ public class ConfigurationTreeActions {
 		stream.removeDataset(dataset);
 		model.nodeRemoved(model.datasetsNode(), index, dataset);
 		model.nodeRemoved(stream, indexStream, dataset);
+		if(dataset.datasetPath()!=null){
+			Path datasetPath = dataset.datasetPath();
+			int indxDatasetPath = config.indexOfPath(datasetPath);
+			config.removePath(datasetPath);
+			model.nodeRemoved(model.pathsNode(),indxDatasetPath,datasetPath);
+		}		
+
 		model.nodeStructureChanged(model.contentsNode());
 		Iterator<Path> itP = dataset.pathIterator();
 		while (itP.hasNext())
