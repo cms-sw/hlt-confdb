@@ -39,6 +39,16 @@ import java.util.function.Predicate;
  * it is still mystifying to me why a dataset changes if its path changes, surely that should only
  * happen if its name is changed as nothing else is stored as part of the dataset 
  * long story short: the DatasetPath is excluded from hasChanged as it doesnt change the dataset
+ * 
+ * so I know understand the hasChanged requirements
+ * the path /stream/ dataset association is entered only if the stream & dataset hasChanged
+ * this is a way of preventing the same info being written multiple times
+ * however this requires that if a path changes, we need to change the dataset to allow this to be
+ * written, hence the hasChange if a path changes
+ * what I dont understand is why we just dont check if the path has changed and if so add that
+ * I guess this way only paths in the config associate to that datasets id and one
+ * doesnt need to check the path is actually in the config
+ * 
  */
 public class PrimaryDataset extends DatabaseEntry
                             implements Comparable<PrimaryDataset>
@@ -97,6 +107,11 @@ public class PrimaryDataset extends DatabaseEntry
 		break;
 	    }
 	}
+    if(datasetPath!=null){
+        if(datasetPath.hasChanged()){
+            setHasChanged();
+        }
+    }
     
 	return super.hasChanged();
     }
@@ -268,8 +283,7 @@ public class PrimaryDataset extends DatabaseEntry
 
     public void setDatasetPath(Path path)
     {
-        if(this.datasetPath==null){
-            System.err.println("dataset "+name()+" dataset path set ");
+        if(this.datasetPath==null){            
             this.datasetPath = path;
             setPathFilter();
         }else{
