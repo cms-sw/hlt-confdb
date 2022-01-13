@@ -635,35 +635,45 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		// specific path is selected
 		if (depth == 3) {
 			Path path = (Path) node;
+			Boolean isFinalOrDatasetPath = path.isDatasetPath() || path.isFinalPath();
 
 			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
+			if(path.isFinalPath()) addModuleMenu.setEnabled(false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
+			if(isFinalOrDatasetPath) addPathMenu.setEnabled(false);
 			popupPaths.add(addPathMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSequenceMenu.setEnabled(false);
 			popupPaths.add(addSequenceMenu);
 
 			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addTaskMenu.setEnabled(false);
 			popupPaths.add(addTaskMenu);
 
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSwitchProducerMenu.setEnabled(false);
 			popupPaths.add(addSwitchProducerMenu);
 
 			popupPaths.addSeparator();
 
 			menuItem = new JMenuItem("Rename Path");
+			if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 			menuItem.addActionListener(pathListener);
+			
 			popupPaths.add(menuItem);
 
 			menuItem = new JMenuItem("Remove Path");
 			menuItem.addActionListener(pathListener);
+			if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 			popupPaths.add(menuItem);
 
 			// Copy path request 75955
 			menuItem = new JMenuItem("Clone Path");
 			menuItem.addActionListener(pathListener);
+			if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 			popupPaths.add(menuItem);
 
 			// Clone path request 75955
@@ -671,6 +681,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (enablePathCloning) {
 				menuItem = new JMenuItem("Deep Clone Path");
 				menuItem.addActionListener(pathListener);
+				if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 			}
 
@@ -678,6 +689,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			// ASSIGN TO DATASET/STREAM MENU
 			popupPaths.addSeparator();
 			JMenu assignPathMenu = new ScrollableMenu("Assign to P.Dataset");
+			if(isFinalOrDatasetPath) assignPathMenu.setEnabled(false);
 			popupPaths.add(assignPathMenu);
 			Iterator<Stream> itST = config.streamIterator();
 			while (itST.hasNext()) {
@@ -720,6 +732,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			// bug #82526: add/remove path to/from a primary dataset
 			// REMOVE FROM THIS DATASET/STREAM
 			JMenu removePathMenu = new ScrollableMenu("Remove from P.Dataset");
+			if(isFinalOrDatasetPath) removePathMenu.setEnabled(false);
 			popupPaths.add(removePathMenu);
 			itST = config.streamIterator();
 			while (itST.hasNext()) {
@@ -791,7 +804,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			//and thats why they cant select other options
 			datasetPathItem.setEnabled(false);
 
-			if (path.isDatasetPath()){
+			if (isFinalOrDatasetPath){
 				stdPathItem.setEnabled(false);
 				endPathItem.setEnabled(false);
 				finalPathItem.setEnabled(false);
@@ -805,6 +818,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupPaths.add(setPathTypeMenu);
 
 			JMenu repPathMenu = createAddRepPathMenu(path, false);
+			if(isFinalOrDatasetPath) repPathMenu.setEnabled(false);
 			popupPaths.add(repPathMenu);
 
 			return;
@@ -813,19 +827,25 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		// a specific module/path/sequence/task reference is selected
 		if (depth == 4) {
 			Path path = (Path) parent;
+			Boolean isFinalOrDatasetPath = path.isDatasetPath() || path.isFinalPath();
 			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
+			if(path.isFinalPath()) addModuleMenu.setEnabled(false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
+			if(isFinalOrDatasetPath) addPathMenu.setEnabled(false);
 			popupPaths.add(addPathMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSequenceMenu.setEnabled(false);
 			popupPaths.add(addSequenceMenu);
 
 			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addTaskMenu.setEnabled(false);
 			popupPaths.add(addTaskMenu);
 
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSwitchProducerMenu.setEnabled(false);
 			popupPaths.add(addSwitchProducerMenu);
 
 			popupPaths.addSeparator();
@@ -846,6 +866,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (node instanceof OutputModuleReference) {
 				menuItem = new JMenuItem("Remove OutputModule");
 				menuItem.addActionListener(pathListener);
+				if(path.isFinalPath()) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 			}
 			if (node instanceof PathReference) {
@@ -856,6 +877,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (node instanceof SequenceReference) {
 				menuItem = new JMenuItem("Remove Sequence");
 				menuItem.addActionListener(pathListener);
+				if(path.isDatasetPath()) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 			}
 			if (node instanceof TaskReference) {
