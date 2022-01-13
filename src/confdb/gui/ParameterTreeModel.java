@@ -150,7 +150,27 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 		}
 		if (column != 2 || node.equals(root))
 			return false;
+
+		//we are going to lock out editing of the triggerConditions and usePathStatus
+		//of Datasets paths as these parameters have required values
+		if (node instanceof Parameter && isProtectedFieldOfDatasetPath((Parameter) node)){			
+			return false;
+		}			
 		return true;
+	}
+
+
+	public boolean isProtectedFieldOfDatasetPath(Parameter param){
+		if(!param.name().equals("triggerConditions") && !param.name().equals("usePathStatus")) return false;
+		if(!(param.getParentContainer() instanceof ModuleInstance)) return false;
+
+		ModuleInstance mod = (ModuleInstance) param.getParentContainer();
+		if(!mod.template().name().equals("TriggerResultsFilter")) return false;
+		Path[] parentPaths = mod.parentPaths();
+		for(Path parentPath : parentPaths){
+			if(parentPath.isDatasetPath()) return true;
+		}
+		return false;
 	}
 
 	/** TreeTableTreeModel: return the value of the i-th table column */
