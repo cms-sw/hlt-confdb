@@ -81,7 +81,24 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** DatabaseEntry: databaseId() */
     public int databaseId() { return super.databaseId(); }
     
-    /** DatabaseEntry: hasChanged() */
+    /** DatabaseEntry: hasChanged() 
+     * so we have some nasty logic here in the implimentation
+     * both Stream and PrimaryDataset can be set to hasChanged and thus
+     * have their databaseId reset if any of their paths have changed
+     * the reason for their paths changing triggering a change in them is in the 
+     * PrimaryDatset header's comments
+     * the problem is the order we write to the DB which is
+     *    PrimaryDatasets, EventContent, Stream, Path
+     * once an object has been writen, we can not call its setHasChanged again 
+     * and thus we cant call its hasChanged as the Paths will still be "hasChanged" as they 
+     * havent been writen yet
+     * EventContent calls the hasChanged of Streams which calls the hasChanged of PrimaryDatasets
+     * however if the paths have changed the datasets hasChanged will not be called and all is 
+     * well. And if the paths havent changed, well its safe to call the PrimaryDataset hasChanged
+     * when adding in the dataset path which is not part of the "paths" field, this 
+     * cause all this logic to break hence the protections to avoid calling the PrimaryDataset 
+     * hasChanged if any of its paths or dataset path has changed
+    */
     public boolean hasChanged()
     {
 	for (Path p : paths) {
@@ -90,8 +107,8 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 		return super.hasChanged();
 	    }
 	}
-	for (PrimaryDataset pd : datasets) {
-	    if(pd.hasChanged()) {
+    for (PrimaryDataset pd : datasets) {
+	    if((pd.datasetPath()!=null && pd.datasetPath().hasChanged()) || pd.hasChanged()) {
 		setHasChanged();
 	       	return super.hasChanged();
 	    }

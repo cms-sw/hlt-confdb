@@ -93,8 +93,7 @@ public class PrimaryDataset extends DatabaseEntry
    public boolean hasChanged(){
 	for (Path p : paths){
 	    if(p.hasChanged()){
-		setHasChanged();
-        System.err.println("path change "+p.name()+" "+name());
+		setHasChanged();        
 		break;
 	    }
 	}
@@ -263,18 +262,20 @@ public class PrimaryDataset extends DatabaseEntry
             cfg.insertModuleReference(this.datasetPath,1,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
             addPathFilter(cfg);
         }else{
-            ArrayList<ModuleInstance> trigFiltArray = this.datasetPath.moduleArray("TriggerResultsFilter");
-            if(trigFiltArray.size()==0){
-                System.err.println("Error, datasetPath "+this.datasetPath+" has no TriggerResultFilters when it should have exactly one, creating it");
-                addPathFilter(cfg);
-            }else{
-
-                if(trigFiltArray.size()>1){
-                    System.err.println("Error, datasetPath "+this.datasetPath+" has "+trigFiltArray.size()+" TriggerResultFilters when it should have exactly one, taking first one");
-                }
-                setPathFilter(trigFiltArray.get(0));   
-            }
+            setPathFilter();
         }
+    }
+
+    public void setDatasetPath(Path path)
+    {
+        if(this.datasetPath==null){
+            System.err.println("dataset "+name()+" dataset path set ");
+            this.datasetPath = path;
+            setPathFilter();
+        }else{
+            System.err.println("Error dataset "+name()+" already has a dataset path "+this.datasetPath.name()+" therefore can not set it to "+path.name());
+        }
+
     }
 
     private void addPathFilter(Configuration cfg) {
@@ -297,6 +298,23 @@ public class PrimaryDataset extends DatabaseEntry
         for(Path path : paths){ 
             addToPathFilter(path.name());
         }
+    }
+
+    private void setPathFilter()
+    {
+        Configuration cfg = (Configuration) parentStream.parentContent().config();
+        ArrayList<ModuleInstance> trigFiltArray = this.datasetPath.moduleArray("TriggerResultsFilter");
+        if(trigFiltArray.size()==0){
+            System.err.println("Error, datasetPath "+this.datasetPath+" has no TriggerResultFilters when it should have exactly one, creating it");
+            addPathFilter(cfg);
+        }else{
+
+            if(trigFiltArray.size()>1){
+                System.err.println("Error, datasetPath "+this.datasetPath+" has "+trigFiltArray.size()+" TriggerResultFilters when it should have exactly one, taking first one");
+            }
+            setPathFilter(trigFiltArray.get(0));   
+        }
+
     }
 
     private void setPathFilter(ModuleInstance pathFilter){

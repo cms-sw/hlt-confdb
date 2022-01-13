@@ -1874,6 +1874,7 @@ public class ConfDB {
 				if(path.name().equals(primaryDataset.datasetPathName())){
 					//new style
 					HashSet<String> pathsOfDatasetNames = getPathNamesFromTriggerResultsFilter(path);
+					primaryDataset.setDatasetPath(path);
 					for(String pathOfDatasetName : pathsOfDatasetNames){
 						Path pathOfDataset = config.path(pathOfDatasetName);
 						if(pathOfDataset==null){
@@ -4135,15 +4136,9 @@ public class ConfDB {
 		for (int streamNr = 0; streamNr < config.streamCount(); streamNr++) {
 			Stream stream = config.stream(streamNr);
 			int streamId = streamHashMap.get(stream.name());
-			if(streamId!=stream.databaseId()){
-				System.err.println("stream db id mis match "+streamId+" vs "+stream.databaseId());
-			}
 			for(int datasetNr = 0; datasetNr < stream.datasetCount(); datasetNr++){
 				PrimaryDataset dataset = stream.dataset(datasetNr);
-				int datasetId = primaryDatasetHashMap.get(dataset.name());
-				if(datasetId!=dataset.databaseId()){
-					System.err.println("datset db id mis match "+datasetId+" vs "+dataset.databaseId());
-				}
+				int datasetId = primaryDatasetHashMap.get(dataset.name());				
 				if (dataset.datasetPath() != null) {
 					try {
 						if ((streamId > 0) || (datasetId > 0)) {
