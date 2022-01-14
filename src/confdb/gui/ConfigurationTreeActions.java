@@ -4965,7 +4965,7 @@ public class ConfigurationTreeActions {
 		//we check if the output path changes in this operation (it may be created)
 		Path oldOutPath = config.outputPath();
 		int outModIndex = config.addToOutputPath(dataset.parentStream().outputModule());
-		if(oldOutPath == config.outputPath()){			
+		if(oldOutPath == config.outputPath() && outModIndex!=-1){	
 			model.nodeInserted(oldOutPath,outModIndex);
 			//model.nodeChanged(oldOutPath);
 		}else{
