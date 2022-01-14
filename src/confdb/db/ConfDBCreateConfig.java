@@ -130,10 +130,12 @@ public class ConfDBCreateConfig {
 			Iterator<String> it = pathNames.iterator();
 			while (it.hasNext()) {
 				String pathName = it.next();
-				if (!pathsToInclude.contains(pathName)) {
-					out.println(" REMOVE " + pathName);
+				if (!pathsToInclude.contains(pathName)) {					
 					Path path = masterConfig.path(pathName);
-					masterConfig.removePath(path);
+					if(!path.isDatasetPath() && !path.isFinalPath()){
+						out.println(" REMOVE " + pathName);
+						masterConfig.removePath(path);
+					}
 				} else
 					pathsToInclude.remove(pathName);
 			}
