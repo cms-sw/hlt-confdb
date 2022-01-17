@@ -630,6 +630,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.addActionListener(pathListener);
 			menuItem.setActionCommand("NEWPATH");
 			popupPaths.add(menuItem);
+			menuItem = new JMenuItem("Rm EndPaths with OutputMods");
+			menuItem.addActionListener(pathListener);
+			menuItem.setActionCommand("RMENDPATHS");
+			popupPaths.add(menuItem);
 		}
 
 		// specific path is selected
@@ -2432,6 +2436,8 @@ class PathMenuListener implements ActionListener {
 			dialog.pack();
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
+		}else if (action.equals("RMENDPATHS")) {
+			ConfigurationTreeActions.rmEndPathsWithOutputMods(tree);
 		}
 		// add a module(-reference) to the currently selected path
 		else {

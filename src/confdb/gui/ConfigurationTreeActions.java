@@ -3200,6 +3200,27 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
+	/** remove all end paths with an output module */
+	public static boolean rmEndPathsWithOutputMods(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		Iterator<Path> pathIt = config.pathIterator();
+		ArrayList<Path> pathsToRm = new ArrayList<Path>();
+		while(pathIt.hasNext()){
+			Path path = pathIt.next();
+			if(path.isEndPath() && path.hasOutputModule()){
+				pathsToRm.add(path);				
+			}
+		}
+		if( !pathsToRm.isEmpty()) {
+			for(Path path : pathsToRm){
+				config.removePath(path);
+			}
+			model.nodeStructureChanged(model.getRoot());
+			model.updateLevel1Nodes();
+		}
+		return true;
+	}
 	/** remove a reference container */
 	public static boolean removeReferenceContainer(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
