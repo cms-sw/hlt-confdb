@@ -4400,7 +4400,8 @@ public class ConfDB {
 			return rs.getInt(1);
 		} catch (SQLException e) {
 			String errMsg = "ConfDB::getConfigNewId(fullConfigName=" + fullConfigName + ") failed (dirName=" + dirName
-					+ ", configName=" + configName + ",version=" + version + "): " + e.getMessage();
+					+ ", configName=" + configName + ",version=" + version + "): " + e.getMessage()
+					+ " \n This usually means the config doesnt exist, check you are in the correct database or for typos in the name";
 			throw new DatabaseException(errMsg, e);
 		} finally {
 			dbConnector.release(rs);
