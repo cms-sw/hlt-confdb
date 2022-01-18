@@ -4486,9 +4486,6 @@ public class ConfigurationTreeActions {
 			Iterator<PrimaryDataset> itPD = oldPath.datasetIterator();
 			while (itPD.hasNext())
 				itPD.next().insertPath(newPath);
-			Iterator<Stream> itST = oldPath.streamIterator();
-			while (itST.hasNext())
-				itST.next().insertPath(newPath);
 			Iterator<EventContent> itEC = oldPath.contentIterator();
 			while (itEC.hasNext())
 				newPath.addToContent(itEC.next());

@@ -32,12 +32,17 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** associated output module */
     private OutputModule outputModule = null;
 
-    /** collection of assigned paths */
-    private ArrayList<Path> paths = new ArrayList<Path>();
+    /** collection of assigned paths 
+     * this is now generated from the datasets and is not directly set
+    */
+    private ArrayList<Path> pathList = new ArrayList<Path>();
 
     /** collection of assigned paths */
     private ArrayList<PrimaryDataset> datasets=new ArrayList<PrimaryDataset>();
     
+    /** whether datasets have been added/rmed and the path list needs to be regenerated */
+    private boolean hasDatasetListChanged = false;
+
     
     //
     // construction
@@ -56,6 +61,47 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     // member functions
     //
 
+    /** handles getting the list of paths and updating it if necessary
+    */
+    private ArrayList<Path> paths(){
+        if(hasDatasetContentChanged()){
+            setPathList();
+        }
+        return pathList;
+    }
+
+    /** sets the dataset from  */
+    private void setPathList(){
+        ArrayList<Path> allPaths = new ArrayList<Path>();
+        for(PrimaryDataset pd : datasets){
+            Iterator<Path> pathIt = pd.pathIterator();
+            while(pathIt.hasNext()){
+                allPaths.add(pathIt.next());
+            }
+        }
+        pathList = allPaths.stream().distinct().collect(Collectors.toCollection(ArrayList::new));
+        Collections.sort(pathList);
+        hasDatasetListChanged = false;
+
+    }
+
+    /** tells us if paths have been added/rmed from any of the datasets or any dataset
+     * has been added or removed and thus if we need to remake the list of paths
+     * note we cant call hasChanged for datasets as that may actually reset the dataset
+     * hence we call a different method
+     */
+    private boolean hasDatasetContentChanged(){    
+        if(hasDatasetListChanged){
+            return true;
+        }
+        for(PrimaryDataset pd : datasets){
+            if(pd.hasPathListChanged()){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** name of this stream */
     public String name() { return name; }
     
@@ -73,7 +119,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	catch (DataException e) {
 	    System.err.println(e.getMessage());
 	}
-	for (Path p : paths) {
+	for (Path p : paths()) {
 	    p.setHasChanged();
 	}
     }
@@ -101,7 +147,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     */
     public boolean hasChanged()
     {
-	for (Path p : paths) {
+	for (Path p : paths()) {
 	    if(p.hasChanged()) {
 		setHasChanged();
 		return super.hasChanged();
@@ -148,52 +194,48 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     public int compareTo(Stream s) {return toString().compareTo(s.toString());}
     
     /** number of paths */
-    public int pathCount() { return paths.size(); }
+    public int pathCount() { return paths().size(); }
     
     /** retrieve i-th path */
     public Path path(int i)
-    {
-	Collections.sort(paths);
-	return paths.get(i);
+    {	
+	return paths().get(i);
     }
     
     /** retrieve path by name */
     public Path path(String pathName)
     {
-	for (Path p : paths) if (p.name().equals(pathName)) return p;
+	for (Path p : paths()) if (p.name().equals(pathName)) return p;
 	return null;
     }
     
     /** retrieve index of a given path */
     public int indexOfPath(Path path)
-    {
-	Collections.sort(paths);
-	return paths.indexOf(path);
+    {	
+	return paths().indexOf(path);
     }
     
     /** retrieve iterator over paths */
     public Iterator<Path> pathIterator()
-    {
-	Collections.sort(paths);
-	return paths.iterator();
+    {	
+	return paths().iterator();
     }
     
     /** retrieve path iterator (alphabetical order) */
     public Iterator<Path> orderedPathIterator()
     {
-	ArrayList<Path> orderedPaths = new ArrayList<Path>(paths);
-	Collections.sort(orderedPaths);
+	ArrayList<Path> orderedPaths = new ArrayList<Path>(paths());	
 	return orderedPaths.iterator();
     }
     
     /** associate another path with this stream */
     public boolean insertPath(Path path)
     {
-	if (paths.indexOf(path)>=0) return false;
+	if (paths().indexOf(path)>=0) return false;
 
 	path.addToContent(parentContent);
-	paths.add(path);
-	Collections.sort(paths);
+	paths().add(path);
+	Collections.sort(paths());
 	setHasChanged();
 	
 	return true;
@@ -202,9 +244,8 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** remove a path from this stream */
     public boolean removePath(Path path)
     {
-	int index = paths.indexOf(path);
-	if (index<0) return false;
-	paths.remove(index);
+	int index = paths().indexOf(path);
+	if (index<0) return false;	
 	setHasChanged();
 	parentContent.removePath(path);
 	Iterator<PrimaryDataset> itPD = datasetIterator();
@@ -218,51 +259,34 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** number of paths assigned to a dataset */
     public int assignedPathCount() { return listOfAssignedPaths().size(); }
     
-    /** retrieve collection of paths assigned to datasets */
+    /** retrieve collection of paths assigned to datasets 
+     * this is now the same as paths as all paths are assigned
+    */
     public ArrayList<Path> listOfAssignedPaths()
     {
-	ArrayList<Path> result = new ArrayList<Path>();
-	Iterator<PrimaryDataset> itPD = datasetIterator();
-	while (itPD.hasNext()) {
-	    PrimaryDataset PD = itPD.next();
-	    Iterator<Path> itP = PD.pathIterator();
-	    while (itP.hasNext()) {
-	    	Path path = itP.next();
-	    	if(!result.contains(path)) result.add(path);
-	    }
-	}
-	return result;
+        return paths();
     }
 
 
     /** number of paths NOT assigned to any dataset */
     public int unassignedPathCount() { return listOfUnassignedPaths().size(); }
     
-    /** retrieve collection of paths NOT assigned to any dataset */
+    /** retrieve collection of paths NOT assigned to any dataset 
+     * now no paths can be unassigned and thus returns empty result
+    */
     public ArrayList<Path> listOfUnassignedPaths()
     {
 	ArrayList<Path> result = new ArrayList<Path>();
-	ArrayList<Path> assigned = listOfAssignedPaths();
-	Iterator<Path> itP = pathIterator();
-	while (itP.hasNext()) {
-	    Path path = itP.next();
-	    if (assigned.indexOf(path)<0) result.add(path);
-	}
 	return result;
     }
 
-    /** remove all paths NOT assigned to any dataset */
+    /** remove all paths NOT assigned to any dataset 
+     * now this does nothing as there is no such thing as an unassigned path
+    */
     public boolean removeUnassignedPaths()
     {
-	int count = 0;
-	ArrayList<Path> unassigned = listOfUnassignedPaths();
-	Iterator<Path> itP = unassigned.iterator();
-	while (itP.hasNext()) {
-	    Path path = itP.next();
-	    if (removePath(path)) count ++;
+        return false;
 	}
-	return count>0;
-    }
 
 
     /** number of primary datasets */

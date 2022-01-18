@@ -1882,14 +1882,12 @@ public class ConfDB {
 							continue;
 						}				
 						primaryDataset.insertPath(pathOfDataset);
-						pathOfDataset.addToContent(eventContent);
-						stream.insertPath(pathOfDataset);
+						pathOfDataset.addToContent(eventContent);						
 					}
 
 				}else{
 					primaryDataset.insertPath(path);
-					path.addToContent(eventContent);
-					stream.insertPath(path);
+					path.addToContent(eventContent);					
 				}
 
 				
