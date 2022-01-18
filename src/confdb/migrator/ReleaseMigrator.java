@@ -209,14 +209,7 @@ public class ReleaseMigrator {
 					targetOutputModule.updateParameter(p.name(), p.type(), p.valueAsString());
 				}
 
-				Iterator<Path> itPas = sourceStream.pathIterator();
-				while (itPas.hasNext()) {
-					Path sourcePath = itPas.next();
-					if (!targetStream.insertPath(targetConfig.path(sourcePath.name())))
-						System.out.println("There is a problem inserting a path in stream while migration");
-
-				}
-
+				
 				Iterator<PrimaryDataset> itP = sourceStream.datasetIterator();
 				while (itP.hasNext()) {
 					PrimaryDataset sourceDataset = itP.next();

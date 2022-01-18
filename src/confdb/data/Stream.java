@@ -4,7 +4,7 @@
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
-
+import java.util.stream.Collectors;
 
 /**
  * Stream
@@ -41,7 +41,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     private ArrayList<PrimaryDataset> datasets=new ArrayList<PrimaryDataset>();
     
     /** whether datasets have been added/rmed and the path list needs to be regenerated */
-    private boolean hasDatasetListChanged = false;
+    private boolean hasDatasetListChanged = true;
 
     
     //
@@ -64,14 +64,14 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     /** handles getting the list of paths and updating it if necessary
     */
     private ArrayList<Path> paths(){
-        if(hasDatasetContentChanged()){
+        if(hasDatasetContentChanged()){            
             setPathList();
         }
         return pathList;
     }
 
     /** sets the dataset from  */
-    private void setPathList(){
+    private void setPathList(){        
         ArrayList<Path> allPaths = new ArrayList<Path>();
         for(PrimaryDataset pd : datasets){
             Iterator<Path> pathIt = pd.pathIterator();
@@ -95,7 +95,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
             return true;
         }
         for(PrimaryDataset pd : datasets){
-            if(pd.hasPathListChanged()){
+            if(pd.hasPathListChanged()){                
                 return true;
             }
         }
@@ -226,19 +226,6 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     {
 	ArrayList<Path> orderedPaths = new ArrayList<Path>(paths());	
 	return orderedPaths.iterator();
-    }
-    
-    /** associate another path with this stream */
-    public boolean insertPath(Path path)
-    {
-	if (paths().indexOf(path)>=0) return false;
-
-	path.addToContent(parentContent);
-	paths().add(path);
-	Collections.sort(paths());
-	setHasChanged();
-	
-	return true;
     }
     
     /** remove a path from this stream */

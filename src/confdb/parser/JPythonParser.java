@@ -1155,7 +1155,7 @@ public class JPythonParser
                     PyObject val = entry.getValue();
                     for (int path = 0; path < val.__len__(); path++) {
                         Path pathObj = configuration.path(val.__getitem__(path).toString());
-                        stream.insertPath(pathObj);
+                        System.err.println("TODO: this fucntion is broken, needs update");
                     }
                 } else alert(msg.err, "[parseOutputModuleParameter] SelectEvents not found! " + parameterName);
             }

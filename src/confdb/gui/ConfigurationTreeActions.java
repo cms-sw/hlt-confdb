@@ -4717,17 +4717,6 @@ public class ConfigurationTreeActions {
 		OutputModule om = new OutputModule(external.outputModule().name(), stream);
 		stream.setOutputModule(om);
 
-		Iterator<Path> itP = external.pathIterator();
-		while (itP.hasNext()) {
-			String pathName = itP.next().name();
-			Path path = config.path(pathName);
-			if (path == null) {
-				System.out.println("importStream: skip path " + pathName);
-				continue;
-			}
-			stream.insertPath(path);
-		}
-
 		Iterator<PrimaryDataset> itPD = external.datasetIterator();
 		while (itPD.hasNext()) {
 			PrimaryDataset dataset = itPD.next();
@@ -4774,57 +4763,7 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/**
-	 * add a path to an existing stream This function also updates the prescaler
-	 * modules
-	 */
-	public static boolean addPathToStream(JTree tree, String pathName) {
-		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		Configuration config = (Configuration) model.getRoot();
-		TreePath treePath = tree.getSelectionPath();
-
-		Stream stream = (Stream) treePath.getLastPathComponent();
-		EventContent content = stream.parentContent();
-		Path path = config.path(pathName);
-
-		stream.insertPath(path);
-
-		if (model.contentMode().equals("paths"))
-			model.nodeInserted(content, content.indexOfPath(path));
-
-		if (model.streamMode().equals("paths"))
-			model.nodeInserted(stream, stream.indexOfPath(path));
-
-		Iterator<Stream> itS = content.streamIterator();
-		while (itS.hasNext()) {
-			OutputModule output = itS.next().outputModule();
-			PSetParameter psetSelectEvents = (PSetParameter) output.parameter("SelectEvents");
-			model.nodeChanged(psetSelectEvents.parameter(0));
-			if (output.referenceCount() > 0)
-				model.nodeStructureChanged(output.reference(0));
-		}
-
-		// Fixes the unassignedPathsList mess.
-		// I need to update the unassigned paths.
-		// NOTE: nothing but the last item of this container is a stringBuffer.
-		// the rest of the nodes are primaryDatasets (So we need to loop).
-		int index = model.getChildCount(stream);
-		for (int i = 0; i < index; i++) {
-			ConfigurationTreeNode unassignedPathsNode = (ConfigurationTreeNode) model.getChild(stream, i);
-			if (unassignedPathsNode.object() instanceof StringBuffer)
-				model.nodeStructureChanged(unassignedPathsNode);
-		}
-
-		model.updateLevel1Nodes();
-
-		// Feature/Bug 86605
-		ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
-		newPaths.add(path);
-		updateFilter(config, stream, newPaths); // To copy update prescaler.
-
-		return true;
-	}
-
+	
 	/** remove a path from a stream */
 	// TODO deprecated method, sharing one path in more than one dataset.
 	/*
@@ -5295,27 +5234,19 @@ public class ConfigurationTreeActions {
 			stream = dataset.parentStream();
 		}
 
-		int index = -1;
-		if (stream.indexOfPath(path) < 0)
-			stream.insertPath(path);
-		else
-			index = stream.listOfUnassignedPaths().indexOf(path);
-
+		
 		// bug/feature #93322 Remove GUI and database restriction to share a path in
 		// more than one PrimaryDataset in a Stream.
 		// datasets can be linked to each other, thus if you update one, you need to update the others
 		if (dataset.path(path.name()) == null) {
 			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();
-			siblings.add(dataset);
+			siblings.add(dataset);			
 			for(PrimaryDataset sibling : siblings) {
 				sibling.insertPath(path);
 				model.nodeInserted(sibling, sibling.indexOfPath(path));
 				if (model.streamMode().equals("datasets")) {
 					
-					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), sibling.indexOfPath(path));
-					if (index != -1) {
-						model.nodeRemoved(model.getChild(sibling.parentStream(), sibling.parentStream().datasetCount()), index, path);
-					}
+					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), sibling.indexOfPath(path));					
 				}
 			}
 		}
@@ -5360,18 +5291,12 @@ public class ConfigurationTreeActions {
 			tree.setSelectionPath(treePath.getParentPath());
 		}
 
-		int index = -1;
-		if (stream.indexOfPath(path) < 0)
-			stream.insertPath(path);
-		else
-			index = stream.listOfUnassignedPaths().indexOf(path);
-
 		boolean inserted = dataset.insertPath(path);
+		System.err.println("addPathToDataset_noUpdateTreeNodes error not yet updated for siblings");
 		if (inserted) {
 			model.nodeInserted(dataset, dataset.indexOfPath(path));
 			if (model.streamMode().equals("datasets")) {
-				model.nodeInserted(model.getChild(stream, stream.indexOfDataset(dataset)), dataset.indexOfPath(path));
-				model.nodeRemoved(model.getChild(stream, stream.datasetCount()), index, path);
+				model.nodeInserted(model.getChild(stream, stream.indexOfDataset(dataset)), dataset.indexOfPath(path));	
 			}
 			// model.nodeChanged(path);
 			// model.updateLevel1Nodes();

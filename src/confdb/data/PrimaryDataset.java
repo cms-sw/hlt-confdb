@@ -227,7 +227,6 @@ public class PrimaryDataset extends DatabaseEntry
 	    return false;
 	}
 	*/
-	if (parentStream.indexOfPath(path)<0) parentStream.insertPath(path);
 	//else parentStream.setHasChanged();
 	paths.add(path);
     addToPathFilter(path.name());

@@ -1458,11 +1458,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		} else if (depth == 3) {
 			Stream stream = (Stream) node;
 
-			// we are disabling the option to directly add a path 
-			//to a stream as we see no reason why we need this feature
-			//as you should add to the primary dataset directly
-			JMenu addPathMenu = new ScrollableMenu("Add Path");
-			//popupStreams.add(addPathMenu);
 
 			menuItem = new JMenuItem("Add Primary Dataset");
 			menuItem.addActionListener(streamListener);
@@ -1491,21 +1486,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.setActionCommand("REMOVEUNASSIGNED");
 			popupStreams.add(menuItem);
 
-			ArrayList<Path> paths = new ArrayList<Path>();
-			Iterator<Path> itP = config.pathIterator();
-			while (itP.hasNext()) {
-				Path path = itP.next();
-				if (stream.indexOfPath(path) < 0)
-					paths.add(path);
-			}
-			Collections.sort(paths);
-			itP = paths.iterator();
-			while (itP.hasNext()) {
-				menuItem = new JMenuItem(itP.next().name());
-				menuItem.addActionListener(streamListener);
-				menuItem.setActionCommand("ADDPATH");
-				addPathMenu.add(menuItem);
-			}
 		} else if (depth == 4) {
 			ConfigurationTreeNode treeNode = (ConfigurationTreeNode) node;
 			if (model.streamMode().equals("paths")) {
@@ -2839,9 +2819,7 @@ class StreamMenuListener implements ActionListener {
 			dlg.setVisible(true);
 			if (dlg.isSuccess())
 				ConfigurationTreeActions.insertStream(tree, dlg.stream());
-		} else if (action.equals("ADDPATH")) {
-			ConfigurationTreeActions.addPathToStream(tree, cmd);
-		} else if (action.startsWith("ADDDATASETTO:")) {
+		}  else if (action.startsWith("ADDDATASETTO:")) {
 			String streamName = action.split(":")[1];
 			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config);
 			dlg.fixStreamName(streamName);
