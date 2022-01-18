@@ -642,7 +642,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			Boolean isFinalOrDatasetPath = path.isDatasetPath() || path.isFinalPath();
 
 			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
-			if(path.isFinalPath()) addModuleMenu.setEnabled(false);
+			if(isFinalOrDatasetPath) addModuleMenu.setEnabled(false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
@@ -833,7 +833,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			Path path = (Path) parent;
 			Boolean isFinalOrDatasetPath = path.isDatasetPath() || path.isFinalPath();
 			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
-			if(path.isFinalPath()) addModuleMenu.setEnabled(false);
+			if(isFinalOrDatasetPath) addModuleMenu.setEnabled(false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
@@ -1646,6 +1646,18 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			popupDatasets.addSeparator();
 
+			menuItem = new JMenuItem("<html>Split <i>" + dataset.name() + "</i></html>");
+			menuItem.addActionListener(datasetListener);
+			menuItem.setActionCommand("SPLIT:"+ dataset.name());
+			popupDatasets.add(menuItem);
+
+			menuItem = new JMenuItem("<html>Clone <i>" + dataset.name() + "</i></html>");
+			menuItem.addActionListener(datasetListener);
+			menuItem.setActionCommand("CLONE:"+ dataset.name());
+			popupDatasets.add(menuItem);
+			
+			popupDatasets.addSeparator();
+			
 			menuItem = new JMenuItem("<html>Rename <i>" + dataset.name() + "</i></html>");
 			menuItem.addActionListener(datasetListener);
 			menuItem.setActionCommand("RENAME");
@@ -2968,7 +2980,19 @@ class DatasetMenuListener implements ActionListener {
 		} else if (action.startsWith("MOVEPATH:")) {
 			String targetDatasetName = action.split(":")[1];
 			ConfigurationTreeActions.movePathToDataset(tree, targetDatasetName);
-		}
+		} else if (action.startsWith("SPLIT:")) {
+			//CreDialog dialog = new DatasetSplitDialog(null,tree);
+			//dialog.pack();
+		//	dialog.setVisible();
+		} else if (action.startsWith("CLONE:")) {
+			String datasetToCloneName = action.split(":")[1];
+			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config, config.dataset(datasetToCloneName));
+			dlg.pack();
+			dlg.setLocationRelativeTo(frame);
+			dlg.setVisible(true);
+			if (dlg.isSuccess())
+				ConfigurationTreeActions.insertPrimaryDataset(tree, dlg.dataset());
+		} 
 	}
 
 	private String cleanHtmlTags(String cmd) {

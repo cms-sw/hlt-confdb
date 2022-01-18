@@ -254,9 +254,13 @@ public class PrimaryDataset extends DatabaseEntry
     {
         return "HLTDatasetPathBeginSequence";
     }
+    /** create the path representing the path including its modules **/ 
+    public void createDatasetPath() {
+        createDatasetPath(null);
+    }
 
     /** create the path representing the path including its modules **/ 
-    public void createDatasetPath()
+    public void createDatasetPath(ModuleInstance existingPathFilter)
     {        
         Configuration cfg = (Configuration) parentStream.parentContent().config();
         this.datasetPath = cfg.path(datasetPathName());
@@ -275,7 +279,7 @@ public class PrimaryDataset extends DatabaseEntry
             }
             cfg.insertSequenceReference(this.datasetPath, 0, beginSeq);            
             cfg.insertModuleReference(this.datasetPath,1,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
-            addPathFilter(cfg);
+            addPathFilter(cfg,existingPathFilter);
         }else{
             setPathFilter();
         }
@@ -292,9 +296,9 @@ public class PrimaryDataset extends DatabaseEntry
 
     }
 
-    private void addPathFilter(Configuration cfg) {
+    private void addPathFilter(Configuration cfg,ModuleInstance existingPathFilter) {
         
-        ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),"TriggerResultsFilter",pathFilterDefaultName());
+        ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),"TriggerResultsFilter",existingPathFilter!=null ? existingPathFilter.name() : pathFilterDefaultName());
 
         ModuleInstance pathFilter = (ModuleInstance) pathFilterRef.parent(); 
 
@@ -308,9 +312,21 @@ public class PrimaryDataset extends DatabaseEntry
         pathFilter.updateParameter(l1ResultTag.name(),l1ResultTag.type(),l1ResultTag.valueAsString());
     
         setPathFilter(pathFilter);
-        clearPathFilter();        
-        for(Path path : paths){ 
-            addToPathFilter(path.name());
+        if(existingPathFilter==null){
+            //set the path filter from the paths                   
+            clearPathFilter();        
+            for(Path path : paths){ 
+                addToPathFilter(path.name());
+            }
+        }else{
+            //set the paths from the path filter
+            paths.clear();
+            for(String pathname : this.pathFilterParam.values()){
+                paths.add(cfg.path(pathname.split(" / ")[0]));
+            }    
+            //here we need to setHasChanged as our path content of the dataset has changed
+            //before we are relying on the datasetPath/datasetFilter to know its changed
+            setHasChanged();
         }
     }
 
@@ -320,7 +336,7 @@ public class PrimaryDataset extends DatabaseEntry
         ArrayList<ModuleInstance> trigFiltArray = this.datasetPath.moduleArray("TriggerResultsFilter");
         if(trigFiltArray.size()==0){
             System.err.println("Error, datasetPath "+this.datasetPath+" has no TriggerResultFilters when it should have exactly one, creating it");
-            addPathFilter(cfg);
+            addPathFilter(cfg,null);
         }else{
 
             if(trigFiltArray.size()>1){

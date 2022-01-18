@@ -38,20 +38,29 @@ public class CreateDatasetDialog extends JDialog {
 	private JLabel jLabelDatasetName;
 	private JLabel jLabelStream;
 	private JTextField jTextFieldDatasetName;
-
+	
+	private PrimaryDataset datasetToClone;
 	//
 	// construction
 	//
 
 	/** Creates new form CreateDatasetDialog */
-	public CreateDatasetDialog(JFrame frame, Configuration config) {
+	public CreateDatasetDialog(JFrame frame, Configuration config, PrimaryDataset datasetToClone) {
 		super(frame, true);
 		this.config = config;
+		this.datasetToClone = datasetToClone;
 		setContentPane(initComponents());
 		updateStreamList();
-		setTitle("Create New Primary Dataset");
+		if(datasetToClone==null){
+			setTitle("Create New Primary Dataset");
+		} else{
+			setTitle("Cloning Dataset "+datasetToClone);
+		}
 	}
-
+	public CreateDatasetDialog(JFrame frame, Configuration config) {
+		this(frame,config,null);
+		
+	}
 	//
 	// public member functions
 	//
@@ -85,10 +94,11 @@ public class CreateDatasetDialog extends JDialog {
 		while (itS.hasNext()) {
 			Stream stream = itS.next();
 			// cbm.addElement(stream.name());
-			cbm.addElement(stream);
-			if (stream.name().equals(streamName))
-				cbm.setSelectedItem(stream);
-
+			if(datasetToClone==null || (stream.parentContent()!=datasetToClone.parentStream().parentContent())) {
+				cbm.addElement(stream);
+				if (stream.name().equals(streamName))
+					cbm.setSelectedItem(stream);
+			}
 		}
 	}
 
@@ -99,7 +109,7 @@ public class CreateDatasetDialog extends JDialog {
 		String datasetName = jTextFieldDatasetName.getText();
 		Stream stream = (Stream) jComboBoxStream.getSelectedItem();
 		dataset = stream.insertDataset(datasetName);
-		dataset.createDatasetPath();
+		dataset.createDatasetPath(this.datasetToClone!=null ? this.datasetToClone.pathFilter() : null);
 		setVisible(false);
 	}
 
@@ -138,9 +148,11 @@ public class CreateDatasetDialog extends JDialog {
 		jButtonCancel = new javax.swing.JButton();
 
 		jLabelDatasetName.setText("Primary Dataset Name:");
-
-		jLabelStream.setText("Stream:");
-
+		if(datasetToClone==null){
+			jLabelStream.setText("Stream:");
+		}else{
+			jLabelStream.setText("Stream (only those with diff. event contents):");
+		}
 		jTextFieldDatasetName.getDocument().addDocumentListener(new DocumentListener() {
 			public void insertUpdate(DocumentEvent e) {
 				jTextFieldDatasetNameInsertUpdate(e);
