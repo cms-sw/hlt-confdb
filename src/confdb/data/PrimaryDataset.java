@@ -77,6 +77,15 @@ public class PrimaryDataset extends DatabaseEntry
     /** the pathFilters "hasChanged" method whenever we do so **/
     private VStringParameter pathFilterParam = null;
 
+    /** tells us if paths have been added/rm since the list time it was set
+     * cant used hasChanged here as 1) its triggered if the path itself hasChanged
+     * and 2) it can reset the dataset database id
+     * this is mainly for streams to poll their child datasets to see if they have added any 
+     * paths or not 
+     */
+    private boolean hasPathListChanged = false;
+
+
     //
     // construction
     //
@@ -121,6 +130,14 @@ public class PrimaryDataset extends DatabaseEntry
         super.setHasChanged();
     }
     
+    public boolean hasPathListChanged(){
+        return hasPathListChanged;
+    }
+
+    public void resetHasPathListChanged(){
+        hasPathListChanged = false;
+    }
+
     /** get the parent stream */
     public Stream parentStream() { return parentStream; }
 

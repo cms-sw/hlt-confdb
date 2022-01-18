@@ -1320,8 +1320,7 @@ public class ConfDBV1 {
 				if (stream == null)
 					continue;
 
-				EventContent eventContent = stream.parentContent();
-				stream.insertPath(path);
+				EventContent eventContent = stream.parentContent();				
 				path.addToContent(eventContent);
 
 				if (primaryDataset == null)
