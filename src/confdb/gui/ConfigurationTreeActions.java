@@ -5306,17 +5306,23 @@ public class ConfigurationTreeActions {
 
 		// bug/feature #93322 Remove GUI and database restriction to share a path in
 		// more than one PrimaryDataset in a Stream.
+		// datasets can be linked to each other, thus if you update one, you need to update the others
 		if (dataset.path(path.name()) == null) {
-			dataset.insertPath(path);
-			model.nodeInserted(dataset, dataset.indexOfPath(path));
-			if (model.streamMode().equals("datasets")) {
-				model.nodeInserted(model.getChild(stream, stream.indexOfDataset(dataset)), dataset.indexOfPath(path));
-				if (index != -1) {
-					model.nodeRemoved(model.getChild(stream, stream.datasetCount()), index, path);
+			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();
+			siblings.add(dataset);
+			for(PrimaryDataset sibling : siblings) {
+				sibling.insertPath(path);
+				model.nodeInserted(sibling, sibling.indexOfPath(path));
+				if (model.streamMode().equals("datasets")) {
+					
+					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), sibling.indexOfPath(path));
+					if (index != -1) {
+						model.nodeRemoved(model.getChild(sibling.parentStream(), sibling.parentStream().datasetCount()), index, path);
+					}
 				}
 			}
 		}
-
+		System.err.println("node changed "+path);
 		model.nodeChanged(path);
 		model.updateLevel1Nodes();
 

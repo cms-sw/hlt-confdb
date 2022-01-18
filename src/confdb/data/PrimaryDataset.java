@@ -101,6 +101,7 @@ public class PrimaryDataset extends DatabaseEntry
     }
 
    public boolean hasChanged(){
+    updatePathList();
 	for (Path p : paths){
 	    if(p.hasChanged()){
 		setHasChanged();        
@@ -296,6 +297,22 @@ public class PrimaryDataset extends DatabaseEntry
 
     }
 
+    /** gets all datasets sharing the same trigger results filter */
+    public ArrayList<PrimaryDataset> getSiblings() {
+        ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();
+        if(this.pathFilter!=null){
+            Configuration cfg = (Configuration) parentStream.parentContent().config();
+            Iterator<PrimaryDataset> pdIt = cfg.datasetIterator();
+            while(pdIt.hasNext()){
+                PrimaryDataset dataset = pdIt.next();
+                if(dataset.pathFilter()==this.pathFilter()){
+                    siblings.add(dataset);
+                }
+            } 
+        }
+        return siblings;
+    }
+    
     private void addPathFilter(Configuration cfg,ModuleInstance existingPathFilter) {
         
         ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),"TriggerResultsFilter",existingPathFilter!=null ? existingPathFilter.name() : pathFilterDefaultName());
@@ -413,6 +430,15 @@ public class PrimaryDataset extends DatabaseEntry
             this.pathFilterParam.values().clear();
             this.pathFilter.setHasChanged();
             return true;
+        }
+    }
+
+    private void updatePathList(){
+        if(this.pathFilter!=null && this.pathFilter.hasChanged()){
+
+            for(String path : this.pathFilterParam.values() ) {
+          
+            }
         }
     }
 }
