@@ -16,6 +16,8 @@ import java.util.function.Predicate;
  * stream. Each path can only be assigned to one of the PDs assigned
  * with a single stream.
  * 
+ * A PrimaryDataset has exactly one parent stream.
+ * 
  * Primary dataset definations have now been reworked such that they can be defined by a 
  * path containing a TriggerResults filter which applies the path selection for the dataset
  * 
@@ -23,6 +25,12 @@ import java.util.function.Predicate;
  * which allows us to add things like L1 digis which we dont know apriori, a prescale module and a
  * TriggerResults filter which selects the actual paths of the dataset
  * 
+ * A DatasetPath is unique to a dataset but its trigger results filter aka PathFilter can be shared
+ * between multiple datasets. This is useful for splitting datasets or cloning them for different 
+ * event contents. A dataset is considered split if other datasets share a the PathFilter but are 
+ * in the same event content. The only situation this makes sense is each dataset selects a subset 
+ * of the total events selected by their paths. 
+ *  
  * Old style datasets are still supported, if the dataset path doesnt exist, then its an old style
  * dataset and behaves as it did
  * 
@@ -134,8 +142,8 @@ public class PrimaryDataset extends DatabaseEntry
         return hasPathListChanged;
     }
 
-    public void resetHasPathListChanged(){
-        hasPathListChanged = false;
+    public void setPathListChanged(boolean value){
+        hasPathListChanged = value;
     }
 
     /** get the parent stream */
@@ -219,45 +227,39 @@ public class PrimaryDataset extends DatabaseEntry
 			       "path already associated!");
 	    return false;
 	}
-	/*
-	if (parentStream.listOfAssignedPaths().indexOf(path)>=0) {
-	    System.err.println("PrimaryDataset.insertPath() ERROR: "+
-			       "path already associated with another dataset "+
-			       "in the parent stream!");
-	    return false;
-	}
-	*/
-	//else parentStream.setHasChanged();
-	paths.add(path);
-    addToPathFilter(path.name());
-    Collections.sort(paths);    
-	setHasChanged();
-	
+	if(this.pathFilter!=null){
+        this.pathFilter.addPath(path);
+    }else{
+        addPathToPathList(path);
+    }
+    
 	return true;
     }
     
     /** remove a path from this dataset */
     public boolean removePath(Path path)
     {
-	int index = paths.indexOf(path);
-	if (index<0) return false;
-	paths.remove(index);
-    rmFromPathFilter(path.name());
-	setHasChanged();
-    //re-enabled this line as streams can only have paths inside datasets
-    parentStream.setHasChanged();
-	return true;
+	    int index = paths.indexOf(path);
+	    if (index<0) return false;
+
+        if(this.pathFilter!=null) {
+            this.pathFilter.removePath(path);
+        }else {
+            removePathFromPathList(path);
+        }
+	    return true;
     }
     
     /** remove all paths */
     public void clear()
     {
-	paths.clear();
-    clearPathFilter();
-	setHasChanged();
-        parentStream.setHasChanged();
+        if(this.pathFilter!=null) {
+            this.pathFilter.clear();
+        }else {
+            clearPathList();
+        }
     }
-
+	
     public String datasetPathName()
     {
         return "Dataset_"+name();
@@ -388,73 +390,105 @@ public class PrimaryDataset extends DatabaseEntry
         }
     }
 
-    /* here we sync the paths listed in the filter module with the paths
-       assigned to the dataset
-       life is a little hard as the path may be prescaled in the dataset 
-       and may have the format of path_name / prescale
-       which means we cant just blindly make a new list with our paths
-       as we'll lose the prescale information
+    /** function which adds directly to the path list
+     * called by the PathFilter and it is assumed that all checks on whether to add
+     * this path have been done
+     */
+    private void addPathToPathList(Path path) {
+        paths.add(path);
+        Collections.sort(paths);
+        setHasChanged();
+        setPathListChanged(true);        
+    }
+
+    /** function which removes directly form the path list
+     * called by the PathFilter and it is assumed that all checks on whether to add
+     * this path have been done
+     */
+    private void removePathFromPathList(Path path) {
+        int index = paths.indexOf(path);
+        paths.remove(index);
+        setHasChanged();
+        setPathListChanged(true);
+        parentStream.setHasChanged();
+    }
+
+    /** function which removes directly form the path list
+    * called by the PathFilter and it is assumed that all checks on whether to add
+    * this path have been done
     */
-    public void updatePathFilter()
-    {        
-        ArrayList<String> allPathNames = new ArrayList<String>();
-        for(Path path : this.paths){
-            allPathNames.add(path.name()); 
-        }
-        ArrayList<String> pathsAdded = new ArrayList<String>();
-        //VStringParameter newFilterStr = new VStringParameter();
-        Predicate<String> notInPathList = (a) -> {
-            return !this.paths.stream().anyMatch( b -> b.name().equals(a.split(" / ")[0]));
-        };
-        ArrayList<String> filtValues = this.pathFilterParam.values();
-        filtValues.removeIf(notInPathList);
+    public void clearPathList()
+    {
+	    paths.clear();        
+	    setHasChanged();
+        setPathListChanged(true);
+        parentStream.setHasChanged();
+    }
 
-        for(Path path : this.paths) {            
-            if(!filtValues.stream().anyMatch( a -> a.split(" / ")[0].equals(path.name()) )){                
+
+    interface DatasetAction {
+        void action(PrimaryDataset d);
+    }
+    /** a small class to manage the path filter
+     * which is shared between datasets
+     */
+    class PathFilter {
+        /** filter module selecting dataset's paths **/
+        private ModuleInstance pathFilter = null;
+
+        /** the parameter of the filter module selecting paths **/
+        /** note because we are maniputating this directly, we need to call **/
+        /** the pathFilters "hasChanged" method whenever we do so **/
+        private VStringParameter pathFilterParam = null;
+
+        /** datasets which use this filter */
+        private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>(); 
+
+
+        public boolean addPath(Path path){            
+            if(this.pathFilterParam!=null){
                 this.pathFilterParam.addValue(path.name());
-            }
-        }
-    }
-    
-    private boolean addToPathFilter(String pathname){
-        if(this.pathFilterParam!=null){
-            this.pathFilterParam.addValue(pathname);
-            this.pathFilter.setHasChanged();
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    private boolean rmFromPathFilter(String pathname){
-        if(this.pathFilterParam==null){
-            return false;
-        }else{
-            if(this.pathFilterParam.values().removeIf(x -> (x.split(" / ")[0].equals(pathname)))){
                 this.pathFilter.setHasChanged();
+                informDatasetsOfChange((PrimaryDataset d) -> d.addPathToPathList(path));
                 return true;
             }else{
                 return false;
             }
         }
-    }
-
-    private boolean clearPathFilter(){
-        if(this.pathFilterParam==null){
-            return false;
-        }else{
-            this.pathFilterParam.values().clear();
-            this.pathFilter.setHasChanged();
-            return true;
-        }
-    }
-
-    private void updatePathList(){
-        if(this.pathFilter!=null && this.pathFilter.hasChanged()){
-
-            for(String path : this.pathFilterParam.values() ) {
-          
+    
+        public boolean removePath(Path path){            
+            if(this.pathFilterParam==null){
+                return false;
+            }else{
+                if(this.pathFilterParam.values().removeIf(x -> (x.split(" / ")[0].equals(path.name())))){
+                    this.pathFilter.setHasChanged();
+                    informDatasetsOfChange((PrimaryDataset d) -> d.removePathFromPathList(path));
+                    return true;
+                }else{
+                    return false;
+                }
             }
         }
+    
+        public boolean clearPaths(){
+            if(this.pathFilterParam==null){
+                return false;
+            }else{
+                this.pathFilterParam.values().clear();
+                this.pathFilter.setHasChanged();
+                informDatasetsOfChange((PrimaryDataset d) -> d.clearPathList());
+                return true;
+            }
+        }
+
+
+
+        private void informDatasetsOfChange(DatasetAction datasetAction){
+            for(PrimaryDataset dataset : datasets){                
+                datasetAction.action(dataset);
+            }
+        }
+    
+
     }
 }
