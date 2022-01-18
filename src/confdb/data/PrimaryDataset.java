@@ -3,6 +3,7 @@ package confdb.data;
 
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Collections;
 import java.util.function.Predicate;
 
@@ -77,13 +78,8 @@ public class PrimaryDataset extends DatabaseEntry
     /** path representing the dataset **/
     private Path datasetPath = null;
 
-    /** filter module selecting dataset's paths **/
-    private ModuleInstance pathFilter = null;
-
-    /** the parameter of the filter module selecting paths **/
-    /** note because we are maniputating this directly, we need to call **/
-    /** the pathFilters "hasChanged" method whenever we do so **/
-    private VStringParameter pathFilterParam = null;
+    /** the wrapper class managing the filter module selecting dataset's paths **/
+    private PathFilter pathFilter = null;
 
     /** tells us if paths have been added/rm since the list time it was set
      * cant used hasChanged here as 1) its triggered if the path itself hasChanged
@@ -102,8 +98,7 @@ public class PrimaryDataset extends DatabaseEntry
     public PrimaryDataset(String name,Stream parentStream)
     {
 	this.name         = name.replaceAll("\\W", "");
-	this.parentStream = parentStream;    
-    //updatePathFilter();
+	this.parentStream = parentStream;        
     }
     
     
@@ -117,8 +112,7 @@ public class PrimaryDataset extends DatabaseEntry
 	return name; 
     }
 
-   public boolean hasChanged(){
-    updatePathList();
+   public boolean hasChanged(){    
 	for (Path p : paths){
 	    if(p.hasChanged()){
 		setHasChanged();        
@@ -151,7 +145,7 @@ public class PrimaryDataset extends DatabaseEntry
 
     public Path datasetPath() { return datasetPath; }
 
-    public ModuleInstance pathFilter() { return pathFilter; }
+    public PathFilter pathFilter() { return pathFilter; }
 
     /** set name of this stream */
     public void setName(String name) {
@@ -163,8 +157,8 @@ public class PrimaryDataset extends DatabaseEntry
 	    }
         if(this.datasetPath!=null){
             try{
-                this.datasetPath.setNameAndPropagate(datasetPathName());
-                this.pathFilter.setNameAndPropagate(pathFilter.name().replace(oldName,name));
+                this.datasetPath.setNameAndPropagate(datasetPathName());                
+                this.pathFilter.setNameAndPropagate(this.pathFilter.name().replace(oldName,name));
             } catch (DataException e) {
                 System.err.println(e.getMessage());
             }
@@ -254,7 +248,7 @@ public class PrimaryDataset extends DatabaseEntry
     public void clear()
     {
         if(this.pathFilter!=null) {
-            this.pathFilter.clear();
+            this.pathFilter.clearPaths();
         }else {
             clearPathList();
         }
@@ -279,7 +273,7 @@ public class PrimaryDataset extends DatabaseEntry
     }
 
     /** create the path representing the path including its modules **/ 
-    public void createDatasetPath(ModuleInstance existingPathFilter)
+    public void createDatasetPath(PathFilter existingPathFilter)
     {        
         Configuration cfg = (Configuration) parentStream.parentContent().config();
         this.datasetPath = cfg.path(datasetPathName());
@@ -331,40 +325,28 @@ public class PrimaryDataset extends DatabaseEntry
         return siblings;
     }
     
-    private void addPathFilter(Configuration cfg,ModuleInstance existingPathFilter) {
+    private void addPathFilter(Configuration cfg,PathFilter existingPathFilter) {
         
         ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),"TriggerResultsFilter",existingPathFilter!=null ? existingPathFilter.name() : pathFilterDefaultName());
 
-        ModuleInstance pathFilter = (ModuleInstance) pathFilterRef.parent(); 
-
-        InputTagParameter trigResultTag = new InputTagParameter("hltResults","","","", true);
-        pathFilter.updateParameter(trigResultTag.name(),trigResultTag.type(),trigResultTag.valueAsString());
-        if(pathFilter.template().findParameter("usePathStatus")!=null){
-            BoolParameter usePathStatus= new BoolParameter("usePathStatus",true,true);
-            pathFilter.updateParameter(usePathStatus.name(),usePathStatus.type(),usePathStatus.valueAsString());
-        }
-        InputTagParameter l1ResultTag = new InputTagParameter("l1tResults","","","", true);
-        pathFilter.updateParameter(l1ResultTag.name(),l1ResultTag.type(),l1ResultTag.valueAsString());
     
-        setPathFilter(pathFilter);
-        if(existingPathFilter==null){
-            //set the path filter from the paths                   
-            clearPathFilter();        
-            for(Path path : paths){ 
-                addToPathFilter(path.name());
-            }
-        }else{
-            //set the paths from the path filter
-            paths.clear();
-            for(String pathname : this.pathFilterParam.values()){
-                paths.add(cfg.path(pathname.split(" / ")[0]));
-            }    
+        ModuleInstance pathFilterMod = (ModuleInstance) pathFilterRef.parent(); 
+        if(pathFilterMod.referenceCount()!=1){
+            this.pathFilter = cfg.getDatasetPathFilter(pathFilterMod);
+            this.paths = this.pathFilter.getPathList(cfg);            
             //here we need to setHasChanged as our path content of the dataset has changed
-            //before we are relying on the datasetPath/datasetFilter to know its changed
+            //below we are relying on the datasetPath/datasetFilter to know its changed
             setHasChanged();
+        }else{
+            this.pathFilter = new PathFilter(pathFilterMod,this.paths);            
         }
+        this.pathFilter.addDataset(this);
     }
 
+    /** sets the path filter using the dataset paths path filter, creating it if necessary
+     * looks in the config to see if any datasets have this path filter and if so takes 
+     * their PathFilter object otherwise makes one
+    */
     private void setPathFilter()
     {
         Configuration cfg = (Configuration) parentStream.parentContent().config();
@@ -377,18 +359,16 @@ public class PrimaryDataset extends DatabaseEntry
             if(trigFiltArray.size()>1){
                 System.err.println("Error, datasetPath "+this.datasetPath+" has "+trigFiltArray.size()+" TriggerResultFilters when it should have exactly one, taking first one");
             }
-            setPathFilter(trigFiltArray.get(0));   
+            this.pathFilter = cfg.getDatasetPathFilter(trigFiltArray.get(0));
+            if(this.pathFilter==null){
+                this.pathFilter = new PathFilter(trigFiltArray.get(0),null);
+            }
+            this.pathFilter.addDataset(this);
+            
         }
 
     }
 
-    private void setPathFilter(ModuleInstance pathFilter){
-        this.pathFilter = pathFilter;
-        this.pathFilterParam = (VStringParameter) this.pathFilter.findParameter("triggerConditions");
-        if(this.pathFilterParam==null){
-            System.err.println("error dataset's path filter "+this.pathFilter.name()+" has no trigger conditions parameter, this should not be possible");
-        }
-    }
 
     /** function which adds directly to the path list
      * called by the PathFilter and it is assumed that all checks on whether to add
@@ -442,8 +422,61 @@ public class PrimaryDataset extends DatabaseEntry
         private VStringParameter pathFilterParam = null;
 
         /** datasets which use this filter */
-        private ArrayList<PrimaryDataset> datasets = new ArrayList<PrimaryDataset>(); 
+        private HashSet<PrimaryDataset> datasets = new HashSet<PrimaryDataset>(); 
 
+
+        public String name(){
+            if(this.pathFilter!=null){
+                return this.pathFilter.name();
+            }else{
+                return "";
+            }
+        }
+
+        PathFilter(ModuleInstance pathFilter,ArrayList<Path> paths){
+            this.pathFilter = pathFilter;            
+            InputTagParameter trigResultTag = new InputTagParameter("hltResults","","","", true);
+            this.pathFilter.updateParameter(trigResultTag.name(),trigResultTag.type(),trigResultTag.valueAsString());
+            if(this.pathFilter.template().findParameter("usePathStatus")!=null){
+                BoolParameter usePathStatus= new BoolParameter("usePathStatus",true,true);
+                this.pathFilter.updateParameter(usePathStatus.name(),usePathStatus.type(),usePathStatus.valueAsString());
+            }
+
+            InputTagParameter l1ResultTag = new InputTagParameter("l1tResults","","","", true);
+            this.pathFilter.updateParameter(l1ResultTag.name(),l1ResultTag.type(),l1ResultTag.valueAsString());
+            
+            this.pathFilterParam = (VStringParameter) this.pathFilter.findParameter("triggerConditions");
+            if(this.pathFilterParam==null){
+                System.err.println("error dataset's path filter "+this.pathFilter.name()+" has no trigger conditions parameter, this should not be possible");
+            }else if(paths!=null){
+                clearPaths();
+                for(Path path : paths){
+                    addPath(path);
+                }
+            }            
+        }
+
+
+        public void setNameAndPropagate(String name) throws DataException {
+            if(this.pathFilter!=null){
+                this.pathFilter.setNameAndPropagate(name);
+            }
+        }
+
+        public boolean sameFilter(ModuleInstance rhs){
+            return this.pathFilter == rhs;
+        }
+
+        /**
+         * 
+         */
+        public ArrayList<Path> getPathList(Configuration cfg){
+            ArrayList<Path> paths = new ArrayList<Path>();            
+            for(String pathname : this.pathFilterParam.values()){
+                paths.add(cfg.path(pathname.split(" / ")[0]));
+            } 
+            return paths;
+        }
 
         public boolean addPath(Path path){            
             if(this.pathFilterParam!=null){
@@ -482,6 +515,13 @@ public class PrimaryDataset extends DatabaseEntry
         }
 
 
+        public boolean addDataset(PrimaryDataset dataset){
+            return this.datasets.add(dataset);            
+        }
+
+        public boolean removeDataset(PrimaryDataset dataset){
+            return this.datasets.remove(dataset);
+        }
 
         private void informDatasetsOfChange(DatasetAction datasetAction){
             for(PrimaryDataset dataset : datasets){                

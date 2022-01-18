@@ -2167,6 +2167,31 @@ public class Configuration implements IConfiguration {
 		return false;
 	}
 
+	/**
+	 * returns the DatasetPathFilter matching a given TriggerResultsFilter if exists, otherwise null
+	 * 
+	 * 
+	 */
+	public PrimaryDataset.PathFilter getDatasetPathFilter(ModuleInstance filterMod){
+		//dont use datasetIterator as requires looping over all streams/datasets to 
+		//construct it, although its not such a savingas the one above as we 
+		//will often loop through all the datasets		
+		for(EventContent content : contents){
+			Iterator<Stream> streamIt = content.streamIterator();
+			while(streamIt.hasNext()){
+				Iterator<PrimaryDataset> datasetIt = streamIt.next().datasetIterator();
+			
+				while(datasetIt.hasNext()){
+					PrimaryDataset dataset = datasetIt.next();
+					if(dataset.pathFilter()!=null && dataset.pathFilter().sameFilter(filterMod)){
+						return dataset.pathFilter();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 	//
 	// Blocks
 	//
