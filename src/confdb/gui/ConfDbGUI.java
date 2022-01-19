@@ -1238,6 +1238,12 @@ public class ConfDbGUI {
 			}
 		}
 	}
+
+	/** resets the GUI's config tree, handy for debugging GUI update bugs */
+	public void resetGUI(){
+		treeModelCurrentConfig.nodeStructureChanged(treeModelCurrentConfig.getRoot());
+		treeModelCurrentConfig.updateLevel1Nodes();
+	}
 	
 	/** add untracked parameter to the currently active component */
 	public void addTrackedVPsetParameter() {
