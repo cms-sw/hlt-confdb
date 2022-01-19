@@ -1857,8 +1857,6 @@ public class ConfDB {
 				Stream stream = idToStream.get(streamId);
 				PrimaryDataset primaryDataset = idToDataset.get(datasetId);
 
-				// System.err.println("Path to dataset "+datasetId+" id "+pathId+" streamid
-				// "+streamId);
 				if (path == null)
 					continue;
 				if (stream == null)
@@ -1871,28 +1869,12 @@ public class ConfDB {
 				//contains the list of paths
 				//old style: paths are directly contained in the dataset
 				EventContent eventContent = stream.parentContent();
-				if(path.name().equals(primaryDataset.datasetPathName())){
-					//new style
-					HashSet<String> pathsOfDatasetNames = getPathNamesFromTriggerResultsFilter(path);
-					primaryDataset.setDatasetPath(path);
-					for(String pathOfDatasetName : pathsOfDatasetNames){
-						Path pathOfDataset = config.path(pathOfDatasetName);
-						if(pathOfDataset==null){
-							System.err.println("Path \""+pathOfDataset+"\" in Dataset "+primaryDataset.name()+" dataset path's trigger filter results does not exist, this is likely a serious error");
-							continue;
-						}				
-						primaryDataset.insertPath(pathOfDataset);
-						pathOfDataset.addToContent(eventContent);						
-					}
-
+				if(path.name().equals(primaryDataset.datasetPathName())){					
+					primaryDataset.setDatasetPath(path);					
 				}else{
-					primaryDataset.insertPath(path);
-					path.addToContent(eventContent);					
+					primaryDataset.insertPath(path);					
 				}
 
-				
-				
-				
 				stream.setDatabaseId(streamId);
 				primaryDataset.setDatabaseId(datasetId);
 			}
@@ -7349,27 +7331,6 @@ public class ConfDB {
 		return value;
 	}
 
-	//maybe this should be a Path method
-	private static HashSet<String> getPathNamesFromTriggerResultsFilter(Path datasetPath){
-		HashSet<String> pathNames = new HashSet<String>();
-		Iterator<ModuleInstance> trigResultsFilters = datasetPath.moduleIterator("TriggerResultsFilter");
-		while ( trigResultsFilters.hasNext() ){
-
-			ModuleInstance trigResFilt = trigResultsFilters.next();
-			
-			VStringParameter filtParam =  (VStringParameter) trigResFilt.findParameter("triggerConditions");
-			if(filtParam == null){
-				System.err.println("Error: TriggerFilterResults module exists without a triggerConditions parameter, this means datasets will not be populated");
-				continue;
-			}
-			ArrayList<String> pathNamesFilt = filtParam.values();
-			for (String pathName : pathNamesFilt){
-				pathNames.add(pathName);	
-			}
-			
-		}	
-		return pathNames;
-	} 
 
 	//
 	// MAIN

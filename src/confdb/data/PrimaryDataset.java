@@ -32,6 +32,9 @@ import java.util.function.Predicate;
  * in the same event content. The only situation this makes sense is each dataset selects a subset 
  * of the total events selected by their paths. 
  *  
+ * As Streams are now simply the combination of their datasets paths, the PrimaryDataset
+ * is exclusively responsible for adding/removing Paths to their event content
+ * 
  * Old style datasets are still supported, if the dataset path doesnt exist, then its an old style
  * dataset and behaves as it did
  * 
@@ -309,7 +312,7 @@ public class PrimaryDataset extends DatabaseEntry
 
     }
 
-    /** gets all datasets sharing the same trigger results filter */
+    /** gets all datasets sharing the same trigger results filter including this dataset */
     public ArrayList<PrimaryDataset> getSiblings() {
         ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();
         if(this.pathFilter!=null){
@@ -321,9 +324,39 @@ public class PrimaryDataset extends DatabaseEntry
                     siblings.add(dataset);
                 }
             } 
+        }else{
+            siblings.add(this);
         }
         return siblings;
     }
+
+    public ArrayList<StreamIndexPair > getSiblingsStreamsIndexOfPath(Path path){
+        ArrayList<StreamIndexPair > streamsAndIndex = new ArrayList<StreamIndexPair>();
+        ArrayList<PrimaryDataset> siblings = getSiblings();
+        HashSet<Stream> uniqStreams = new HashSet<Stream>();
+        for(PrimaryDataset dataset : siblings){
+            Stream stream = dataset.parentStream();
+            if(uniqStreams.add(stream)){
+                streamsAndIndex.add(new StreamIndexPair(stream,stream.indexOfPath(path)));
+            }            
+        }
+        return streamsAndIndex;
+    }
+
+    public ArrayList<ContentIndexPair > getSiblingsContentsIndexOfPath(Path path){
+        ArrayList<ContentIndexPair > contentsAndIndex = new ArrayList<ContentIndexPair>();
+        ArrayList<PrimaryDataset> siblings = getSiblings();
+        HashSet<EventContent> uniqContent = new HashSet<EventContent>();
+        for(PrimaryDataset dataset : siblings){
+            EventContent content = dataset.parentStream().parentContent();
+            if(uniqContent.add(content)){
+                contentsAndIndex.add(new ContentIndexPair(content,content.indexOfPath(path)));
+            }            
+        }
+        return contentsAndIndex;
+    }
+
+
     
     private void addPathFilter(Configuration cfg,PathFilter existingPathFilter) {
         
@@ -334,13 +367,11 @@ public class PrimaryDataset extends DatabaseEntry
         if(pathFilterMod.referenceCount()!=1){
             this.pathFilter = cfg.getDatasetPathFilter(pathFilterMod);
             this.paths = this.pathFilter.getPathList(cfg);            
-            //here we need to setHasChanged as our path content of the dataset has changed
-            //below we are relying on the datasetPath/datasetFilter to know its changed
-            setHasChanged();
         }else{
-            this.pathFilter = new PathFilter(pathFilterMod,this.paths);            
+            this.pathFilter = new PathFilter(pathFilterMod,this.paths);                        
         }
-        this.pathFilter.addDataset(this);
+        //this syncs this dataset path list to the path filter
+        this.pathFilter.addDataset(this);        
     }
 
     /** sets the path filter using the dataset paths path filter, creating it if necessary
@@ -373,17 +404,35 @@ public class PrimaryDataset extends DatabaseEntry
     /** function which adds directly to the path list
      * called by the PathFilter and it is assumed that all checks on whether to add
      * this path have been done
+     * also the dataset is now responseible for making sure the path knows its event content
      */
     private void addPathToPathList(Path path) {
         paths.add(path);
+        //maybe we should move this logic to the PathFilter, slightly inefficient here
+        //as it gets called for each sibbling dataset
+        path.addToContent(parentStream().parentContent());
         Collections.sort(paths);
         setHasChanged();
         setPathListChanged(true);        
     }
-
+    
+    /** a slightly more efficient version of addPathToPathList for adding all paths in one go
+     */
+    private void addPathsToPathList(ArrayList<Path> paths) {
+        for(Path path: paths){
+            this.paths.add(path);
+            //maybe we should move this logic to the PathFilter, slightly inefficient here
+            //as it gets called for each sibbling dataset
+            path.addToContent(parentStream().parentContent());
+        }
+        Collections.sort(this.paths);
+        setHasChanged();
+        setPathListChanged(true);        
+    }
     /** function which removes directly form the path list
      * called by the PathFilter and it is assumed that all checks on whether to add
      * this path have been done
+     * also the dataset is now responseible for making sure the path knows its event content
      */
     private void removePathFromPathList(Path path) {
         int index = paths.indexOf(path);
@@ -391,18 +440,34 @@ public class PrimaryDataset extends DatabaseEntry
         setHasChanged();
         setPathListChanged(true);
         parentStream.setHasChanged();
+        removeFromContent(path);
     }
 
     /** function which removes directly form the path list
     * called by the PathFilter and it is assumed that all checks on whether to add
     * this path have been done
     */
-    public void clearPathList()
+    private void clearPathList()
     {
+        ArrayList<Path> oldPaths = new ArrayList<Path>(paths);
 	    paths.clear();        
 	    setHasChanged();
         setPathListChanged(true);
         parentStream.setHasChanged();
+        for(Path path : oldPaths){
+            removeFromContent(path);
+        }
+    }
+
+     /** if the path nolonger exists in the event content, remove it
+     * needs to be called after path has been removed from the dataset
+     * and the dataset has registered its changed
+     * slow function, could be much faster, also probably should be in PathFilter...
+     */ 
+    private void removeFromContent(Path path){
+        if(this.parentStream().parentContent().path(path.name())==null){
+            path.removeFromContent(this.parentStream().parentContent());
+        }
     }
 
 
@@ -516,7 +581,14 @@ public class PrimaryDataset extends DatabaseEntry
 
 
         public boolean addDataset(PrimaryDataset dataset){
-            return this.datasets.add(dataset);            
+            if(this.datasets.add(dataset)){
+                dataset.clearPathList();
+                ArrayList<Path> paths = getPathList((Configuration) dataset.parentStream().parentContent().config());
+                dataset.addPathsToPathList(paths);
+                return true;                
+            }else{
+                return false;
+            }
         }
 
         public boolean removeDataset(PrimaryDataset dataset){
@@ -531,4 +603,27 @@ public class PrimaryDataset extends DatabaseEntry
     
 
     }
+
+    public class StreamIndexPair {
+        public Stream stream = null;
+        public int index = -1;
+        public StreamIndexPair(Stream stream,int index){
+            this.stream = stream;
+            this.index = index;
+        }
+    }
+
+    public class ContentIndexPair {
+        public EventContent content = null;
+        public int index = -1;
+
+        public ContentIndexPair(EventContent content, int index){
+            this.content = content;
+            this.index = index;
+        }
+
+
+    }
 }
+
+

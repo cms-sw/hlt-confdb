@@ -5239,8 +5239,7 @@ public class ConfigurationTreeActions {
 		// more than one PrimaryDataset in a Stream.
 		// datasets can be linked to each other, thus if you update one, you need to update the others
 		if (dataset.path(path.name()) == null) {
-			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();
-			siblings.add(dataset);			
+			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();			
 			for(PrimaryDataset sibling : siblings) {
 				sibling.insertPath(path);
 				model.nodeInserted(sibling, sibling.indexOfPath(path));
@@ -5313,7 +5312,11 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/** remove a path from its parent dataset */
+	/** remove a path from its parent dataset 
+	 * note while a path removes automatically from any sibling datasets
+	 * we need to update the model
+	 * likewise we need to adjust the event content and streams
+	*/
 	public static boolean removePathFromDataset(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -5323,25 +5326,49 @@ public class ConfigurationTreeActions {
 
 		if (treeNode.parent() instanceof PrimaryDataset) {
 			PrimaryDataset dataset = (PrimaryDataset) treeNode.parent();
-			Stream stream = dataset.parentStream();
+			
 			Path path = (Path) treeNode.object();
 			int index = dataset.indexOfPath(path);
 
+			//if the streams / content node is displaying paths, we need the path indices in the 
+			//to be able to remove them
+			ArrayList<PrimaryDataset.StreamIndexPair> streamPathIndices = model.streamMode().equals("paths") ? dataset.getSiblingsStreamsIndexOfPath(path) : null;
+			ArrayList<PrimaryDataset.ContentIndexPair> contentPathIndices = model.contentMode().equals("paths") ? dataset.getSiblingsContentsIndexOfPath(path) : null;
+						
 			dataset.removePath(path);
 
-			model.nodeRemoved(dataset, index, treeNode);
-			if (model.streamMode().equals("datasets")) {
-				model.nodeRemoved(model.getChild(stream, stream.indexOfDataset(dataset)), index, treeNode);
+			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();
+			for(PrimaryDataset sibling : siblings){
+				model.nodeRemoved(sibling, index, treeNode);
+				Stream stream = sibling.parentStream();
+				EventContent content = stream.parentContent();
+				if (model.streamMode().equals("datasets")) {
+					model.nodeRemoved(model.getChild(stream, stream.indexOfDataset(sibling)), index, treeNode);
+				}
+				if (model.contentMode().equals("datasets")) {
+					model.nodeRemoved(model.getChild(content, content.indexOfDataset(sibling)), index, treeNode);
+				}
 			}
 
-			if (stream.datasets(path).size() == 0) {
-				// Only if the path goes to unassignedPaths.
-				model.nodeInserted(model.getChild(stream, stream.datasetCount()),
-						stream.listOfUnassignedPaths().indexOf(path));
+			
+			if (streamPathIndices!=null){
+				for(PrimaryDataset.StreamIndexPair streamPathIndex : streamPathIndices){
+					if(streamPathIndex.stream.indexOfPath(path)==-1){
+						model.nodeRemoved(streamPathIndex.stream,streamPathIndex.index,treeNode);
+					}
+				}												
+			}
+			if (contentPathIndices!=null){
+				for(PrimaryDataset.ContentIndexPair contentPathIndex : contentPathIndices){
+					if(contentPathIndex.content.indexOfPath(path)==-1){
+						model.nodeRemoved(contentPathIndex.content,contentPathIndex.index,treeNode);
+					}
+				}												
 			}
 
 		} else {
 			// Unnasigned path.
+			// this should no longer be possible to call
 
 			Stream stream = (Stream) ((ConfigurationTreeNode) treeNode.parent()).parent();
 			EventContent content = stream.parentContent();
