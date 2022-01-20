@@ -2905,10 +2905,12 @@ class DatasetMenuListener implements ActionListener {
 			dlg.setLocationRelativeTo(frame);
 			dlg.setVisible(true);
 			if (dataset.hasChanged()) {
-				model.nodeStructureChanged(dataset);
-				model.nodeStructureChanged(dataset.parentStream());
+				ArrayList<PrimaryDataset> siblings = dataset.getSiblings();		
+				for(PrimaryDataset sibling : siblings) {
+					model.nodeStructureChanged(sibling);
+					model.nodeStructureChanged(sibling.parentStream());					
+				}
 				model.updateLevel1Nodes();
-
 				/////////////
 				// bug 86605:
 				// Editing datasets must update OutputModules from here and not
@@ -2917,22 +2919,25 @@ class DatasetMenuListener implements ActionListener {
 				// and Output Modules by checking the paths differences.
 				// Only recently added paths must be prescaled with 1.
 				// Compare list
-				ArrayList<Path> paths_later = new ArrayList<Path>();
-				paths_ = dataset.pathIterator();
-				while (paths_.hasNext())
-					paths_later.add(paths_.next());
+				// legacy code for old style datasets
+				if(dataset.datasetPath()==null){
+					ArrayList<Path> paths_later = new ArrayList<Path>();
+					paths_ = dataset.pathIterator();
+					while (paths_.hasNext())
+						paths_later.add(paths_.next());
 
-				// Select only new paths:
-				ArrayList<Path> newpaths = new ArrayList<Path>();
-				if (!paths.containsAll(paths_later)) {
-					for (int i = 0; i < paths_later.size(); i++) {
-						if (!paths.contains(paths_later.get(i)))
-							newpaths.add(paths_later.get(i));
+					// Select only new paths:
+					ArrayList<Path> newpaths = new ArrayList<Path>();
+					if (!paths.containsAll(paths_later)) {
+						for (int i = 0; i < paths_later.size(); i++) {
+							if (!paths.contains(paths_later.get(i)))
+								newpaths.add(paths_later.get(i));
+						}
 					}
-				}
 
-				Stream parentStream = dataset.parentStream();
-				ConfigurationTreeActions.updateFilter(config, parentStream, newpaths);
+					Stream parentStream = dataset.parentStream();
+					ConfigurationTreeActions.updateFilter(config, parentStream, newpaths);
+				}
 			}
 		} else if (action.equals("ADD")) {
 			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config);

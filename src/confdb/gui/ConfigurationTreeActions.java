@@ -4925,7 +4925,7 @@ public class ConfigurationTreeActions {
 		if(oldOutPath == config.outputPath() && outModIndex!=-1){	
 			model.nodeInserted(oldOutPath,outModIndex);
 			//model.nodeChanged(oldOutPath);
-		}else{
+		}else if(oldOutPath != config.outputPath()){
 			model.nodeInserted(model.pathsNode(),config.pathCount()-1);
 		}
 
@@ -5235,21 +5235,20 @@ public class ConfigurationTreeActions {
 		}
 
 		
-		// bug/feature #93322 Remove GUI and database restriction to share a path in
-		// more than one PrimaryDataset in a Stream.
-		// datasets can be linked to each other, thus if you update one, you need to update the others
+		// datasets can be linked to each other, they will all update automatically
+		// but we need to adjust their nodes individually
 		if (dataset.path(path.name()) == null) {
+			dataset.insertPath(path); //adds it to all paths
+			int index = dataset.indexOfPath(path);
 			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();			
-			for(PrimaryDataset sibling : siblings) {
-				sibling.insertPath(path);
-				model.nodeInserted(sibling, sibling.indexOfPath(path));
+			for(PrimaryDataset sibling : siblings) {	
+				model.nodeInserted(sibling, index);
 				if (model.streamMode().equals("datasets")) {
 					
-					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), sibling.indexOfPath(path));					
+					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), index);					
 				}
 			}
-		}
-		System.err.println("node changed "+path);
+		}		
 		model.nodeChanged(path);
 		model.updateLevel1Nodes();
 
@@ -5290,20 +5289,26 @@ public class ConfigurationTreeActions {
 			tree.setSelectionPath(treePath.getParentPath());
 		}
 
-		boolean inserted = dataset.insertPath(path);
-		System.err.println("addPathToDataset_noUpdateTreeNodes error not yet updated for siblings");
+		boolean inserted = dataset.insertPath(path);		
 		if (inserted) {
-			model.nodeInserted(dataset, dataset.indexOfPath(path));
-			if (model.streamMode().equals("datasets")) {
-				model.nodeInserted(model.getChild(stream, stream.indexOfDataset(dataset)), dataset.indexOfPath(path));	
-			}
-			// model.nodeChanged(path);
-			// model.updateLevel1Nodes();
+			int index = dataset.indexOfPath(path);
+			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();			
+			
+			for(PrimaryDataset sibling : siblings) {	
+				model.nodeInserted(sibling, index );
+				if (model.streamMode().equals("datasets")) {
+					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), index);
+				}
+				// model.nodeChanged(path);
+				// model.updateLevel1Nodes();
 
-			// Feature/Bug 86605
-			ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
-			newPaths.add(path);
-			updateFilter(config, stream, newPaths); // To copy update prescaler.
+				// Feature/Bug 86605
+				if(dataset.datasetPath()==null){
+					ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
+					newPaths.add(path);
+					updateFilter(config, stream, newPaths); // To copy update prescaler.
+				}
+			}
 		} else {
 			// This will invoke an errorNotificationPanel.
 			return false;
@@ -6078,6 +6083,12 @@ public class ConfigurationTreeActions {
 	 * 
 	 * Module template : TriggerResultsFilter module --> HLTFilter --> T -->
 	 * TriggerResultsFilter
+	 * 
+	 * note: this is legacy code before the Dataset update to DatasetPaths
+	 * this will fail gracefully for new style Datasets as the TriggerResultsFilter
+	 * is not on an output path but the dataset path
+	 * this is referring to the old style smart prescales on the end path and not 
+	 * the PathFilters of a DatasetPath
 	 */
 	public static boolean updateFilter(Configuration config, Stream stream, ArrayList<Path> newPaths) {
 		OutputModule OutputM = stream.outputModule();
