@@ -150,6 +150,8 @@ public class PrimaryDataset extends DatabaseEntry
 
     public PathFilter pathFilter() { return pathFilter; }
 
+    public void setParentStream(Stream stream) { parentStream = stream;}
+
     /** set name of this stream */
     public void setName(String name) {
         String oldName = new String(this.name);

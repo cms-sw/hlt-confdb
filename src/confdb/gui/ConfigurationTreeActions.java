@@ -5013,55 +5013,63 @@ public class ConfigurationTreeActions {
 
 
 	/**
-	 * movePrimaryDataset Uses sourceTree and targetTree to retrieve the transferred
-	 * components NOTE: - Launch an error message to the user and revert the
-	 * operation in case of failure. - When a Primary Dataset is transferred/moved
-	 * from one stream to another, paths are not removed from the parent source
-	 * stream. bug/feature 88066
+	 * this function has been re-worked with the big dataset update
+	 * 1) it now moves rather than deletes then adds (easier to deal with the dataset + dataset path)
+	 * 2) it only works when the source and target tree is identical, so far its not thought
+	 *    there is a case where they are different, it would need to be reworked for this
+	 * 3) because of contraint 2, we no longer have to worry about moving paths over etc 
+	 *    which simplifies the logic
+	 * 4) finally this path assumes that a PrimaryDataset can belong to exactly 1 stream
 	 */
 	public static boolean movePrimaryDataset(JTree sourceTree, JTree targetTree, PrimaryDataset dataset) {
 
-		TreePath targetPath = targetTree.getSelectionPath();
-		Object targetNode = targetPath.getLastPathComponent();
-		ConfigurationTreeModel sourceModel = (ConfigurationTreeModel) sourceTree.getModel();
-		Configuration config = (Configuration) sourceModel.getRoot();
+		if(sourceTree!=targetTree){
+			String errMsg = "Move Primary Dataset Failed";
+			String moreDetail = "We are currently constrained only to move between the same config and not across configs.\nPlease ping the TSG mattermost (ConfdbDev or HLT User Support) to report this issue as we thought cross config PD moving was not required";
 
-		// Remove
-		TreePath SourcePath = new TreePath(sourceModel.getPathToRoot(dataset));
-		sourceTree.setSelectionPath(SourcePath);
-		ConfigurationTreeActions.removePrimaryDataset(sourceTree);
-
-		// Insert
-		TreePath TargetPath = new TreePath(sourceModel.getPathToRoot(targetNode));
-		targetTree.setSelectionPath(TargetPath);
-		boolean ok = ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(targetTree, dataset);
-
-		if (!ok) {
-			// REVERT THE OPERATION
-
-			// Restore the dataset to the previous Stream:
-			SourcePath = new TreePath(sourceModel.getPathToRoot(dataset.parentStream())); // Point to the parent Stream.
-			sourceTree.setSelectionPath(SourcePath);
-			ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(sourceTree, dataset);
-
-			// ERROR:
-			// Add the configuration details:
-			AboutDialog ad = new AboutDialog(null); // Only to get version and contact info. //DONT SHOW DIALOG!
-			String StackTrace = "ConfDb Version: " + ad.getConfDbVersion() + "\n";
-			StackTrace += "Release Tag: " + config.releaseTag() + "\n";
-			StackTrace += "Configuration: " + config.name() + "\n";
-			StackTrace += "-----------------------------------------------------------------\n";
-			StackTrace += "ERROR: ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(targetTree, pset); \n";
-			StackTrace += "ERROR: PrimaryDataset.insertPath() \n";
-
-			String errMsg = "Drag and Drop operation FAILED!\n"
-					+ "path already associated with dataset in the parent stream!\n";
-
-			errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
+			errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, moreDetail);
 			cd.createAndShowGUI();
 		}
+		
+		//Datasets only exist as part of a stream in the config
+		//1) remove the dataset from source stream, this will remove it from the config but remove
+		//   the dataset path
+		//2) add the dataset to the target stream, it will add it back to the config but also not 
+		//   touch the dataset path
+		//3) we now need to adjust the model, specifically we need to
+		//   a) remove the dataset from source stream
+		//   b) add the dataset in the target stream		
+		//   c) no change is needed to the dataset as its alphabetical 
+		//   d) however we do need to update the event content dataset /path view as the order of
+		//      is stream based. Dataset is not so bad but paths have massive changes therefore
+		//      we will reset it
+	
 
-		return ok;
+
+		TreePath targetPath = targetTree.getSelectionPath();
+		Object targetNode = targetPath.getLastPathComponent();		
+		ConfigurationTreeModel model = (ConfigurationTreeModel) targetTree.getModel();
+		
+
+		Stream targetStream = null;
+		if (targetNode instanceof Stream) {
+			targetStream = (Stream) targetNode;			
+		} else if (targetNode instanceof ConfigurationTreeNode) {
+			ConfigurationTreeNode treeNode = (ConfigurationTreeNode) targetNode;			
+			targetStream = (Stream) treeNode.object();
+		//	tree.setSelectionPath(treePath.getParentPath());
+		}
+		Stream sourceStream = dataset.parentStream();
+		int sourceIndex = dataset.parentStream().indexOfDataset(dataset);
+		dataset.parentStream().removeDataset(dataset);
+		targetStream.insertDataset(dataset);
+		int targetIndex = dataset.parentStream().indexOfDataset(dataset);
+		model.nodeRemoved(sourceStream, sourceIndex, dataset);
+		model.nodeInserted(targetStream, targetIndex);
+
+		model.nodeStructureChanged(model.contentsNode());
+		model.updateLevel1Nodes();
+		return true;
 	}
 
 	/**
@@ -5177,11 +5185,7 @@ public class ConfigurationTreeActions {
 			model.nodeRemoved(model.pathsNode(),indxDatasetPath,datasetPath);
 		}		
 
-		model.nodeStructureChanged(model.contentsNode());
-		Iterator<Path> itP = dataset.pathIterator();
-		while (itP.hasNext())
-			model.nodeInserted(model.getChild(stream, stream.datasetCount()),
-					stream.listOfUnassignedPaths().indexOf(itP.next()));
+		model.nodeStructureChanged(model.contentsNode());		
 		model.updateLevel1Nodes();
 
 		return true;

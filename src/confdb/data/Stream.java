@@ -353,13 +353,29 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
         setHasChanged();
         return result;
     }
+
+    /** insert and associate an existing primary dataset with this stream 
+     *  it can be only added if it has no parent stream already
+    */
+    public boolean insertDataset(PrimaryDataset dataset)
+    {
+        if(dataset.parentStream()==null){
+            dataset.setParentStream(this);
+            datasets.add(dataset);            
+            setHasChanged();
+            return true;
+        }else {
+            System.err.println("error adding dataset "+dataset.name()+" to stream "+name()+" but PD alread has parent "+dataset.parentStream().name());
+            return false;
+        }
+    }
     
     /** remove a dataset from this stream */
     public boolean removeDataset(PrimaryDataset dataset)
     {
 	int index = datasets.indexOf(dataset);
-	if (index<0) return false;
-	datasets.remove(index);
+	if (index<0) return false;  
+	datasets.remove(index).setParentStream(null);
 	setHasChanged();
 	return true;
 
