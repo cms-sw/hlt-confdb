@@ -107,6 +107,13 @@ public class ConfigurationTreeDropTarget extends DropTarget {
 				dtde.dropComplete(dndHandler.importData(targetTree, t));
 			} catch (RuntimeException re) {
 				dtde.dropComplete(false);
+				//we are being nice to future developers and will give the stack trace to them
+				//rather than just silently catching it and forcing them to spend time investigating
+				//why things are failing....
+				System.err.println("drag drop failed:");				
+				System.err.println("stack trace:");
+				re.printStackTrace();
+				System.err.println("stack trace finshed");
 			}
 		} else {
 			String message = "\"Import error!\"\n" + "Please make sure that target type matches source type.";
