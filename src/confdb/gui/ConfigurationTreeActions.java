@@ -4985,6 +4985,57 @@ public class ConfigurationTreeActions {
 		return inserted;
 	}
 
+	/** splits the primary dataset, dataset must be path based for this to work
+	 * 
+	 * 
+	*/
+	public static boolean splitPrimaryDataset(JTree tree,String datasetName,int nrInstances)
+	{
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		PrimaryDataset dataset = config.dataset(datasetName);
+		ArrayList<PrimaryDataset> splitInstances  = dataset.getSplitSiblings();
+		PrimaryDataset pdInstance0 = splitInstances.get(0);
+		//we already have the correct number of instances
+		if(splitInstances.size()==nrInstances){
+			return false;
+		}else if(nrInstances<splitInstances.size()){			
+			//now we have to remove the extra instances
+			for(PrimaryDataset datasetInstance : splitInstances){
+				if(datasetInstance.splitInstanceNumber()>=nrInstances){					
+					removePrimaryDataset(tree,datasetInstance,datasetInstance.parentStream());
+				}
+			}
+			if(nrInstances==1){
+				//dataset is now unsplit so remove instance number from the name
+				pdInstance0.setName(pdInstance0.nameWithoutInstanceNr(false));
+				//need to adjust the model now
+				model.nodeChanged(pdInstance0);
+			}
+			return true;
+		}else{			
+			Stream stream = pdInstance0.parentStream();
+			if(splitInstances.size()==1){
+				//we are splitting dataset for the first time so add instance number to the name
+				pdInstance0.setName(pdInstance0.name()+pdInstance0.splitInstanceNumber());
+				//need to adjust the model now
+				model.nodeChanged(pdInstance0);
+			}
+			for(int instanceNr=splitInstances.size();instanceNr<nrInstances;instanceNr++){
+				PrimaryDataset splitDataset = stream.insertDataset(pdInstance0.nameWithoutInstanceNr(false)+instanceNr);
+				splitDataset.createDatasetPath(pdInstance0.pathFilter());
+				TreePath streamPath = new TreePath(model.getPathToRoot(stream));
+				tree.setSelectionPath(streamPath);
+				ConfigurationTreeActions.insertPrimaryDataset(tree,splitDataset);
+			}
+
+		}
+
+
+		return true;
+
+	}
+
 	
 	/**
 	 * converts all datasets of a config to the new path based ones
@@ -5155,8 +5206,7 @@ public class ConfigurationTreeActions {
 
 	/** remove an existing primary dataset */
 	public static boolean removePrimaryDataset(JTree tree) {
-		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		Configuration config = (Configuration) model.getRoot();
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();		
 		TreePath treePath = tree.getSelectionPath();
 		Object node = treePath.getLastPathComponent();
 		PrimaryDataset dataset = null;
@@ -5171,6 +5221,23 @@ public class ConfigurationTreeActions {
 			stream = (Stream) treeNode.parent();
 			tree.setSelectionPath(treePath.getParentPath());
 		}
+		return removePrimaryDataset(tree,dataset,stream);
+	}
+
+	/** removes the primary dataset when given a dataset and stream 
+	 * note the stream seems redundant as should be dataset.parentStream
+	 * but in the spirit of not changing too much from the original function
+	 * we will pass in the stream and if null set it to the parentStream
+	 * 
+	*/
+	public static boolean removePrimaryDataset(JTree tree,PrimaryDataset dataset,Stream stream) {
+		
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		if(stream==null){
+			stream = dataset.parentStream();
+		}
 
 		int index = config.indexOfDataset(dataset);
 		int indexStream = stream.indexOfDataset(dataset);
@@ -5178,11 +5245,12 @@ public class ConfigurationTreeActions {
 		stream.removeDataset(dataset);
 		model.nodeRemoved(model.datasetsNode(), index, dataset);
 		model.nodeRemoved(stream, indexStream, dataset);
-		if(dataset.datasetPath()!=null){
+		if(dataset.datasetPath()!=null){			
 			Path datasetPath = dataset.datasetPath();
 			int indxDatasetPath = config.indexOfPath(datasetPath);
-			config.removePath(datasetPath);
+			config.removePath(datasetPath);			
 			model.nodeRemoved(model.pathsNode(),indxDatasetPath,datasetPath);
+			dataset.removeDatasetPath();
 		}		
 
 		model.nodeStructureChanged(model.contentsNode());		

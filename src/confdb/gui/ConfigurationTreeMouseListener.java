@@ -1,11 +1,12 @@
 package confdb.gui;
 
+import javax.sound.sampled.TargetDataLine;
 import javax.swing.*;
 import javax.swing.tree.*;
 
 import java.awt.Color;
 import java.awt.event.*;
-
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -2964,9 +2965,13 @@ class DatasetMenuListener implements ActionListener {
 			String targetDatasetName = action.split(":")[1];
 			ConfigurationTreeActions.movePathToDataset(tree, targetDatasetName);
 		} else if (action.startsWith("SPLIT:")) {
-			//CreDialog dialog = new DatasetSplitDialog(null,tree);
-			//dialog.pack();
-		//	dialog.setVisible();
+			String datasetToSplitName = action.split(":")[1];
+			SplitDatasetDialog dialog = new SplitDatasetDialog(null,datasetToSplitName);
+			dialog.pack();
+			dialog.setVisible(true);
+			if(dialog.isSuccess()){
+				ConfigurationTreeActions.splitPrimaryDataset(tree,datasetToSplitName,dialog.nrInstances());
+			}
 		} else if (action.startsWith("CLONE:")) {
 			String datasetToCloneName = action.split(":")[1];
 			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config, config.dataset(datasetToCloneName));

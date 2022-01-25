@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Collections;
-import java.util.function.Predicate;
 
 /**
  * PrimaryDataset
@@ -115,6 +114,28 @@ public class PrimaryDataset extends DatabaseEntry
 	return name; 
     }
 
+    public String nameWithoutInstanceNr() {
+        return nameWithoutInstanceNr(true);
+    }
+    
+        /** removes the instance number from the name string 
+         * it can auto detect if it has siblings or not
+         * which to be honest is not that useful :)
+        */
+    public String nameWithoutInstanceNr(boolean autoDetectSiblings) {
+        //name shouldnt have it appended as it is not split
+        if(autoDetectSiblings && getSplitSiblings().size()==1) {       
+            return new String(name);
+        }
+        String instStr = String.valueOf(splitInstanceNumber());
+        String nameInstStr = name.substring(name.length()-instStr.length(),name.length());        
+        if(nameInstStr.equals(instStr)){            
+            return name.substring(0,name.length()-instStr.length());
+        }else{            
+            return new String(name);
+        }
+    }
+
    public boolean hasChanged(){    
 	for (Path p : paths){
 	    if(p.hasChanged()){
@@ -149,6 +170,23 @@ public class PrimaryDataset extends DatabaseEntry
     public Path datasetPath() { return datasetPath; }
 
     public PathFilter pathFilter() { return pathFilter; }
+
+    /** removes the dataset path and unregisters it from the path filter
+     * this must be called when deleting a dataset from the config!
+     * in theory I could link this to the dataset path and having it call it when its
+     * removed from the config
+     * but that is also a bit messy as it would also have to remove the stream 
+     * because it wouldnt be able to access the dataset if the stream had already removed it
+     * note: this just removes the assocation of the path to the dataset, it doesnt
+     * remove the dataset path from the config
+     */
+    public void removeDatasetPath() {
+        if(pathFilter!=null){
+            pathFilter.removeDataset(this);            
+        }
+        datasetPath = null;
+        pathFilter = null;        
+    }
 
     public void setParentStream(Stream stream) { parentStream = stream;}
 
@@ -332,6 +370,70 @@ public class PrimaryDataset extends DatabaseEntry
         return siblings;
     }
 
+    /** datasets which are clones including this dataset  
+     * a clone is a sibling dataset which is in a different event content
+    */
+    public ArrayList<PrimaryDataset> getCloneSiblings() {
+        ArrayList<PrimaryDataset> clones = getSiblings();
+        clones.removeIf((PrimaryDataset d) -> d.parentStream().parentContent() == this.parentStream.parentContent());
+        clones.add(this);
+        return clones;
+    }
+
+    /** datasets which are split copies of this dataset including this dataset  
+     * a split is a sibling dataset which is in the same event content
+    */
+    public ArrayList<PrimaryDataset> getSplitSiblings() {
+        ArrayList<PrimaryDataset> splits = getSiblings();
+        splits.removeIf((PrimaryDataset d) -> d.parentStream().parentContent() != this.parentStream.parentContent());
+        splits.sort((PrimaryDataset a,PrimaryDataset b ) -> (a.splitInstanceNumber() - b.splitInstanceNumber()));
+        return splits;
+    }
+
+    /** which instance of a split dataset is this dataset
+     * works of the prescale module 
+     * no split = instance 0 
+     */
+    public int splitInstanceNumber() {
+        if(datasetPath==null){
+            return 0;
+        }else{
+            Reference psModRef = datasetPath.entry(Path.hltPrescalerLabel(datasetPath.name()));
+            if(psModRef==null){
+                System.err.println("error path "+datasetPath.name()+" does not have a prescale module, this is an error");
+                return 0;
+            }
+            ModuleInstance psMod = (ModuleInstance) psModRef.parent();
+            UInt32Parameter psModOffset = (UInt32Parameter) psMod.findParameter("offset");
+            if(psModOffset==null){
+                System.err.println("error prescaler module does not have an offset, this is a major issue and has likely broken many things..");
+                return 0; 
+            }
+            return ((Long) psModOffset.value()).intValue();
+        }
+
+    }
+
+    private void setSplitInstanceNumber() {
+        if(datasetPath!=null){        
+            
+            Reference psModRef = datasetPath.entry(Path.hltPrescalerLabel(datasetPath.name()));
+            if(psModRef==null){
+                System.err.println("error path "+datasetPath.name()+" does not have a prescale module, this is an error");
+                return;            
+            }
+            ModuleInstance psMod = (ModuleInstance) psModRef.parent();
+            UInt32Parameter psModOffset = (UInt32Parameter) psMod.findParameter("offset");
+            if(psModOffset==null){
+                System.err.println("error prescaler module does not have an offset, this is a major issue and has likely broken many things..");                
+            }else{                
+                psModOffset.setValue(String.valueOf(getSplitSiblings().size()-1));
+                psMod.setHasChanged();
+            }    
+        }
+
+    }
+
     public ArrayList<StreamIndexPair > getSiblingsStreamsIndexOfPath(Path path){
         ArrayList<StreamIndexPair > streamsAndIndex = new ArrayList<StreamIndexPair>();
         ArrayList<PrimaryDataset> siblings = getSiblings();
@@ -368,7 +470,9 @@ public class PrimaryDataset extends DatabaseEntry
         ModuleInstance pathFilterMod = (ModuleInstance) pathFilterRef.parent(); 
         if(pathFilterMod.referenceCount()!=1){
             this.pathFilter = cfg.getDatasetPathFilter(pathFilterMod);
-            this.paths = this.pathFilter.getPathList(cfg);            
+            this.paths = this.pathFilter.getPathList(cfg); 
+            setSplitInstanceNumber();
+
         }else{
             this.pathFilter = new PathFilter(pathFilterMod,this.paths);                        
         }
