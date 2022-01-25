@@ -190,9 +190,11 @@ public class PrimaryDataset extends DatabaseEntry
 
     public void setParentStream(Stream stream) { parentStream = stream;}
 
-    /** set name of this stream */
+    /** set name of this datset and its path
+     * will also rename dataset path filter if its default
+     */
     public void setName(String name) {
-        String oldName = new String(this.name);
+        String oldPathFilterDefaultName = pathFilterDefaultName();
 	    this.name = name.replaceAll("\\W", "");
 	    setHasChanged();
 	    for (Path p : paths) {
@@ -201,7 +203,9 @@ public class PrimaryDataset extends DatabaseEntry
         if(this.datasetPath!=null){
             try{
                 this.datasetPath.setNameAndPropagate(datasetPathName());                
-                this.pathFilter.setNameAndPropagate(this.pathFilter.name().replace(oldName,name));
+                if(this.pathFilter.name().equals(oldPathFilterDefaultName)){
+                    this.pathFilter.setNameAndPropagate(pathFilterDefaultName());
+                }
             } catch (DataException e) {
                 System.err.println(e.getMessage());
             }
@@ -303,7 +307,7 @@ public class PrimaryDataset extends DatabaseEntry
     }
     public String pathFilterDefaultName()
     {
-        return "hltDataset"+name();
+        return "hltDataset"+nameWithoutInstanceNr();
     }
 
     public static String datasetPathBeginSequenceName()
