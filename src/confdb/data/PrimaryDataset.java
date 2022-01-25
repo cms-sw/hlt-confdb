@@ -310,6 +310,12 @@ public class PrimaryDataset extends DatabaseEntry
     {
         return "HLTDatasetPathBeginSequence";
     }
+
+    public static String pathFilterType()
+    {
+        return "TriggerResultsFilter";
+    }
+
     /** create the path representing the path including its modules **/ 
     public void createDatasetPath() {
         createDatasetPath(null);
@@ -483,7 +489,7 @@ public class PrimaryDataset extends DatabaseEntry
     
     private void addPathFilter(Configuration cfg,PathFilter existingPathFilter) {
         
-        ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),"TriggerResultsFilter",existingPathFilter!=null ? existingPathFilter.name() : pathFilterDefaultName());
+        ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),pathFilterType(),existingPathFilter!=null ? existingPathFilter.name() : pathFilterDefaultName());
 
     
         ModuleInstance pathFilterMod = (ModuleInstance) pathFilterRef.parent(); 
@@ -506,7 +512,7 @@ public class PrimaryDataset extends DatabaseEntry
     private void setPathFilter()
     {
         Configuration cfg = (Configuration) parentStream.parentContent().config();
-        ArrayList<ModuleInstance> trigFiltArray = this.datasetPath.moduleArray("TriggerResultsFilter");
+        ArrayList<ModuleInstance> trigFiltArray = this.datasetPath.moduleArray(pathFilterType());
         if(trigFiltArray.size()==0){
             System.err.println("Error, datasetPath "+this.datasetPath+" has no TriggerResultFilters when it should have exactly one, creating it");
             addPathFilter(cfg,null);

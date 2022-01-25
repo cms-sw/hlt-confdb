@@ -159,16 +159,17 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 		return true;
 	}
 
-
+	/** dataset paths have special modules which need to be edited in the correct way 
+	 * therefore we forbid the user changing them manually */ 
 	public boolean isProtectedFieldOfDatasetPath(Parameter param){
-		if(!param.name().equals("triggerConditions") && !param.name().equals("usePathStatus")) return false;
 		if(!(param.getParentContainer() instanceof ModuleInstance)) return false;
 
-		ModuleInstance mod = (ModuleInstance) param.getParentContainer();
-		if(!mod.template().name().equals("TriggerResultsFilter")) return false;
-		Path[] parentPaths = mod.parentPaths();
-		for(Path parentPath : parentPaths){
-			if(parentPath.isDatasetPath()) return true;
+		ModuleInstance mod = (ModuleInstance) param.getParentContainer();		
+		if(mod.isDatasetPathFilter()){
+			return param.name().equals("triggerConditions") || param.name().equals("usePathStatus");
+		}
+		if(mod.isDatasetPathPrescaler()){
+			return param.name().equals("offset");
 		}
 		return false;
 	}
@@ -191,8 +192,13 @@ public class ParameterTreeModel extends AbstractTreeTableTreeModel {
 				}
 			}
 			
+			//some lovely hacks here, cant seem to set the color with the name
+			//so just followed Bogdans hack where we send a string to flag the TreeTable 
+			//to change the color
 			if (!ok) result = "___EDALIASRED___" + result;
-			
+			if(isProtectedFieldOfDatasetPath(p)){
+				result = "___LOCKEDPARAM___"+result;				
+			}			
 			return result;
 		} else if (column == 1) {
 			boolean ok = true;

@@ -858,15 +858,19 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (node instanceof ModuleReference) {
 				menuItem = new JMenuItem("Remove Module");
 				menuItem.addActionListener(pathListener);
+				if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 
 				// CLONE OPTION:
 				menuItem = new JMenuItem("Clone Module");
 				menuItem.addActionListener(pathListener);
+				if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 
 				popupPaths.addSeparator();
-				popupPaths.add(createSetOperatorMenu((Reference) node, pathListener));
+				JMenu setOpMenu = createSetOperatorMenu((Reference) node, pathListener);
+				if(isFinalOrDatasetPath) setOpMenu.setEnabled(false);
+				popupPaths.add(setOpMenu);
 			}
 			if (node instanceof OutputModuleReference) {
 				menuItem = new JMenuItem("Remove OutputModule");
@@ -1333,12 +1337,22 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		popupModules = new JPopupMenu();
 
 		if (depth == 3) {
+			ModuleInstance module = (ModuleInstance) node;
+			
 			menuItem = new JMenuItem("Rename Module");
 			menuItem.addActionListener(moduleListener);
+			boolean isPrescaler = module.template().name().equals("HLTPrescaler");
+			if(isPrescaler){
+				//we want the a dataset path filter to be able to be renamed, its name is not fixed
+				menuItem.setEnabled(false);				
+			}
 			popupModules.add(menuItem);
-
-			ModuleInstance module = (ModuleInstance) node;
+	
 			JMenu repModuleMenu = createAddRepModuleMenu(null, module, moduleListener, false, false);
+			if(isPrescaler || module.isDatasetPathFilter()){
+				repModuleMenu.setEnabled(false);
+			}
+			
 			popupModules.add(repModuleMenu);
 		}
 

@@ -83,6 +83,30 @@ public class ModuleInstance extends Instance implements Referencable {
 		return list.toArray(new Path[list.size()]);
 	}
 
+	/** check if its on a dataset path */
+	public boolean isOnDatasetPath(){
+		for (int i = 0; i < referenceCount(); i++) {
+			Path[] paths = reference(i).parentPaths();
+			for (Path p : paths){
+				if(p.isDatasetPath()){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/** tests if a module is a dataset path filter, ie the filter which selects a dataset
+	 * basically it has to be of the correct type and a member of a dataset path
+	 */
+	public boolean isDatasetPathFilter() {
+		return template().name().equals(PrimaryDataset.pathFilterType()) && isOnDatasetPath();
+	}
+
+	public boolean isDatasetPathPrescaler() {
+		return template().name().equals("HLTPrescaler") && isOnDatasetPath();
+	}
+
 	/** set the name and propagate it to all relevant downstreams InputTags */
 	public void setNameAndPropagate(String name) throws DataException {
 		String oldName = name();

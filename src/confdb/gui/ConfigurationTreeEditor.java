@@ -139,6 +139,9 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 				treeModel.nodeChanged(itC.next());
 		} else if (toBeEdited instanceof Stream) {
 			Stream stream = (Stream) toBeEdited;
+			if(config.stream(name)!=null){				
+				return toBeEdited;
+			}
 			stream.setName(name);
 			treeModel.nodeChanged(stream);
 			treeModel.nodeChanged(stream.outputModule());
@@ -146,17 +149,37 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 			treeModel.nodeStructureChanged(treeModel.outputsNode());
 		} else if (toBeEdited instanceof PrimaryDataset) {
 			PrimaryDataset dataset = (PrimaryDataset) toBeEdited;
-			ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();
-			for(PrimaryDataset splitSibling : splitSiblings){
-				//probably should just have a function which returns the instance nr string
-				//and it is empty if it doesnt have split instances
-				if(splitSiblings.size()==1){
-					splitSibling.setName(name);
-				}else{
-					splitSibling.setName(name+splitSibling.splitInstanceNumber());
+			
+			//so first we check if a dataset of that name exists
+			//this is important as splitSiblings will have their instance number
+			//we dont want to say rename EGamma[1-9] to Muon[1-9] if Muon already exists			
+			if(config.dataset(name)!=null){
+				return toBeEdited;	
+			}
+			
+			//so the challenge is we want to make sure there are no name clashes
+			//before making any changes
+			//so for some reason this function calls twice, why I dont know 
+			//however it'll abort the second time due to a  name clash so all is well? sigh
+			ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();			
+			ArrayList<String> splitSiblingNewNames = new ArrayList<String>();
+			for(int index = 0;index<splitSiblings.size();index++){
+				PrimaryDataset splitSibling = splitSiblings.get(index);
+				String  newName = new String(name);
+				if(splitSiblings.size()!=1){
+					newName += splitSibling.splitInstanceNumber();
 				}
-				treeModel.nodeChanged(splitSibling);
-				
+				splitSiblingNewNames.add(newName);
+				if(config.dataset(newName)!=null){
+					return toBeEdited;
+				}
+			}
+
+
+			for(int index = 0;index<splitSiblings.size();index++){			
+				PrimaryDataset splitSibling = splitSiblings.get(index);
+				splitSibling.setName(splitSiblingNewNames.get(index));
+				treeModel.nodeChanged(splitSibling);			
 			}
 			treeModel.nodeStructureChanged(treeModel.datasetsNode());
 		}

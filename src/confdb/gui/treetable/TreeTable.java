@@ -227,17 +227,19 @@ public class TreeTable extends JTable
 		}
 
 		String name = table.getValueAt(row, column).toString();
-		int index = -1;
-		index = name.indexOf("___EDALIASRED___");
-
-		if (index != -1) {
+		
+		boolean invalidEDAlias = name.startsWith("___EDALIASRED___");
+		boolean lockedParam = name.startsWith("___LOCKEDPARAM___");		
+		if (invalidEDAlias) {
 			name = name.replace("___EDALIASRED___","");
-		}
-		if (index != -1) {
 			if (column == 0) {
 				renderer.setTextNonSelectionColor(Color.RED);
 				renderer.setTextSelectionColor(Color.RED);
 			}
+		} else if(lockedParam){
+			name = name.replace("___LOCKEDPARAM___","");
+			renderer.setTextNonSelectionColor(Color.GRAY);
+			renderer.setTextSelectionColor(Color.GRAY);	
 		} else {
 			renderer.setTextNonSelectionColor(Color.BLACK);
 			renderer.setTextSelectionColor(Color.BLACK);
