@@ -7,6 +7,7 @@ import java.awt.event.*;
 
 import java.util.Iterator;
 import java.util.EventObject;
+import java.util.ArrayList;
 
 import confdb.data.*;
 
@@ -145,8 +146,19 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 			treeModel.nodeStructureChanged(treeModel.outputsNode());
 		} else if (toBeEdited instanceof PrimaryDataset) {
 			PrimaryDataset dataset = (PrimaryDataset) toBeEdited;
-			dataset.setName(name);
-			treeModel.nodeChanged(dataset);
+			ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();
+			for(PrimaryDataset splitSibling : splitSiblings){
+				//probably should just have a function which returns the instance nr string
+				//and it is empty if it doesnt have split instances
+				if(splitSiblings.size()==1){
+					splitSibling.setName(name);
+				}else{
+					splitSibling.setName(name+splitSibling.splitInstanceNumber());
+				}
+				treeModel.nodeChanged(splitSibling);
+				
+			}
+			treeModel.nodeStructureChanged(treeModel.datasetsNode());
 		}
 
 		return toBeEdited;
