@@ -414,7 +414,7 @@ public class PrimaryDataset extends DatabaseEntry
 
     }
 
-    private void setSplitInstanceNumber() {
+    private void setSplitInstanceNumber(int instanceNr) {
         if(datasetPath!=null){        
             
             Reference psModRef = datasetPath.entry(Path.hltPrescalerLabel(datasetPath.name()));
@@ -427,11 +427,30 @@ public class PrimaryDataset extends DatabaseEntry
             if(psModOffset==null){
                 System.err.println("error prescaler module does not have an offset, this is a major issue and has likely broken many things..");                
             }else{                
-                psModOffset.setValue(String.valueOf(getSplitSiblings().size()-1));
+                psModOffset.setValue(String.valueOf(instanceNr));
                 psMod.setHasChanged();
             }    
         }
 
+    }
+
+    /**
+     * updates the instance nrs of the split instances to ensure they are at the correct value
+     * it happens when an instance is removed
+     * returns true if any change happened
+     */
+    public boolean updateSplitInstanceNrs() {
+        boolean changed=false;
+        ArrayList<PrimaryDataset> splitSiblings = getSplitSiblings();
+        for(int index=0;index<splitSiblings.size();index++){
+            PrimaryDataset splitInstance = splitSiblings.get(index);
+            if(splitInstance.splitInstanceNumber()!=index){                
+                splitInstance.setName(nameWithoutInstanceNr()+index);
+                splitInstance.setSplitInstanceNumber(index);            
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     public ArrayList<StreamIndexPair > getSiblingsStreamsIndexOfPath(Path path){
@@ -471,7 +490,7 @@ public class PrimaryDataset extends DatabaseEntry
         if(pathFilterMod.referenceCount()!=1){
             this.pathFilter = cfg.getDatasetPathFilter(pathFilterMod);
             this.paths = this.pathFilter.getPathList(cfg); 
-            setSplitInstanceNumber();
+            setSplitInstanceNumber(getSplitSiblings().size()-1);
 
         }else{
             this.pathFilter = new PathFilter(pathFilterMod,this.paths);                        

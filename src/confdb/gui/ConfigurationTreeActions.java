@@ -4985,8 +4985,39 @@ public class ConfigurationTreeActions {
 		return inserted;
 	}
 
+	public static boolean rmSplitPrimaryDatasetInstance(JTree tree, PrimaryDataset dataset, Stream stream)
+	{
+		ArrayList<PrimaryDataset> splitInstances  = dataset.getSplitSiblings();
+		
+		if(splitInstances.size()==1){
+			return removePrimaryDataset(tree,dataset,stream);
+		}
+
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		PrimaryDataset pdInstance0 = splitInstances.get(0);
+		//incase we are removing the first instance, the second is now the new instance 0
+		if(pdInstance0==dataset){ 
+			pdInstance0 = splitInstances.get(1);
+		}
+		int instanceNrRemoved = dataset.splitInstanceNumber();		
+		if(removePrimaryDataset(tree,dataset,stream)){					
+			splitInstances  = pdInstance0.getSplitSiblings();			
+			pdInstance0.updateSplitInstanceNrs();
+			for(PrimaryDataset pdInstance : splitInstances){
+				if(pdInstance.splitInstanceNumber()>=instanceNrRemoved){					
+					model.nodeChanged(pdInstance);
+				}
+			}
+			return true;
+		}else{
+			return false;
+		}
+
+
+
+	}
+
 	/** splits the primary dataset, dataset must be path based for this to work
-	 * 
 	 * 
 	*/
 	public static boolean splitPrimaryDataset(JTree tree,String datasetName,int nrInstances)
@@ -5025,8 +5056,10 @@ public class ConfigurationTreeActions {
 				PrimaryDataset splitDataset = stream.insertDataset(pdInstance0.nameWithoutInstanceNr(false)+instanceNr);
 				splitDataset.createDatasetPath(pdInstance0.pathFilter());
 				TreePath streamPath = new TreePath(model.getPathToRoot(stream));
+				TreePath oldPath = tree.getSelectionPath();
 				tree.setSelectionPath(streamPath);
 				ConfigurationTreeActions.insertPrimaryDataset(tree,splitDataset);
+				tree.setSelectionPath(oldPath);
 			}
 
 		}
@@ -5080,6 +5113,7 @@ public class ConfigurationTreeActions {
 
 			errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, moreDetail);
 			cd.createAndShowGUI();
+			return false;
 		}
 		
 		//Datasets only exist as part of a stream in the config
@@ -5111,6 +5145,17 @@ public class ConfigurationTreeActions {
 		//	tree.setSelectionPath(treePath.getParentPath());
 		}
 		Stream sourceStream = dataset.parentStream();
+		//we are disabling dataset moving accross event contents when they have 
+		//siblings as it would change the status of split/clone
+		//we can support this but in a rush so disabling for now till we can put the logic in
+		//which properly handles the changing of a clone to split of an instance
+		if(sourceStream.parentContent()!=targetStream.parentContent() && 
+			dataset.getSiblings().size()!=1){
+			String msg = "A dataset with siblings can not currently move between streams with different event content.\n Please remove the siblings or clone to a different stream.\n We can impliment this feature if needed, report it in the TSG ConfdbDev Mattermost channel";
+			JOptionPane.showMessageDialog(null, msg, "", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+
 		int sourceIndex = dataset.parentStream().indexOfDataset(dataset);
 		dataset.parentStream().removeDataset(dataset);
 		targetStream.insertDataset(dataset);
@@ -5221,7 +5266,14 @@ public class ConfigurationTreeActions {
 			stream = (Stream) treeNode.parent();
 			tree.setSelectionPath(treePath.getParentPath());
 		}
-		return removePrimaryDataset(tree,dataset,stream);
+		//so here we have to treat removing a split instance of a dataset diffently
+		//if we remove one instance, we should adjust the numbering of all others
+		int nrSplitSiblings = dataset.getSplitSiblings().size();
+		if(nrSplitSiblings>1){
+			return rmSplitPrimaryDatasetInstance(tree, dataset, stream);
+		}else{
+			return removePrimaryDataset(tree,dataset,stream);
+		}
 	}
 
 	/** removes the primary dataset when given a dataset and stream 
