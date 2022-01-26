@@ -2267,8 +2267,7 @@ public class Configuration implements IConfiguration {
 
 		ArrayList<EventContent> cList = new ArrayList<EventContent>();
 		ArrayList<Stream> sList = new ArrayList<Stream>();
-		ArrayList<PrimaryDataset> dList = new ArrayList<PrimaryDataset>();
-		ArrayList<Path> pList = new ArrayList<Path>();
+		ArrayList<PrimaryDataset> dList = new ArrayList<PrimaryDataset>();		
 
 		cList.clear();
 		int contentCount = 0;
@@ -2295,17 +2294,12 @@ public class Configuration implements IConfiguration {
 						pathCount += d.pathCount();
 					}
 				}
-				for (PrimaryDataset id : dList) {
-					pList.clear();
-					Iterator<Path> itP = id.pathIterator();
-					while (itP.hasNext()) {
-						Path p = itP.next();
-						pList.add(p);
-					}
-					for (Path ip : pList) {
-						s.removePath(ip);
-					}
+				for (PrimaryDataset id : dList) {										
 					s.removeDataset(id);
+					if(id.datasetPath()!=null){
+						this.removePath(id.datasetPath());
+						id.removeDatasetPath();
+					}					
 				}
 				pathCount += s.pathCount();
 				if (pathCount == 0) {
