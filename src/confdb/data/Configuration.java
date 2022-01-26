@@ -359,6 +359,62 @@ public class Configuration implements IConfiguration {
 		return false;
 	}
 
+	public ArrayList<String> getNamesOfItemsChanged(){
+		ArrayList<String> namesOfItems = new ArrayList<String>();
+		if (hasChanged)
+			namesOfItems.add("Configuration:"+name());
+		if (psets.hasChanged())
+			namesOfItems.add("PSets:"+name());
+		for (EDAliasInstance geda : globalEDAliases)
+			if (geda.hasChanged())
+			namesOfItems.add("EDAliasInstance:"+geda.name());		
+		for (EDSourceInstance eds : edsources)
+			if (eds.hasChanged())
+				namesOfItems.add("EDSourceInstance:"+eds.name());		
+		for (ESSourceInstance ess : essources)
+			if (ess.hasChanged())				
+				namesOfItems.add("ESSourceInstance:"+ess.name());		
+		for (ESModuleInstance esm : esmodules)
+			if (esm.hasChanged())
+				namesOfItems.add("ESModuleInstance:"+esm.name());		
+		for (ServiceInstance svc : services)
+			if (svc.hasChanged())
+				namesOfItems.add("ServiceInstance:"+svc.name());
+		for (Path pth : paths)
+			if (pth.hasChanged())
+				namesOfItems.add("Path:"+pth.name());
+		for (Sequence seq : sequences)
+			if (seq.hasChanged())
+				namesOfItems.add("Sequence:"+seq.name());
+		for (Task tas : tasks)
+			if (tas.hasChanged())
+				namesOfItems.add("Task:"+tas.name());
+		for (EDAliasInstance eda : edaliases)
+			if (eda.hasChanged())
+				namesOfItems.add("EDAliasInstance:"+eda.name());
+		for (SwitchProducer swp : switchproducers)
+			if (swp.hasChanged())
+				namesOfItems.add("SwitchProducer:"+swp.name());
+		for (EventContent evc : contents)
+			if (evc.hasChanged())
+				namesOfItems.add("EventContent:"+evc.name());
+		Iterator<Stream> itS = streamIterator();
+		while (itS.hasNext()){
+			Stream stream  = itS.next();
+			if (stream.hasChanged())
+				namesOfItems.add("Stream:"+stream.name());
+		}
+		Iterator<PrimaryDataset> itD = datasetIterator();
+		while (itD.hasNext()){
+			PrimaryDataset pd = itD.next();
+			if (pd.hasChanged())
+				namesOfItems.add("PrimaryDataset:"+pd.name());	
+		}
+		return namesOfItems;
+
+	}
+
+
 	/** set the 'hasChanged' flag */
 	public void setHasChanged(boolean hasChanged) {
 		this.hasChanged = hasChanged;
