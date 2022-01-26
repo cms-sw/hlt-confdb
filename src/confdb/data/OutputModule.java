@@ -2,6 +2,7 @@ package confdb.data;
 
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * OutputModule
@@ -233,23 +234,29 @@ public class OutputModule extends ParameterContainer implements Referencable {
 	private void updateSelectEvents() {
 		StringBuffer valueAsString = new StringBuffer();
 		Iterator<PrimaryDataset> itP = parentStream().datasetIterator();
+
+		//so the previous old dataset style confdb sorted its paths in alphabetical order
+		//when adding here so we do the same (solely for that reason, cant see why it matters)
+		ArrayList<String> pathNames = new ArrayList<String>();
 		while (itP.hasNext()) {
 			PrimaryDataset dataset = itP.next();
 			if(dataset.datasetPath()!=null){
-				if (valueAsString.length() > 0){
-					valueAsString.append(",");
-				}
-				valueAsString.append(dataset.datasetPath().name());
+				pathNames.add(dataset.datasetPath().name());
 			}else{
 				Iterator<Path> pathIt = dataset.pathIterator();
 				while(pathIt.hasNext()){
-					if (valueAsString.length() > 0) {
-						valueAsString.append(",");
-					}
-					valueAsString.append(pathIt.next().name());
+					pathNames.add(pathIt.next().name());
 				}
 			}
 		}
+		Collections.sort(pathNames);
+		for(String pathName : pathNames){
+			if (valueAsString.length() > 0){
+				valueAsString.append(",");
+			}
+			valueAsString.append(pathName);
+		}
+
 		vstringSelectEvents.setValue(valueAsString.toString());
 	}
 
