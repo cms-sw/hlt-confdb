@@ -3,6 +3,7 @@ package confdb.data;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * OutputModule
@@ -249,6 +250,7 @@ public class OutputModule extends ParameterContainer implements Referencable {
 				}
 			}
 		}
+		pathNames = pathNames.stream().distinct().collect(Collectors.toCollection(ArrayList::new));
 		Collections.sort(pathNames);
 		for(String pathName : pathNames){
 			if (valueAsString.length() > 0){
