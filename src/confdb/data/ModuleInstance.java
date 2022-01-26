@@ -22,6 +22,7 @@ public class ModuleInstance extends Instance implements Referencable {
 	/** list of references */
 	private ArrayList<ModuleReference> references = new ArrayList<ModuleReference>();
 
+	//note changing this does not trigger a "hasChanged" as this something which is not stored in the db
 	private int moduleType = 0; //0 = standard module, 1 = switch producer module
 	//
 	// construction
@@ -233,10 +234,10 @@ public class ModuleInstance extends Instance implements Referencable {
 
 	}
 
+	/** no "hasChanged"	as moduleType is not stored in the db but just exists in the gui as a flag */
 	public void setModuleType(int val) {
 		if (val != moduleType) {
-			moduleType = val;	
-			setHasChanged();
+			moduleType = val;				
 		} 
 		
 	}
