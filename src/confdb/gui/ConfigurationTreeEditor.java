@@ -153,7 +153,8 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 			//so first we check if a dataset of that name exists
 			//this is important as splitSiblings will have their instance number
 			//we dont want to say rename EGamma[1-9] to Muon[1-9] if Muon already exists			
-			if(config.dataset(name)!=null){
+			//we also check for  name clash for the dataset path to be safe
+			if(config.dataset(name)!=null || !config.isUniqueQualifier(PrimaryDataset.datasetPathName(name))) {
 				return toBeEdited;	
 			}
 			
@@ -170,7 +171,8 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 					newName += splitSibling.splitInstanceNumber();
 				}
 				splitSiblingNewNames.add(newName);
-				if(config.dataset(newName)!=null){
+				if(config.dataset(newName)!=null ||
+					!config.isUniqueQualifier(PrimaryDataset.datasetPathName(newName)) ){
 					return toBeEdited;
 				}
 			}

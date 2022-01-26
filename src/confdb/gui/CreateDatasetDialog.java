@@ -121,16 +121,22 @@ public class CreateDatasetDialog extends JDialog {
 	// DOCUMENTLISTENER CALLBACKS
 	//
 	private void jTextFieldDatasetNameInsertUpdate(DocumentEvent e) {
-		String datasetName = jTextFieldDatasetName.getText();
-		if (config.dataset(datasetName) == null)
+		String datasetName = jTextFieldDatasetName.getText().replaceAll("\\W","");
+		if (config.dataset(datasetName) == null &&
+			config.isUniqueQualifier(PrimaryDataset.datasetPathName(datasetName)) &&
+			config.isUniqueQualifier(PrimaryDataset.pathFilterDefaultName(datasetName))
+		)
 			jButtonOK.setEnabled(true);
 		else
 			jButtonOK.setEnabled(false);
 	}
 
 	public void jTextFieldDatasetNameRemoveUpdate(DocumentEvent e) {
-		String datasetName = jTextFieldDatasetName.getText();
-		if (config.dataset(datasetName) == null)
+		String datasetName = jTextFieldDatasetName.getText().replaceAll("\\W","");
+		if (config.dataset(datasetName) == null &&
+			config.isUniqueQualifier(PrimaryDataset.datasetPathName(datasetName)) &&
+			config.isUniqueQualifier(PrimaryDataset.pathFilterDefaultName(datasetName))
+		)
 			jButtonOK.setEnabled(true);
 		else
 			jButtonOK.setEnabled(false);

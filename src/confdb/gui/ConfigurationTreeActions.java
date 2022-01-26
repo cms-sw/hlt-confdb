@@ -5046,14 +5046,15 @@ public class ConfigurationTreeActions {
 			return true;
 		}else{			
 			Stream stream = pdInstance0.parentStream();
-			if(splitInstances.size()==1){
-				//we are splitting dataset for the first time so add instance number to the name
-				pdInstance0.setName(pdInstance0.name()+pdInstance0.splitInstanceNumber());
-				//need to adjust the model now
-				model.nodeChanged(pdInstance0);
+			boolean firstTimeSplit = splitInstances.size()==1;
+			if(pdInstance0.splitInstanceNumber()!=0){
+				String errMsg = "Dataset Split Failure, Instance0 has instance nr "+pdInstance0.splitInstanceNumber()+"\nThis is taken from the DatasetPath prescale module\nThis should not be possible and represents a logic bug \nyou should report in the TSG ConfdbDev mattermost channel";
+				JOptionPane.showMessageDialog(null, errMsg, "Split Failure", JOptionPane.ERROR_MESSAGE,null);
+				return false;
 			}
+			
 			for(int instanceNr=splitInstances.size();instanceNr<nrInstances;instanceNr++){
-				PrimaryDataset splitDataset = stream.insertDataset(pdInstance0.nameWithoutInstanceNr(false)+instanceNr);
+				PrimaryDataset splitDataset = stream.insertDataset(pdInstance0.nameWithoutInstanceNr()+instanceNr);
 				splitDataset.createDatasetPath(pdInstance0.pathFilter());
 				TreePath streamPath = new TreePath(model.getPathToRoot(stream));
 				TreePath oldPath = tree.getSelectionPath();
@@ -5061,6 +5062,16 @@ public class ConfigurationTreeActions {
 				ConfigurationTreeActions.insertPrimaryDataset(tree,splitDataset);
 				tree.setSelectionPath(oldPath);
 			}
+			if(firstTimeSplit){
+				//we are splitting dataset for the first time so add instance number to the name
+				//note we are doing this after making the other datasets so primary dataset is aware it has
+				//split siblings when renaming itself (and thus can properly deal with the instance number)
+				//it also helps when reutrning its name for the newly split datasets above
+				pdInstance0.setName(pdInstance0.name()+pdInstance0.splitInstanceNumber());
+				//need to adjust the model now
+				model.nodeChanged(pdInstance0);
+			}
+			
 
 		}
 

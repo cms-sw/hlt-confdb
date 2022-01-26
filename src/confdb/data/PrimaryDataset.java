@@ -303,12 +303,25 @@ public class PrimaryDataset extends DatabaseEntry
 	
     public String datasetPathName()
     {
-        return "Dataset_"+name();
+        return PrimaryDataset.datasetPathName(name());
     }
+
     public String pathFilterDefaultName()
     {
-        return "hltDataset"+nameWithoutInstanceNr();
+        return PrimaryDataset.pathFilterDefaultName(nameWithoutInstanceNr());
     }
+
+    public static String datasetPathName(String name)
+    {
+        return "Dataset_"+name;
+    }
+
+    public static String pathFilterDefaultName(String name)
+    {
+        return "hltDataset"+name;
+    }
+
+
 
     public static String datasetPathBeginSequenceName()
     {
