@@ -716,7 +716,8 @@ public class ConfDbGUI {
 
 	/** save a new version of the current configuration */
 	public void saveConfiguration(boolean askForComment) {
-		if (currentConfig.isEmpty() || !currentConfig.hasChanged() || currentConfig.isLocked() || !checkConfiguration())
+		if (currentConfig.isEmpty() || !currentConfig.hasChanged() || 
+			currentConfig.isLocked() || !ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		if (currentConfig.version() == 0) {
@@ -765,7 +766,7 @@ public class ConfDbGUI {
 
 	/** save the current configuration under a new name */
 	public void saveAsConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		boolean isLocked = currentConfig.isLocked();
@@ -1290,7 +1291,7 @@ public class ConfDbGUI {
 
 	/** migrate the current configuration to a new release */
 	public void migrateConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		MigrateConfigurationDialog dialog = new MigrateConfigurationDialog(frame, database);
@@ -1311,7 +1312,7 @@ public class ConfDbGUI {
 
 	/** convert the current configuration to a text file (ascii,python,html) */
 	public void convertConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		ConvertConfigurationDialog dialog = new ConvertConfigurationDialog(frame, currentConfig);
@@ -1453,7 +1454,7 @@ public class ConfDbGUI {
 
 	/** export the current configuration to a new database */
 	public void exportConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		ExportConfigurationDialog dialog = new ExportConfigurationDialog(frame, currentConfig.releaseTag(),
@@ -1799,93 +1800,7 @@ public class ConfDbGUI {
 		jSplitPane.setRightComponent(jSplitPaneRight);
 		clearPathFields();
 	}
-
-	/** check if current configuration is in a valid state for save/convert */
-	private boolean checkConfiguration() {
-		if (currentConfig.isEmpty())
-			return false;
-
-		int unsetParamCount = currentConfig.unsetTrackedParameterCount();
-		if (unsetParamCount > 0) {
-			String msg = "current configuration contains " + unsetParamCount
-					+ " unset tracked parameters. They *should* be set before " + "saving/converting!";
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.WARNING_MESSAGE);
-		}
-
-		int emptyContainerCount = currentConfig.emptyContainerCount();
-		if (emptyContainerCount > 0) {
-			String msg = "current configuration contains " + emptyContainerCount
-					+ " empty containers (paths/sequences/tasks/switchProducers). "
-					+ "They must be filled before saving/converting!";
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
-		boolean unassignedPaths = false;
-		String streamsWithUnassigned = new String("");
-		Iterator<Stream> streamIt = currentConfig.streamIterator();
-		while (streamIt.hasNext()) {
-			Stream stream = streamIt.next();
-			if(stream.unassignedPathCount()!=0){
-				unassignedPaths = true;				
-				if(!streamsWithUnassigned.isEmpty()){
-					streamsWithUnassigned+=" ";
-				}
-				streamsWithUnassigned += stream.name();
-			}
-		}
-		if(unassignedPaths){
-			String msg = "current configuration has following streams \"" + streamsWithUnassigned+ "\"with unassigned paths, those paths must be removed from the streams before saving/converting!";			
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
-		Iterator<ModuleInstance> modIt = currentConfig.moduleIterator();
-		String taskModsOnSeqsPaths = new String();
-		int nrRows = 3;
-		while(modIt.hasNext()){
-			ModuleInstance mod = modIt.next();
-			ArrayList<Path> paths = new ArrayList<Path>();
-			ArrayList<Sequence> seqs = new ArrayList<Sequence>();
-			ArrayList<Task> tasks = new ArrayList<Task>();
-			for(int refNr=0;refNr<mod.referenceCount();refNr++){
-				Reference ref = mod.reference(refNr);
-				if(ref.container() instanceof Path){
-					paths.add((Path) ref.container());
-				}else if(ref.container() instanceof Sequence){
-					seqs.add((Sequence) ref.container());
-				}else if (ref.container() instanceof Task){
-					tasks.add((Task) ref.container());
-				}
-			}
-			if(tasks.size()!=0 && seqs.size()+paths.size()!=0){
-				nrRows+=4;
-				taskModsOnSeqsPaths+="\nmodule "+mod.name()+"\n   tasks:";
-				for(Task task: tasks) taskModsOnSeqsPaths+=" "+task.name();
-				taskModsOnSeqsPaths+="\n   sequences:";
-				for(Sequence seq: seqs) taskModsOnSeqsPaths+=" "+seq.name();
-				taskModsOnSeqsPaths+="\n   paths:";
-				for(Path path: paths) taskModsOnSeqsPaths+=" "+path.name();
-				taskModsOnSeqsPaths+="\n";
-			}
-		}
-		if(!taskModsOnSeqsPaths.isEmpty()){
-			String msg = new String("current configuration has modules on tasks which are directly on Sequences/Paths which is forbidden\nplease remove the offending modules below from the tasks or seq/paths\n");
-			msg+=taskModsOnSeqsPaths;			
-			JTextArea textArea = new JTextArea(msg);
-			JScrollPane scrollPane = new JScrollPane(textArea);  
-			//textArea.setLineWrap(true);  
-			//textArea.setWrapStyleWord(true); 
-			textArea.setColumns(80);
-			textArea.setRows(Math.min(nrRows,50));
-			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		
-
-		return true;
-	}
-
+	
 	/** set the current configuration */
 	private void setCurrentConfig(Configuration config) {
 		TreePath tp = jTreeCurrentConfig.getSelectionPath();
