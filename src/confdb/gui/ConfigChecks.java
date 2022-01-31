@@ -23,7 +23,8 @@ class ConfigChecks {
         checkEmptyContainer(config, frame) &&
         checkModsAndTaskAndSequence(config, frame) &&
         checkUnassignedPaths(config, frame) &&
-        checkDatasetPaths(config, frame);
+        checkDatasetPaths(config, frame) && 
+        checkOutputModulesOnPath(config, frame);
 	}
 
     public static boolean checkUnassignedPaths(Configuration config, JFrame frame){
@@ -144,7 +145,7 @@ class ConfigChecks {
                     errors.add("dataset path "+path.name()+" does not start with Dataset_");
                 }
             }else {
-                if(validDatasetPathNames.indexOf(path.name())==-1){
+                if(validDatasetPathNames.indexOf(path.name())!=-1){
                     errors.add("path "+path.name()+" is thought by a dataset to be its dataset path but is not set as a dataset path");
                 }            
                 if(path.name().startsWith("Dataset_")){
@@ -157,18 +158,57 @@ class ConfigChecks {
             for(String error : errors ){
                 errStr+="\n"+error;
             }
-            String msg = new String("The current config has problems with the dataset paths.\nThis shouldnt really be possible and it would be good to report this to the ConfdbDev channel of the TSG mattermost.\nIt may not be possible to fix this without expert help.");
+            String msg = new String("The current config has problems with the dataset paths.\nThis shouldnt really be possible and it would be good to report this to the ConfdbDev channel of the TSG mattermost.\nIt may not be possible to fix this without expert help.\n");
 			msg+=errStr;			
 			JTextArea textArea = new JTextArea(msg);
 			JScrollPane scrollPane = new JScrollPane(textArea);  
 			//textArea.setLineWrap(true);  
 			//textArea.setWrapStyleWord(true); 
 			textArea.setColumns(80);
-			textArea.setRows(Math.min(errors.size(),50));
+			textArea.setRows(Math.min(errors.size()+5,50));
 			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
             return false;
         }
 
         return true;
     }
+
+    public static boolean checkOutputModulesOnPath(Configuration config, JFrame frame){
+        ArrayList<String> errors = new ArrayList<String>();
+        Iterator<OutputModule> outModIt = config.outputIterator(); 
+        while(outModIt.hasNext()){
+            OutputModule outMod = outModIt.next();
+            if(outMod.parentStream().hasDatasetPath()){
+                boolean onFinalPath = false;
+                Path[] parentPaths = outMod.parentPaths();
+                for(Path path : parentPaths){
+                    if(path.isFinalPath()){
+                        onFinalPath=true;
+                        break;
+                    }
+                }
+                if(!onFinalPath){
+                    errors.add(outMod.name()+" not on final path");
+                }
+            }
+        }
+        if(!errors.isEmpty()){ 
+            String errStr = new String();
+            for(String error : errors ){
+                errStr+="\n"+error;
+            }         
+            String msg = new String("The current config has output modules which belong to streams with dataset paths which are not on a cms.FinalPath.\nThis is a bug and you'll likely need expert help to solve. Please report on the ConfdbDev channel of the TSG mattermost \n");
+			msg+=errStr;			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(errors.size()+4,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
+            return false; 
+        }
+        return true;
+    }
+
 }
