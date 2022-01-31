@@ -4905,7 +4905,9 @@ public class ConfigurationTreeActions {
 	//
 	// PrimaryDatasets
 	//
-	/** insert a newly created primary dataset */
+	/** insert a newly created primary dataset 
+	 * note all newly created have a dataset path on creation
+	*/
 	public static boolean insertPrimaryDataset(JTree tree, PrimaryDataset dataset) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -5145,7 +5147,7 @@ public class ConfigurationTreeActions {
 		TreePath targetPath = targetTree.getSelectionPath();
 		Object targetNode = targetPath.getLastPathComponent();		
 		ConfigurationTreeModel model = (ConfigurationTreeModel) targetTree.getModel();
-		
+		Configuration config = (Configuration) model.getRoot();
 
 		Stream targetStream = null;
 		if (targetNode instanceof Stream) {
@@ -5173,6 +5175,16 @@ public class ConfigurationTreeActions {
 		int targetIndex = dataset.parentStream().indexOfDataset(dataset);
 		model.nodeRemoved(sourceStream, sourceIndex, dataset);
 		model.nodeInserted(targetStream, targetIndex);
+
+		//we now need to check if we had to add the streams output module to the FinalPath
+		Path oldOutPath = config.outputPath();
+		int outModIndex = config.addToOutputPath(dataset.parentStream().outputModule());
+		if(oldOutPath == config.outputPath() && outModIndex!=-1){	
+			model.nodeInserted(oldOutPath,outModIndex);
+			//model.nodeChanged(oldOutPath);
+		}else if(oldOutPath != config.outputPath()){
+			model.nodeInserted(model.pathsNode(),config.pathCount()-1);
+		}
 
 		model.nodeStructureChanged(model.contentsNode());
 		model.updateLevel1Nodes();
