@@ -3931,7 +3931,9 @@ public class ConfDbGUI {
 			return;
 		String contentName = selectedItem.toString();
 		EventContent content = currentConfig.content(contentName);
-		jTreeCurrentConfig.setSelectionPath(new TreePath(treeModelCurrentConfig.getPathToRoot(content)));
+		
+		//this appears to be the problem of the commodification bug, commenting it out
+		//jTreeCurrentConfig.setSelectionPath(new TreePath(treeModelCurrentConfig.getPathToRoot(content)));
 
 		// fill streams
 		DefaultListModel slm = (DefaultListModel) jListStreams.getModel();
