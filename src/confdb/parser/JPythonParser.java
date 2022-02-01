@@ -7,6 +7,7 @@ package confdb.parser;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.python.core.*;
@@ -252,6 +253,9 @@ public class JPythonParser
         // add endpaths
         parseEndPathsFromPython(process);
 
+        //generates the output paths
+        configuration.addAllToOutputPath();
+
         return configuration;
     }
 
@@ -433,14 +437,14 @@ public class JPythonParser
                 if (streamName.startsWith(prefix)) streamName = streamName.substring(prefix.length());
 
                 String contentName = "hltEventContent" + streamName; // convention.
-                EventContent content = configuration.insertContent(contentName);
+                PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
+                EventContent content = getEventContent(parameterContainerObject, contentName);
                 Stream stream = new Stream(streamName, content);
                 stream = content.insertStream(streamName);
 
                 /* now get the new module created by the stream and update it */
                 module = configuration.output(label);
-                if( module != null) {
-                    PyDictionary parameterContainerObject = (PyDictionary) moduleObject.invoke("parameters_");
+                if( module != null) {                
                     updateOutputModuleParameters(parameterContainerObject, module);
                 }
             }
@@ -675,6 +679,15 @@ public class JPythonParser
             parseEndPathMap(paths);
     }
 
+    // Parse Final Paths:
+    // we dont actually parse them though , just warn we are not
+    private void parseFinalPathsFromPython(PyObject pyprocess){
+        PyDictionary paths = (PyDictionary) pyprocess.__getattr__("_Process__finalpaths");
+
+        if (validPyObject(paths))
+            parseFinalPathMap(paths);
+    }
+
     private boolean parsePathMap(PyDictionary pydict) {
         alert(msg.inf, " Paths (" + pydict.size() + ")");
         PyList keys = (PyList) pydict.invoke("keys");
@@ -700,13 +713,27 @@ public class JPythonParser
         return true;
     }
 
+    private boolean parseFinalPathMap(PyDictionary pydict) {
+        alert(msg.inf, " FinalPaths (" + pydict.size() + ")");
+        PyList keys = (PyList) pydict.invoke("keys");
+        for (Object key : keys) {
+            String pathName = (String) key;
+            alert(msg.inf, "[parseFinalPathMap] skipping FinalPath " + pathName +" as these are generated automatically");
+            //Path path = configuration.insertPath(configuration.pathCount(), pathName);
+            //path.setAsFinalPath();
+            //PyObject value = pydict.__getitem__(new PyString((String) key));
+            //parsePath(value);
+        }
+        return true;
+    }
+
     // parse one single path, creating references to its sequences.
     private void parsePath(PyObject object) {
         String type  = getType(object);
         String label = getLabel(object);
         confdb.data.Path insertedPath = null;
 
-        if (confdbTypes.path.is(type)) {
+        if (confdbTypes.path.is(type) || confdbTypes.endPath.is(type) || confdbTypes.finalPath.is(type)) {
             insertedPath = configuration.path(label);
 
             if (insertedPath == null)
@@ -714,16 +741,9 @@ public class JPythonParser
 
             // Content:
             parseReferenceContainerContent(object, insertedPath);
-        } else if (confdbTypes.endPath.is(type)){
-            insertedPath = configuration.path(label);
-
-            if (insertedPath == null)
-                alert(msg.err, "[parsePath] path does not exist!" + label);
-
-            // Content:
-            parseReferenceContainerContent(object, insertedPath);
-
-        } else alert(msg.err, "[parsePath] type Unknow " + type);
+        } else{
+            alert(msg.err, "[parsePath] type Unknow " + type);
+        }
     }
 
     private void updateModuleParameters(PyDictionary parameterContainer, confdb.data.Instance module)
@@ -839,18 +859,22 @@ public class JPythonParser
             // Each stream has a list of Dataset associated.
             ArrayList<String> ListOfPaths = __getArrayListFromPyObject(entry.getValue());
 
-            for (int path = 0; path < ListOfPaths.size(); path++) {
-                // Path must be previously inserted into the stream from the OUTPUT MODULE definition.
-                Stream stream = dset.parentStream();
-                Path path_ = stream.path(ListOfPaths.get(path));
-
-                if (path_ == null) {
-                    alert(msg.war, "[parseDatasets]: Path " + ListOfPaths.get(path) + " not found in the stream. Cannot be associated to Dataset --> " + ListOfPaths.get(path));
-                } else {
-                    // ONLY existing paths in the stream.
-                    dset.insertPath(path_);
+            for (String pathName : ListOfPaths){
+                Path path = configuration.path(pathName);
+                if(path==null){
+                    alert(msg.war, "[parseDatasets]: Path " + pathName + " not found in the configuration. Cannot be associated to Dataset --> " + pathName);
+                }else{
+                    dset.insertPath(path);                
                 }
             }
+
+            Path datasetPath = configuration.path(dset.datasetPathName());
+            if(datasetPath!=null){
+                datasetPath.setAsDatasetPath();
+                dset.setDatasetPath(datasetPath);
+            }
+
+
         }
 
         return true;
@@ -1122,14 +1146,19 @@ public class JPythonParser
         Boolean     tracked = convert(parameterObject.invoke("isTracked"), Boolean.class);
         PyObject    value   = parameterObject.invoke("value");
 
+        Stream ps = module.parentStream();
+        EventContent ec = ps.parentContent();
+
+        if(ec.commandCount()!=0){ //only update event contents with no commands
+            return;
+        }
         if ("vstring" == type) {
             confdb.data.Parameter param = module.findParameter(parameterName);
             if (param != null) {
 
-                Stream ps = module.parentStream();
-                EventContent ec = ps.parentContent();
-
+                
                 if (parameterName.compareTo("outputCommands") == 0) {
+                    
                     PyList parameterList= (PyList) value;
                     for (int i=0; i < parameterList.size(); i++) {
                         // update eventContent:
@@ -1137,32 +1166,11 @@ public class JPythonParser
                         outputCommand.initializeFromString(parameterList.get(i).toString());
                         ec.insertCommand(outputCommand);
                     }
+                    
 
                 } else alert(msg.err, "[parseOutputModuleParameter] outputCommands not found! " + parameterName);
             } else alert(msg.err, "[parseOutputModuleParameter] parameter not found! " + parameterName);
-
-        } else if ("PSet" == type) {
-            PyDictionary parameterContainer = (PyDictionary) parameterObject.invoke("parameters_");
-            for (Object pObject : parameterContainer.entrySet()) {
-                PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) pObject;
-
-                Stream stream = module.parentStream();
-
-                if (entry.getKey().compareTo("SelectEvents") == 0) {
-                    // get Streams definition from here.
-                    //NOTE: The object in python can be split in several parts but we can iterate all over them.
-                    // SelectEvent = (cms.vstring(..) + cms.vstring(..))
-                    PyObject val = entry.getValue();
-                    for (int path = 0; path < val.__len__(); path++) {
-                        Path pathObj = configuration.path(val.__getitem__(path).toString());
-                        System.err.println("TODO: this fucntion is broken, needs update");
-                    }
-                } else alert(msg.err, "[parseOutputModuleParameter] SelectEvents not found! " + parameterName);
-            }
-        } else {
-            alert(msg.war, "[parseParameter] TYPE "+ type +" unsupported");
         }
-
     }
 
 
@@ -1574,6 +1582,47 @@ public class JPythonParser
         problemParameters.add(name + "." + p.name());
     }
 
+    /** so the issue is that we need to group back into event contents that are the, not one per stream 
+     * an event content is equal if its commands are exactly the same and in the same order
+    */
+    private EventContent getEventContent(PyDictionary parameterContainer, String contentName)
+    {
+        ArrayList<OutputCommand> outputCmds = new ArrayList<OutputCommand>();
+        //we are cut and pasting the parseOutputModuleParameters code but oh well
+        for (Object parameterObject : parameterContainer.entrySet()) {
+            PyDictionary.Entry<String, PyObject> entry = (PyDictionary.Entry<String, PyObject>) parameterObject; 
+            String type = entry.getValue().getType().getName();            
+            PyObject value = entry.getValue().invoke("value");
+            if(type.equals("vstring") && entry.getKey().equals("outputCommands")){
+                PyList parameterList= (PyList) value;
+                for (int i=0; i < parameterList.size(); i++) {
+                    // update eventContent:
+                    OutputCommand outputCommand = new OutputCommand();
+                    outputCommand.initializeFromString(parameterList.get(i).toString());
+                    outputCmds.add(outputCommand);
+                }
+            }
+        }
+        Iterator<EventContent> contentIt = configuration.contentIterator();
+        while(contentIt.hasNext()){
+            EventContent content = contentIt.next();
+            if(outputCmds.size()==content.commandCount()){
+                boolean matches = true;
+                for(int cmdNr=0;cmdNr<outputCmds.size();cmdNr++){
+                    if(!content.command(cmdNr).toString().equals(outputCmds.get(cmdNr).toString())){
+                        matches = false;
+                        break;
+                    }
+                }
+                if(matches){
+                    return content;
+                }
+            }  
+        }
+            
+        return configuration.insertContent(contentName);
+    }
+
     //
     // main (testing)
     //
@@ -1592,6 +1641,7 @@ public class JPythonParser
         switchProducer("SwitchProducerCUDA"),
         path("Path"),
         endPath("EndPath"),
+        finalPath("FinalPath"),
         module("Module");
 
         private String text;
