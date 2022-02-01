@@ -125,11 +125,22 @@ class ConfigChecks {
         ArrayList<String> errors = new ArrayList<String>();
 
         ArrayList<String> validDatasetPathNames = new ArrayList<String>();        
+        ArrayList<String> datasetsChecked = new ArrayList<String>();
         Iterator<PrimaryDataset> datasetIt = config.datasetIterator();
         while(datasetIt.hasNext()){
             PrimaryDataset dataset = datasetIt.next();
             if(dataset.datasetPath()!=null){                
                 validDatasetPathNames.add(dataset.datasetPath().name());
+            }
+            ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();
+            if(datasetsChecked.indexOf(dataset.name())==-1){             
+                for(int instNr=0;instNr<splitSiblings.size();instNr++){                    
+                    PrimaryDataset splitSibling = splitSiblings.get(instNr);
+                    datasetsChecked.add(splitSibling.name());                     
+                    if(instNr!=splitSibling.splitInstanceNumber()){                    
+                        errors.add("dataset path of "+splitSibling.name()+" has prescale offset of "+splitSibling.splitInstanceNumber()+" rather than required "+instNr);                        
+                    }
+                }
             }
 
         }
