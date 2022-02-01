@@ -144,9 +144,14 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 			}
 			stream.setName(name);
 			treeModel.nodeChanged(stream);
-			treeModel.nodeChanged(stream.outputModule());
+			treeModel.nodeChanged(stream.outputModule());			
 			treeModel.nodeStructureChanged(treeModel.streamsNode());
 			treeModel.nodeStructureChanged(treeModel.outputsNode());
+			Path streamOutputPath = config.path(stream.outputPathName());
+			if(streamOutputPath!=null){
+				treeModel.nodeChanged(streamOutputPath);
+				treeModel.nodeStructureChanged(treeModel.pathsNode());
+			}
 		} else if (toBeEdited instanceof PrimaryDataset) {
 			PrimaryDataset dataset = (PrimaryDataset) toBeEdited;
 			

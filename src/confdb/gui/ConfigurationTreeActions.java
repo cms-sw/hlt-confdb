@@ -4919,16 +4919,23 @@ public class ConfigurationTreeActions {
 		index = config.indexOfPath(dataset.datasetPath());
 		model.nodeInserted(model.pathsNode(), index);
 		
-		//a streams output module goes the output path if it has a dataset with 
-		//a dataset path, thus we may need to add it here
-		//we check if the output path changes in this operation (it may be created)
-		Path oldOutPath = config.outputPath();
-		int outModIndex = config.addToOutputPath(dataset.parentStream().outputModule());
-		if(oldOutPath == config.outputPath() && outModIndex!=-1){	
-			model.nodeInserted(oldOutPath,outModIndex);
-			//model.nodeChanged(oldOutPath);
-		}else if(oldOutPath != config.outputPath()){
-			model.nodeInserted(model.pathsNode(),config.pathCount()-1);
+		//we may need to generate a streams output path which is triggered if it has 
+		//a dataset path
+		//if insertOutputPath is true, we have always created a new path and need to
+		//insert it into the module
+		//however if the path existed before we also have to remove it first
+		//note: we dont change if its not an output path so it wont belong to streams/datasets
+		//      so we dont have to worry about removing from nodes other than path
+		Path oldStreamOutPath = config.path(dataset.parentStream().outputPathName());
+		int oldOutPathIndex = oldStreamOutPath!=null ? config.indexOfPath(oldStreamOutPath) : -1;
+		if(config.insertOutputPath(dataset.parentStream())){
+			
+			if(oldOutPathIndex!=-1){
+				model.nodeRemoved(model.pathsNode(),oldOutPathIndex,oldStreamOutPath);
+			}
+			Path streamOutPath = config.path(dataset.parentStream().outputPathName());
+			int outPathIndex = config.indexOfPath(streamOutPath);
+			model.nodeInserted(model.pathsNode(),outPathIndex);
 		}
 
 		if (model.streamMode().equals("datasets"))
@@ -5098,7 +5105,7 @@ public class ConfigurationTreeActions {
 			dataset.createDatasetPath();
 		}		
 		//now we need to make the output path as its triggered by path based datasets
-		config.addAllToOutputPath();
+		config.generateOutputPaths();
 		
 		model.nodeStructureChanged(model.getRoot());
 		model.updateLevel1Nodes();
@@ -5176,14 +5183,17 @@ public class ConfigurationTreeActions {
 		model.nodeRemoved(sourceStream, sourceIndex, dataset);
 		model.nodeInserted(targetStream, targetIndex);
 
-		//we now need to check if we had to add the streams output module to the FinalPath
-		Path oldOutPath = config.outputPath();
-		int outModIndex = config.addToOutputPath(dataset.parentStream().outputModule());
-		if(oldOutPath == config.outputPath() && outModIndex!=-1){	
-			model.nodeInserted(oldOutPath,outModIndex);
-			//model.nodeChanged(oldOutPath);
-		}else if(oldOutPath != config.outputPath()){
-			model.nodeInserted(model.pathsNode(),config.pathCount()-1);
+		//we now need to check if we had to make or remake the streams output path
+		Path oldStreamOutPath = config.path(dataset.parentStream().outputPathName());
+		int oldOutPathIndex = oldStreamOutPath!=null ? config.indexOfPath(oldStreamOutPath) : -1;
+		if(config.insertOutputPath(dataset.parentStream())){
+			
+			if(oldOutPathIndex!=-1){
+				model.nodeRemoved(model.pathsNode(),oldOutPathIndex,oldStreamOutPath);
+			}
+			Path streamOutPath = config.path(dataset.parentStream().outputPathName());
+			int outPathIndex = config.indexOfPath(streamOutPath);
+			model.nodeInserted(model.pathsNode(),outPathIndex);
 		}
 
 		model.nodeStructureChanged(model.contentsNode());

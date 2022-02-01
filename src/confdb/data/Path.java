@@ -150,6 +150,23 @@ public class Path extends ReferenceContainer {
 
 	}
 
+	/**
+	 * a path is a valid output path of a stream if
+	 * 1) it is a final path
+	 * 2) it contains exactly one entry
+	 * 3) that entry is that streams output module
+	 * if no stream is specified then it just looks for one output module to be present
+	 */
+	public boolean isOutputPathOfStream(Stream stream){
+		if(isFinalPath() && entryCount()==1){			
+			Iterator<OutputModule> outputIt = outputIterator();
+			if(outputIt.hasNext() && (stream==null || outputIt.next()==stream.outputModule())){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/** insert a path entry */
 	public void insertEntry(int i, Reference reference) {
 		if (!entries.contains(reference)) {

@@ -1698,75 +1698,61 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
-	/** gets the output path implimented as a FinalPath responsible for 
-	 * running all outputmodule
-	 * it if does not exist it is inserted
-	 * the criteria for an output path existing is at least one dataset present
-	 * with a DatasetPath
+	/** generates all the output path for a streams if eligible 
+	 * overwriting if necessary
+	 * returns true something was actually inserted/changed otherwise false
 	 */
-	public Path getOrCreateOutputPath(){
-		if(!hasDatasetPath()){
-			return null;
+	public boolean  insertOutputPath(Stream stream){
+		if(!stream.hasDatasetPath()){
+			return false;
 		}
-		Path outPath = outputPath();
+		
+		Path outPath = path(stream.outputPathName());
 		if(outPath==null){
-			outPath = path(hltOutputPathDefaultName());
-			if(outPath==null){				
-				outPath = insertPath(pathCount(),hltOutputPathDefaultName());
-				outPath.setAsFinalPath();
-			}
-		}
-		return outPath;
-	}
 
-	/** adds all output modules which are eligible to the output path
+			outPath = insertPath(pathCount(),stream.outputPathName());
+			outPath.setAsFinalPath();
+			insertOutputModuleReference(outPath,0,stream.outputModule());
+			return true;			
+		} else if(!outPath.isOutputPathOfStream(stream)){
+			//old style output path, override
+			if((outPath.isEndPath() || outPath.isFinalPath()) && outPath.hasOutputModule()){
+				int index = indexOfPath(outPath);
+				removePath(outPath);
+				outPath = insertPath(index,stream.outputPathName());
+				outPath.setAsFinalPath();	
+				insertOutputModuleReference(outPath,0,stream.outputModule());
+				return true;
+			}else{
+				//path is not an output path, dont override and let config checks catch it
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}	
+
+	/** generates all the output paths for streams which are eligible 
+	 * overwriting if necessary
 	 * returns true if something was actually inserted
 	 */
-	public boolean addAllToOutputPath(){
-		Path outPath = getOrCreateOutputPath();
+	public boolean generateOutputPaths(){
+		if(!hasDatasetPath()){
+			return false;
+		}
 		boolean changed = false;
-		if(outPath!=null){
-			Iterator<OutputModule> outputIt = outputIterator();
-			while(outputIt.hasNext()){	
-				OutputModule outMod = outputIt.next();									
-				if(addToOutputPath(outPath,outMod)!=-1){
+		Iterator<Stream> streamIt = streamIterator();
+		while(streamIt.hasNext()){
+			Stream stream = streamIt.next();
+			if(stream.hasDatasetPath()){
+				if(insertOutputPath(stream)){
 					changed = true;
 				}
 			}
 		}
 		return changed;
 	}
-	/** adds the output module to the output path
-	 * if certain conditions are met (ie it has a dataset with a datasetpath)
-	 * returns the index the module was inserted at */
-	public int addToOutputPath(OutputModule outMod){
-		return addToOutputPath(getOrCreateOutputPath(),outMod);
-	}
-	
-	/** adds the output module to the output path
-	 * if certain conditions are met (ie it has a dataset with a datasetpath)
-	 * returns the index the module was inserted at */
-	public int addToOutputPath(Path outPath,OutputModule outMod){
-		OutputModuleReference outModRef = new OutputModuleReference(null, outMod);
-		if(outPath!=null && outMod.parentStream().hasDatasetPath() && !outPath.containsEntry(outModRef)){
-			int index = outPath.entryCount();
-			insertOutputModuleReference(outPath,index,outMod);
-			return index;
-		}
-		return -1;
-	}
 
-	/** the output path is the FinalPath containing the output modules 
-	 * this assumes that there is exactly one FinalPath in the menu
-	*/
-	public Path outputPath(){
-		for(Path path : paths){
-			if(path.isFinalPath()){
-				return path;
-			}
-		}
-		return null;
-	}
 	//
 	// Sequences
 	//

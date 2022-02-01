@@ -254,7 +254,7 @@ public class JPythonParser
         parseEndPathsFromPython(process);
 
         //generates the output paths
-        configuration.addAllToOutputPath();
+        configuration.generateOutputPaths();
 
         return configuration;
     }

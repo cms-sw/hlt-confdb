@@ -110,11 +110,15 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
     
     /** set name of this stream */
     public void setName(String name) { 
+    String oldOutputPathName = outputPathName();
 	this.name = name.replaceAll("\\W", "");
         setHasChanged();
 	try {
 	    this.outputModule.setName("hltOutput"+name);
 	    this.outputModule.setHasChanged();
+        Path streamOutPath = parentContent().config().path(oldOutputPathName);
+        streamOutPath.setNameAndPropagate(outputPathName());
+
 	}
 	catch (DataException e) {
 	    System.err.println(e.getMessage());
@@ -183,6 +187,8 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 
     /** get associated output module */
     public OutputModule outputModule() { return outputModule; }
+
+    public String outputPathName(){return name()+"Output";}
    
     /** set associated output module */
     public void setOutputModule(OutputModule om) { outputModule=om; return; }
