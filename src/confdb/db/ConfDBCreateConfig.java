@@ -132,7 +132,7 @@ public class ConfDBCreateConfig {
 				String pathName = it.next();
 				if (!pathsToInclude.contains(pathName)) {					
 					Path path = masterConfig.path(pathName);
-					if(!path.isDatasetPath() && !path.isFinalPath()){
+					if(!path.isDatasetPath()){
 						out.println(" REMOVE " + pathName);
 						masterConfig.removePath(path);
 					}
