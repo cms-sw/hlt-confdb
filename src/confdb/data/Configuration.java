@@ -2253,8 +2253,7 @@ public class Configuration implements IConfiguration {
 
 		ArrayList<EventContent> cList = new ArrayList<EventContent>();
 		ArrayList<Stream> sList = new ArrayList<Stream>();
-		ArrayList<PrimaryDataset> dList = new ArrayList<PrimaryDataset>();		
-
+		ArrayList<PrimaryDataset> dList = new ArrayList<PrimaryDataset>();				
 		cList.clear();
 		int contentCount = 0;
 		Iterator<EventContent> itC = contentIterator();
@@ -2266,9 +2265,10 @@ public class Configuration implements IConfiguration {
 			while (itS.hasNext()) {
 				Stream s = itS.next();
 				int omrefs = 0;
+				
 				OutputModule om = s.outputModule();
 				if (om != null)
-					omrefs = om.referenceCount();
+					omrefs = om.referenceCount();				
 				dList.clear();
 				int pathCount = 0;
 				Iterator<PrimaryDataset> itD = s.datasetIterator();
@@ -2287,15 +2287,20 @@ public class Configuration implements IConfiguration {
 						id.removeDatasetPath();
 					}					
 				}
-				pathCount += s.pathCount();
+				pathCount += s.pathCount();				
 				if (pathCount == 0) {
 					sList.add(s);
 				} else {
 					streamCount += pathCount;
 				}
 			}
-			for (Stream is : sList)
+			for (Stream is : sList){
 				c.removeStream(is);
+				Path streamOutputPath = path(is.outputPathName());
+				if(streamOutputPath!=null){
+					removePath(streamOutputPath);
+				}
+			}
 			if (streamCount == 0 || c.commandCount() == 0) {
 				cList.add(c);
 			} else {
