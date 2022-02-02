@@ -4763,6 +4763,17 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
+	public static boolean generateStreamOutputPaths(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		
+		config.generateOutputPaths();
+		
+		model.nodeStructureChanged(model.getRoot());
+		model.updateLevel1Nodes();
+		
+		return true;
+	}
 	
 	/** remove a path from a stream */
 	// TODO deprecated method, sharing one path in more than one dataset.

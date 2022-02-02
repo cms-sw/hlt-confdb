@@ -24,7 +24,9 @@ class ConfigChecks {
         checkModsAndTaskAndSequence(config, frame) &&
         checkUnassignedPaths(config, frame) &&
         checkDatasetPaths(config, frame) && 
-        checkOutputModulesOnPath(config, frame);
+        checkStreamOutputPaths(config, frame) &&
+        checkFinalPathContent(config, frame) &&
+        checkForExtraFinalPaths(config, frame);
 	}
 
     public static boolean checkUnassignedPaths(Configuration config, JFrame frame){
@@ -184,42 +186,119 @@ class ConfigChecks {
         return true;
     }
 
-    public static boolean checkOutputModulesOnPath(Configuration config, JFrame frame){
+
+    /**
+     * checks each stream with a datasetpath has an output module
+     */
+    static boolean checkStreamOutputPaths(Configuration config, JFrame frame){
         ArrayList<String> errors = new ArrayList<String>();
-        Iterator<OutputModule> outModIt = config.outputIterator(); 
-        while(outModIt.hasNext()){
-            OutputModule outMod = outModIt.next();
-            if(outMod.parentStream().hasDatasetPath()){
-                boolean onFinalPath = false;
-                Path[] parentPaths = outMod.parentPaths();
-                for(Path path : parentPaths){
-                    if(path.isFinalPath()){
-                        onFinalPath=true;
-                        break;
-                    }
-                }
-                if(!onFinalPath){
-                    errors.add(outMod.name()+" not on final path");
+        Iterator<Stream> streamIt = config.streamIterator();
+        while(streamIt.hasNext()){
+            Stream stream = streamIt.next();
+            if(stream.hasDatasetPath()){
+                Path outPath = config.path(stream.outputPathName());
+                if(outPath==null) {
+                    errors.add(stream.outputPathName()+" for stream "+stream.name()+" output does not exist ");
+                } else if(!outPath.isOutputPathOfStream(stream)){
+                    errors.add(stream.outputPathName()+" for stream "+stream.name()+" output exists but is not valid");
                 }
             }
         }
-        if(!errors.isEmpty()){ 
+        if(!errors.isEmpty()){
             String errStr = new String();
             for(String error : errors ){
                 errStr+="\n"+error;
             }         
-            String msg = new String("The current config has output modules which belong to streams with dataset paths which are not on a cms.FinalPath.\nThis is a bug and you'll likely need expert help to solve. Please report on the ConfdbDev channel of the TSG mattermost \n");
+            String msg = new String("The current config has streams with a DatasetPath which do not have a StreamOutputPath.\nA stream output path is named <StreamName>Output, is a FinalPath and contains only the streams output module.\nThese are automatically generated but this generation can fail if a path exists of the same name.\nPlease delete/rename the offending paths if they exist and then right click on streams and select \"Generate Output Paths\"\n");
 			msg+=errStr;			
 			JTextArea textArea = new JTextArea(msg);
 			JScrollPane scrollPane = new JScrollPane(textArea);  
 			//textArea.setLineWrap(true);  
 			//textArea.setWrapStyleWord(true); 
 			textArea.setColumns(80);
-			textArea.setRows(Math.min(errors.size()+4,50));
-			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
-            return false; 
+			textArea.setRows(Math.min(errors.size()+6,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);            
+            return false;
+        }
+
+        return true;
+
+    }
+    //checks if there are any final paths which contain something other than an output module
+    static boolean checkFinalPathContent(Configuration config, JFrame frame){
+        ArrayList<String> errors = new ArrayList<String>();
+        Iterator<Path> pathIt = config.pathIterator();
+        while(pathIt.hasNext()){
+            Path path = pathIt.next();
+            if(path.isFinalPath()){
+                Iterator<Reference> entryIt = path.entryIterator();
+                while(entryIt.hasNext()){
+                    Reference entry = entryIt.next();
+                    if(!(entry.parent() instanceof OutputModule)){
+                        errors.add("final path "+path.name()+" has entries which are not an output module");
+                        break;
+                    }
+                }
+
+            }
+        }
+        if(!errors.isEmpty()){
+            String errStr = new String();
+            for(String error : errors ){
+                errStr+="\n"+error;
+            }         
+            String msg = new String("The current config has FinalPaths which contain something other than OutputModules which is forbidden.\nThis includes containers such as sequences/tasks.\nPlease delete/fix the offending paths\n\n");
+			msg+=errStr;			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(errors.size()+6,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);            
+            return false;
         }
         return true;
     }
+    
+    static boolean checkForExtraFinalPaths(Configuration config, JFrame frame){
+        ArrayList<String> errors = new ArrayList<String>();
+        Iterator<Stream> streamIt = config.streamIterator();
+        ArrayList<String> validFinalPathNames = new ArrayList<String>();
+        while(streamIt.hasNext()){
+            Stream stream = streamIt.next();
+            if(stream.hasDatasetPath()){
+                validFinalPathNames.add(stream.outputPathName());
+            }
+        }
+        Iterator<Path> pathIt = config.pathIterator();
+        while(pathIt.hasNext()){
+            Path path = pathIt.next();
+            if(path.isFinalPath() && validFinalPathNames.indexOf(path.name())==-1){
+                errors.add("path "+path.name()+" is a final path but is not a StreamOutputPath, please remove it");
+            }
 
+        }
+
+
+        if(!errors.isEmpty()){
+            String errStr = new String();
+            for(String error : errors ){
+                errStr+="\n"+error;
+            }         
+            String msg = new String("The current config has FinalPaths which are not named such they correspont to a  StreamOutputPath.\nPlease remove them. If you think they should exist please alert the ConfdbDev channel of the TSG mattermost\n");
+			msg+=errStr;			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(errors.size()+5,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);            
+            return false;
+        }
+
+        return true;
+
+    }
 }

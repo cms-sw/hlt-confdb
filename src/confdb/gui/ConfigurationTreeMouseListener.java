@@ -631,10 +631,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.addActionListener(pathListener);
 			menuItem.setActionCommand("NEWPATH");
 			popupPaths.add(menuItem);
-			menuItem = new JMenuItem("Rm EndPaths with OutputMods");
-			menuItem.addActionListener(pathListener);
-			menuItem.setActionCommand("RMENDPATHS");
-			popupPaths.add(menuItem);
+			//menuItem = new JMenuItem("Rm EndPaths with OutputMods");
+			//menuItem.addActionListener(pathListener);
+			//menuItem.setActionCommand("RMENDPATHS");
+			//popupPaths.add(menuItem);
 		}
 
 		// specific path is selected
@@ -665,14 +665,14 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupPaths.addSeparator();
 
 			menuItem = new JMenuItem("Rename Path");
-			if(isFinalOrDatasetPath) menuItem.setEnabled(false);
+			if(path.isDatasetPath()) menuItem.setEnabled(false);
 			menuItem.addActionListener(pathListener);
 			
 			popupPaths.add(menuItem);
 
 			menuItem = new JMenuItem("Remove Path");
 			menuItem.addActionListener(pathListener);
-			if(isFinalOrDatasetPath) menuItem.setEnabled(false);
+			if(path.isDatasetPath()) menuItem.setEnabled(false);
 			popupPaths.add(menuItem);
 
 			// Copy path request 75955
@@ -808,11 +808,10 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			//the fact the button exists is more to let the user see it was selected
 			//and thats why they cant select other options
 			datasetPathItem.setEnabled(false);
-
+			finalPathItem.setEnabled(false);		
 			if (isFinalOrDatasetPath){
 				stdPathItem.setEnabled(false);
-				endPathItem.setEnabled(false);
-				finalPathItem.setEnabled(false);
+				endPathItem.setEnabled(false);				
 			}
 
 			stdPathItem.addActionListener(new PathTypeListener(tree));
@@ -1470,6 +1469,11 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				jrbMenuItem.setSelected(true);
 			bg.add(jrbMenuItem);
 
+			popupStreams.addSeparator();
+			menuItem = new JMenuItem("Generate Output Paths");
+			menuItem.setActionCommand("GENERATEOUTPUT");
+			menuItem.addActionListener(streamListener);
+			popupStreams.add(menuItem);
 		} else if (depth == 3) {
 			Stream stream = (Stream) node;
 
@@ -2873,6 +2877,8 @@ class StreamMenuListener implements ActionListener {
 		} else if (action.startsWith("ADDPATHTO:")) {
 			String datasetName = action.split(":")[1];
 			ConfigurationTreeActions.addPathToDataset(tree, datasetName);
+		} else if (action.equals("GENERATEOUTPUT")){
+			ConfigurationTreeActions.generateStreamOutputPaths(tree);			
 		}
 	}
 }
