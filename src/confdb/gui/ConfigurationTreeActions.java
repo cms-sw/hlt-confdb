@@ -2,7 +2,11 @@ package confdb.gui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+
+import org.omg.CORBA.BooleanHolder;
+
 import javax.swing.SwingWorker;
+import javax.swing.text.DefaultStyledDocument.ElementSpec;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -4718,8 +4722,11 @@ public class ConfigurationTreeActions {
 		stream.setOutputModule(om);
 
 		Iterator<PrimaryDataset> itPD = external.datasetIterator();
+		ArrayList<PrimaryDataset> externalPDs = new ArrayList<PrimaryDataset>();
 		while (itPD.hasNext()) {
-			PrimaryDataset dataset = itPD.next();
+			externalPDs.add(itPD.next());
+		}
+		for(PrimaryDataset dataset : externalPDs){
 			importPrimaryDataset(tree, stream.name(), dataset);
 		}
 
@@ -4916,7 +4923,8 @@ public class ConfigurationTreeActions {
 	//
 	// PrimaryDatasets
 	//
-	/** insert a newly created primary dataset 
+	/** insert a newly created primary dataset  in the config tree model
+	 * it may create a stream output path
 	 * note all newly created have a dataset path on creation
 	*/
 	public static boolean insertPrimaryDataset(JTree tree, PrimaryDataset dataset) {
@@ -5268,27 +5276,79 @@ public class ConfigurationTreeActions {
 			return false;
 		}
 
-		PrimaryDataset dataset = stream.insertDataset(external.name());
-		if (dataset == null) {
-			if (config.dataset(external.name()) != null) {
-				System.err.println("dataset already exists in the stream!");
+		PrimaryDataset dataset = null;
+		boolean updatePaths = false;
+
+		ModuleInstance externalPathFilter = external.pathFilterMod();
+		if(externalPathFilter == null){
+			//old style dataset
+			if( config.isUniqueQualifier(external.pathFilterDefaultName()) && 
+				config.isUniqueQualifier(external.datasetPathName()) &&
+			   	config.dataset(external.name())==null)  
+			   {				
+				dataset = stream.insertDataset(external.name());
+				dataset.createDatasetPath();
+				updatePaths = true;
+			}else{
+				System.err.println("error the dataset "+external.name()+", its datasetpath or its datasetpathfilter already exists in the menu");
 				return false;
 			}
-			dataset = stream.dataset(external.name());
-		}
+		}else{
+			//new style dataset which may be split
+			ModuleInstance datasetPathFilterMod = config.module(externalPathFilter.name());
+			String name = null;
+			PrimaryDataset instance0ToRename = null;
 
-		Iterator<Path> itP = external.pathIterator();
-		while (itP.hasNext()) {
-			String pathName = itP.next().name();
-			Path path = config.path(pathName);
-			if (path == null) {
-				System.out.println("importPrimaryDataset: skip path " + pathName);
-				continue;
+			if (datasetPathFilterMod != null) {
+				ArrayList<PrimaryDataset> splitSiblings = config.getDatasetsWithFilter(datasetPathFilterMod);
+				final EventContent content = stream.parentContent();
+				splitSiblings.removeIf((PrimaryDataset d) -> d.parentStream().parentContent() != content);
+				if (!splitSiblings.isEmpty() && external.getSplitSiblings().size()>1) {
+					int instanceNr = splitSiblings.size();
+					name = external.nameWithoutInstanceNr() + instanceNr;	
+					if(instanceNr==1){
+						//dataset is being split for the first time, we'll need to rename the 0th instance
+						instance0ToRename = splitSiblings.get(0);
+					}
+				} else {
+					name = external.nameWithoutInstanceNr();					
+				}
+			} else {
+				name = external.nameWithoutInstanceNr();
+				updatePaths = true;
 			}
-			dataset.insertPath(path);
+				
+			if(config.dataset(name)==null && config.isUniqueQualifier(PrimaryDataset.datasetPathName(name))){
+				dataset = stream.insertDataset(name);
+				dataset.createDatasetPath(config.getDatasetPathFilter(datasetPathFilterMod));
+				if(instance0ToRename!=null){
+					instance0ToRename.setName(instance0ToRename.name() + instance0ToRename.splitInstanceNumber());
+					model.nodeChanged(instance0ToRename);
+				}
+			}else{
+				System.err.println("error dataset "+name+" from source pd "+external.name()+"already exists as a dataset or dataset path. Note can only add to dataset instances if source was also split");
+				return false;
+			}
 		}
-
-		model.nodeInserted(model.datasetsNode(), config.indexOfDataset(dataset));
+				
+		TreePath streamPath = new TreePath(model.getPathToRoot(stream));
+		TreePath oldPath = tree.getSelectionPath();
+		tree.setSelectionPath(streamPath);
+		ConfigurationTreeActions.insertPrimaryDataset(tree,dataset);
+		tree.setSelectionPath(oldPath);	
+				
+		if(updatePaths) {
+			Iterator<Path> itP = external.pathIterator();
+			while (itP.hasNext()) {
+				String pathName = itP.next().name();
+				Path path = config.path(pathName);
+				if (path == null) {
+					System.out.println("importPrimaryDataset: skip path " + pathName);
+					continue;
+				}
+				dataset.insertPath(path);
+			}
+		}		
 
 		return true;
 	}

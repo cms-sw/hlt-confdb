@@ -171,6 +171,8 @@ public class PrimaryDataset extends DatabaseEntry
 
     public PathFilter pathFilter() { return pathFilter; }
 
+    public ModuleInstance pathFilterMod() { return pathFilter!=null ? pathFilter.module() : null; }
+
     /** removes the dataset path and unregisters it from the path filter
      * this must be called when deleting a dataset from the config!
      * in theory I could link this to the dataset path and having it call it when its
@@ -364,6 +366,10 @@ public class PrimaryDataset extends DatabaseEntry
         }
     }
 
+    /** 
+     * his is intended for the scenario where the dataset path already exists but must be associated to 
+     * the dataset, for example when loading a config from the database or parsing a config
+     */
     public void setDatasetPath(Path path)
     {
         if(this.datasetPath==null){            
@@ -377,20 +383,14 @@ public class PrimaryDataset extends DatabaseEntry
 
     /** gets all datasets sharing the same trigger results filter including this dataset */
     public ArrayList<PrimaryDataset> getSiblings() {
-        ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();
         if(this.pathFilter!=null){
             Configuration cfg = (Configuration) parentStream.parentContent().config();
-            Iterator<PrimaryDataset> pdIt = cfg.datasetIterator();
-            while(pdIt.hasNext()){
-                PrimaryDataset dataset = pdIt.next();
-                if(dataset.pathFilter()==this.pathFilter()){
-                    siblings.add(dataset);
-                }
-            } 
+            return cfg.getDatasetsWithFilter(this.pathFilter);
         }else{
+            ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();
             siblings.add(this);
+            return siblings;
         }
-        return siblings;
     }
 
     /** datasets which are clones including this dataset  
@@ -678,6 +678,10 @@ public class PrimaryDataset extends DatabaseEntry
 
         public boolean sameFilter(ModuleInstance rhs){
             return this.pathFilter == rhs;
+        }
+
+        public ModuleInstance module(){
+            return pathFilter;
         }
 
         /**

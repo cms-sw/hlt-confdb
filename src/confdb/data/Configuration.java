@@ -2217,7 +2217,10 @@ public class Configuration implements IConfiguration {
 	public PrimaryDataset.PathFilter getDatasetPathFilter(ModuleInstance filterMod){
 		//dont use datasetIterator as requires looping over all streams/datasets to 
 		//construct it, although its not such a savingas the one above as we 
-		//will often loop through all the datasets		
+		//will often loop through all the datasets
+		if(filterMod==null){
+			return null;
+		}		
 		for(EventContent content : contents){
 			Iterator<Stream> streamIt = content.streamIterator();
 			while(streamIt.hasNext()){
@@ -2232,6 +2235,32 @@ public class Configuration implements IConfiguration {
 			}
 		}
 		return null;
+	}
+
+	public ArrayList<PrimaryDataset> getDatasetsWithFilter(PrimaryDataset.PathFilter pathFilter)
+	{
+		ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();    
+        Iterator<PrimaryDataset> pdIt = datasetIterator();
+        while(pdIt.hasNext()){
+            PrimaryDataset dataset = pdIt.next();
+            if(dataset.pathFilter() == pathFilter){
+                siblings.add(dataset);
+            } 
+		}
+		return siblings;
+	}
+
+	public ArrayList<PrimaryDataset> getDatasetsWithFilter(ModuleInstance pathFilter)
+	{
+		ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();    
+        Iterator<PrimaryDataset> pdIt = datasetIterator();
+        while(pdIt.hasNext()){
+            PrimaryDataset dataset = pdIt.next();
+            if(dataset.pathFilter().sameFilter(pathFilter)){
+                siblings.add(dataset);
+            } 
+		}
+		return siblings;
 	}
 
 	//
