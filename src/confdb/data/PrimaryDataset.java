@@ -313,9 +313,14 @@ public class PrimaryDataset extends DatabaseEntry
         return PrimaryDataset.pathFilterDefaultName(nameWithoutInstanceNr());
     }
 
+    public static String datasetPathNamePrefix()
+    {
+        return "Dataset_";
+    }
+
     public static String datasetPathName(String name)
     {
-        return "Dataset_"+name;
+        return datasetPathNamePrefix()+name;
     }
 
     public static String pathFilterDefaultName(String name)

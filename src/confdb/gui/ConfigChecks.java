@@ -24,6 +24,7 @@ class ConfigChecks {
         checkModsAndTaskAndSequence(config, frame) &&
         checkUnassignedPaths(config, frame) &&
         checkDatasetPaths(config, frame) && 
+        checkDatasetPathPrescales(config, frame) &&
         checkStreamOutputPaths(config, frame) &&
         checkFinalPathContent(config, frame) &&
         checkForExtraFinalPaths(config, frame);
@@ -148,21 +149,22 @@ class ConfigChecks {
         }
                 
         Iterator<Path> pathIt = config.pathIterator();
+        String datasetPathPrefix = PrimaryDataset.datasetPathNamePrefix();
         while(pathIt.hasNext()){
             Path path = pathIt.next();
             if(path.isDatasetPath()){
                 if(validDatasetPathNames.indexOf(path.name())==-1){
                     errors.add("dataset path "+path.name()+" does not have a corresponding dataset or that dataset is not properly linked to it");
                 }
-                if(!path.name().startsWith("Dataset_")){
-                    errors.add("dataset path "+path.name()+" does not start with Dataset_");
+                if(!path.name().startsWith(datasetPathPrefix)){
+                    errors.add("dataset path "+path.name()+" does not start with "+datasetPathPrefix);
                 }
             }else {
                 if(validDatasetPathNames.indexOf(path.name())!=-1){
                     errors.add("path "+path.name()+" is thought by a dataset to be its dataset path but is not set as a dataset path");
                 }            
-                if(path.name().startsWith("Dataset_")){
-                    errors.add("path "+path.name()+" starts with Dataset_ but is not a dataset path");
+                if(path.name().startsWith(datasetPathPrefix)){
+                    errors.add("path "+path.name()+" starts with "+datasetPathPrefix+" but is not a dataset path");
                 }
             }
         }  
@@ -186,7 +188,60 @@ class ConfigChecks {
         return true;
     }
 
+    public static boolean checkDatasetPathPrescales(Configuration config, JFrame frame){
 
+        ArrayList<String> errors = new ArrayList<String>();
+
+        Iterator<PrimaryDataset> datasetIt = config.datasetIterator();
+        ArrayList<String> datasetsChecked = new ArrayList<String>();
+        PrescaleTable psTbl = new PrescaleTable(config);
+
+        while(datasetIt.hasNext()){
+            PrimaryDataset dataset = datasetIt.next();
+            if(datasetsChecked.contains(dataset.nameWithoutInstanceNr())){                
+                continue;
+            }            
+            datasetsChecked.add(dataset.nameWithoutInstanceNr());
+            
+            ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();            
+            //there will always be at least one sibling, itself
+            ArrayList<Long> prescales0 = psTbl.prescales(splitSiblings.get(0).datasetPathName());
+        
+            for(Long prescale : prescales0){
+                if(prescale<splitSiblings.size() && prescale!=0){
+                    errors.add("Error Dataset "+dataset.nameWithoutInstanceNr()+" has dataset path with a non-zero precale value lower than its number of split instances  ("+splitSiblings.size()+")");
+                    break;
+                }
+            }
+
+            for(int siblingNr=1;siblingNr<splitSiblings.size();siblingNr++){
+                PrimaryDataset splitSibling = splitSiblings.get(siblingNr);
+                ArrayList<Long> prescalesSib = psTbl.prescales(splitSibling.datasetPathName());
+                if(!prescales0.equals(prescalesSib)){
+                    errors.add("Error datasetpath of "+splitSibling.name()+" has different prescales to its 0th instance");
+                }
+            }
+        }
+
+        if(!errors.isEmpty()){
+            String errStr = new String();
+            for(String error : errors ){
+                errStr+="\n"+error;
+            }
+            String msg = new String("The following split datasets have problems with the dataset path prescales.\nNote that a dataset path can not have a prescale lower than the number of split instances\notherwise the split instances will select the same events\n");
+			msg+=errStr;			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(errors.size()+5,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+
+    }
     /**
      * checks each stream with a datasetpath has an output module
      */

@@ -25,6 +25,9 @@ public class PrescaleTable
     /** prescale table rows */
     protected ArrayList<PrescaleTableRow> rows=new ArrayList<PrescaleTableRow>();
     
+	//paths of dataset paths which are split need to have the same prescale value
+	//this allows us to determine which other rows need to be edited when this one is
+	protected ArrayList<ArrayList<Integer> > rowSiblings = new ArrayList<ArrayList<Integer>>();
 
     //
     // construction
@@ -112,10 +115,12 @@ public class PrescaleTable
 	return result;
     }
     
-    /** set a prescale */
-    public void setPrescale(int i,int j,long prescale)
+    /** set a prescale for a rhow and all its siblings */
+    public void setPrescale(int rowNr,int columnNr,long prescale)
     {
-	rows.get(i).prescales.set(j,prescale);
+		for(int siblingNr : rowSiblings.get(rowNr)){
+			rows.get(siblingNr).prescales.set(columnNr,prescale);
+		}
     }
 
     /** add a new column at i-th position */
@@ -194,6 +199,7 @@ public class PrescaleTable
 	defaultName="";
 	columnNames.clear();
 	rows.clear();
+	rowSiblings.clear();
 	
 	columnNames.add("Path");
  
@@ -259,6 +265,7 @@ public class PrescaleTable
 	    pathToRow.put(pathName,new PrescaleTableRow(pathName,prescales));
 	}
 	
+	HashMap<String,Integer> datasetPathToRowIndex = new HashMap<String,Integer>();
 	Iterator<Path> itP = config.pathIterator();
 	while (itP.hasNext()) {
 	    Path path = itP.next();
@@ -267,7 +274,31 @@ public class PrescaleTable
 		rows.add(new PrescaleTableRow(path.name(),prescaleCount()));
 	    else
 		rows.add(row);
+		if(path.isDatasetPath()){
+			datasetPathToRowIndex.put(path.name(),rows.size()-1);
+		}
 	}
+
+	//so this all rather depends on the dataset paths being correctly named
+	//if they are not they will not update the other split instances
+	//and configuration checks will catch it later
+	for(int rowNr=0;rowNr<rows.size();rowNr++){
+		PrescaleTableRow row = rows.get(rowNr);
+		ArrayList<Integer> rowSiblingsEntry = new ArrayList<Integer>();
+		if(row.pathName.startsWith(PrimaryDataset.datasetPathNamePrefix()) && 
+			config.path(row.pathName).isDatasetPath()){ 
+			String datasetName = row.pathName.replaceFirst(PrimaryDataset.datasetPathNamePrefix(),"");
+			PrimaryDataset pd = config.dataset(datasetName);
+			ArrayList<PrimaryDataset> pdSplitSiblings = pd.getSplitSiblings();
+			for(PrimaryDataset splitSib : pdSplitSiblings){				
+				rowSiblingsEntry.add(datasetPathToRowIndex.get(splitSib.datasetPathName()));
+			}
+		}else{
+			rowSiblingsEntry.add(rowNr);
+		}
+		rowSiblings.add(rowSiblingsEntry);
+	}
+
     }
     
 }
