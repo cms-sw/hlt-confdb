@@ -321,6 +321,12 @@ class PrescaleTableModel extends AbstractTableModel {
 		fireTableDataChanged();
 	}
 
+	/** update the table model according to configuration's PrescaleService */
+	public void initialize(PrescaleTable prescaleTable) {
+		this.prescaleTable = prescaleTable;
+		fireTableDataChanged();
+	}
+
 	/** update the PrescaleService in configuration according to table data */
 	public void updatePrescaleService(IConfiguration config) {
 		ServiceInstance prescaleSvc = config.service("PrescaleService");

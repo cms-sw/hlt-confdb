@@ -5015,13 +5015,13 @@ public class ConfigurationTreeActions {
 
 	public static boolean rmSplitPrimaryDatasetInstance(JTree tree, PrimaryDataset dataset, Stream stream)
 	{
-		ArrayList<PrimaryDataset> splitInstances  = dataset.getSplitSiblings();
-		
+		ArrayList<PrimaryDataset> splitInstances  = dataset.getSplitSiblings();		
 		if(splitInstances.size()==1){
 			return removePrimaryDataset(tree,dataset,stream);
 		}
 
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
 		PrimaryDataset pdInstance0 = splitInstances.get(0);
 		//incase we are removing the first instance, the second is now the new instance 0
 		if(pdInstance0==dataset){ 
@@ -5036,6 +5036,7 @@ public class ConfigurationTreeActions {
 					model.nodeChanged(pdInstance);
 				}
 			}
+			updateSplitDatasetPathPrescales(config, pdInstance0, splitInstances.size(), splitInstances.size()+1);
 			return true;
 		}else{
 			return false;
@@ -5055,6 +5056,7 @@ public class ConfigurationTreeActions {
 		PrimaryDataset dataset = config.dataset(datasetName);
 		ArrayList<PrimaryDataset> splitInstances  = dataset.getSplitSiblings();
 		PrimaryDataset pdInstance0 = splitInstances.get(0);
+		int initialNrSplitInstances = splitInstances.size();		
 		//we already have the correct number of instances
 		if(splitInstances.size()==nrInstances){
 			return false;
@@ -5070,8 +5072,7 @@ public class ConfigurationTreeActions {
 				pdInstance0.setName(pdInstance0.nameWithoutInstanceNr(false));
 				//need to adjust the model now
 				model.nodeChanged(pdInstance0);
-			}
-			return true;
+			}			
 		}else{			
 			Stream stream = pdInstance0.parentStream();
 			boolean firstTimeSplit = splitInstances.size()==1;
@@ -5102,13 +5103,38 @@ public class ConfigurationTreeActions {
 			
 
 		}
-
-
+		updateSplitDatasetPathPrescales(config, pdInstance0, nrInstances, initialNrSplitInstances);
 		return true;
 
 	}
 
+	/**
+	 * adjusts the values of the datasetpaths of a split dataset where approprate
+	 * eg, ensuring the prescale is always equal to or greater (unless 0) of the number of datasets
+	 */
+	public static void updateSplitDatasetPathPrescales(IConfiguration config,PrimaryDataset dataset,int nrInstances,int oldNrInstances){
+		//now lets adjust the prescales
+		PrescaleTable psTbl = new PrescaleTable(config);
+		PrescaleTableModel psTblModel = new PrescaleTableModel();
+		psTblModel.initialize(psTbl);
 	
+		int rowNr = psTbl.rowNr(dataset.datasetPathName());
+		ArrayList<Long> prescales = psTbl.prescales(rowNr);
+		for(int colNr=0;colNr<prescales.size();colNr++){
+			Long prescale = prescales.get(colNr);
+			if( (prescale<nrInstances && prescale!=0) ||
+				prescale.equals(Long.valueOf(oldNrInstances))){
+				psTbl.setPrescale(rowNr,colNr,nrInstances);
+			}else{
+				//we set it agian to automatically propagate it to any new paths
+				psTbl.setPrescale(rowNr,colNr,prescale);
+			}
+		}			
+		psTblModel.updatePrescaleService(config);
+	
+	}
+
+
 	/**
 	 * converts all datasets of a config to the new path based ones
 	 * does this by just generating the DatasetPath

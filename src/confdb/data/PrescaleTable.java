@@ -100,19 +100,42 @@ public class PrescaleTable
 	return false;
     }
 
+	
+	public int rowNr(String pathName){
+		for(int rowNr=0;rowNr<rows.size();rowNr++){
+			if(rows.get(rowNr).pathName.equals(pathName)){
+				return rowNr;
+			}
+		}
+		return -1;
+	}
+
+	protected PrescaleTableRow row(String pathName){
+		int rowNr = rowNr(pathName);
+		return rowNr!=-1 ? rows.get(rowNr) : null;							
+	}
+
+
     /** get prescales for a given path name */
     public ArrayList<Long> prescales(String pathName)
     {
-	ArrayList<Long> result = new ArrayList<Long>();
-	Iterator<PrescaleTableRow> itR = rows.iterator();
-	while (itR.hasNext()) {
-	    PrescaleTableRow row = itR.next();
-	    if (row.pathName.equals(pathName)) {
-		for (Long l : row.prescales) result.add(l);
-		return result;
+		ArrayList<Long> result = new ArrayList<Long>();
+		PrescaleTableRow row = row(pathName);
+		if(row!=null){			
+			for (Long l : row.prescales) result.add(l);
 	    }
-	}
-	return result;
+		return result;
+    }
+
+	/** get prescales for a given path name */
+    public ArrayList<Long> prescales(int rowNr)
+    {
+		ArrayList<Long> result = new ArrayList<Long>();
+		PrescaleTableRow row = rows.get(rowNr);
+		if(row!=null){			
+			for (Long l : row.prescales) result.add(l);
+	    }
+		return result;
     }
     
     /** set a prescale for a rhow and all its siblings */
