@@ -63,6 +63,19 @@ class PrescaleTableService {
 			jTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidth);
 		}
 	}
+	
+	/** adjust the width of each table column for scrolling */
+	public void adjustTableColumnWidthsScroll() {
+		int tableWidth = jTable.getPreferredSize().width;
+		int columnCount = jTable.getColumnModel().getColumnCount();
+		int headerWidth = (int) (tableWidth * 0.05);
+		jTable.getColumnModel().getColumn(0).setPreferredWidth(headerWidth);
+		for (int i = 1; i < columnCount; i++) {
+			int columnWidth = (tableWidth - headerWidth) / (columnCount - 1);
+			jTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidth);
+		}
+		jTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+	}
 
 	/** Get the Row corresponding to the given Path */
 	public JTable getPrescaleTable(Path path) {

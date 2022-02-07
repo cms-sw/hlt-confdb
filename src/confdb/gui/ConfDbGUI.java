@@ -3343,7 +3343,9 @@ public class ConfDbGUI {
 			PrescaleTServ = new PrescaleTableService(currentConfig);
 			// Set prescales fot the current path.
 			jTablePrescales = PrescaleTServ.getPrescaleTableEditable(dataset.datasetPath());
-
+			PrescaleTServ.adjustTableColumnWidthsScroll();
+			jTablePrescales.doLayout();
+			
 			jTablePrescales.getModel().addTableModelListener(new TableModelListener() {
 				public void tableChanged(TableModelEvent e) {
 					PrescaleTServ.setHasChanged(); 
