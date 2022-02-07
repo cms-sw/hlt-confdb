@@ -6861,6 +6861,12 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
 		String oldValue = "";
 		for (int i = 0; i < count; i++) {
 			container = (ReferenceContainer) sourceModel.getChild(ext, i);
+			if(container instanceof Path){
+				Path path = (Path) container;
+				if(path.isDatasetPath() || path.isFinalPath()){
+					continue;
+				}
+			}
 			ConfigurationTreeActions.importReferenceContainersNoModel(tree, container, updateAll);
 			items.add(container.name()); // registering container name for diff.
 			int progress = (i * 100) / count; // range 0-100.
