@@ -2994,12 +2994,16 @@ class DatasetMenuListener implements ActionListener {
 			}
 		} else if (action.startsWith("CLONE:")) {
 			String datasetToCloneName = action.split(":")[1];
-			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config, config.dataset(datasetToCloneName));
+			PrimaryDataset datasetToClone = config.dataset(datasetToCloneName);
+			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config, datasetToClone);
 			dlg.pack();
 			dlg.setLocationRelativeTo(frame);
 			dlg.setVisible(true);
-			if (dlg.isSuccess())
+			if (dlg.isSuccess()){
 				ConfigurationTreeActions.insertPrimaryDataset(tree, dlg.dataset());
+				//need to force a redraw of the datasetpanel by changing the node 				
+				model.nodeChanged(datasetToClone);
+			}
 		} 
 	}
 

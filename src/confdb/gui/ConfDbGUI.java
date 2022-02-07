@@ -89,6 +89,8 @@ public class ConfDbGUI {
 	/** current parameter container (Instance | OuputModule) */
 	private Object currentParameterContainer = null;
 
+	private PrimaryDataset currentDataset = null;
+
 	/** ascii converter engine, to display config snippets (right-lower) */
 	private ConverterEngine cnvEngine = null;
 
@@ -159,6 +161,17 @@ public class ConfDbGUI {
 	private JTabbedPane jTabbedPaneRightLower = new JTabbedPane();
 	private JScrollPane jScrollPaneRightLower = new JScrollPane();
 	private JEditorPane jEditorPaneSnippet = new JEditorPane();
+
+	private JPanel jPanelDataset = new JPanel();
+	private JScrollPane jScrollPaneDatasetSplit = new JScrollPane();
+	private JScrollPane jScrollPaneDatasetClone = new JScrollPane();
+	private JTextField jTextFieldDatasetName = new JTextField();
+	private JTextArea jTextAreaDatasetSplit = new JTextArea();
+	private JTextArea jTextAreaDatasetClone = new JTextArea();
+	private JButton jButtonSaveDatasetPrescales = new JButton("Apply");
+	private JButton jButtonCancelDatasetPrescales = new JButton("Cancel");
+	private JScrollPane jScrollPaneDatasetPrescales = new JScrollPane();
+
 
 	private JComboBox jComboBoxEventContent = new JComboBox();
 	private JList jListStreams = new JList();
@@ -383,6 +396,25 @@ public class ConfDbGUI {
 
 				// Reload values
 				displayPathFields();
+			}
+		});
+
+		jButtonSaveDatasetPrescales.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if ((PrescaleTServ != null) && (PrescaleTServ.hasChanged())){
+					PrescaleTServ.savePrescales();
+				}				
+
+				jButtonSaveDatasetPrescales.setEnabled(false);
+				jButtonCancelDatasetPrescales.setEnabled(false);
+			}
+		});
+
+		jButtonCancelDatasetPrescales.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				jButtonSaveDatasetPrescales.setEnabled(false);
+				jButtonCancelDatasetPrescales.setEnabled(false);
+				displayDatasetPanel();
 			}
 		});
 
@@ -3271,6 +3303,66 @@ public class ConfDbGUI {
 		jButtonCancelPathFields.setEnabled(true);
 	}
 
+
+	/** displays the paths fields panel - right upper area. */
+	private void displayDatasetPanel() {
+		// There only can be one Component. jPanelPathFields or jPanelPlugin or jPannelDataset
+		if (jSplitPaneRightUpper.getComponents()[0].equals(jPanelDataset))
+			return;
+
+		if (currentDataset instanceof PrimaryDataset) {
+			PrimaryDataset dataset = (PrimaryDataset) currentDataset;
+			jSplitPaneRightUpper.setDividerLocation(100); // Set the vertical size of the panel.
+			jSplitPaneRightUpper.setDividerSize(-1);
+			jSplitPaneRightUpper.setTopComponent(jPanelDataset);
+			jScrollPaneParameters.setVisible(false);
+			
+
+			jTextFieldDatasetName.setFont(GUIFontConfig.getFont(0));
+			jTextAreaDatasetClone.setFont(GUIFontConfig.getFont(0));
+			jTextAreaDatasetSplit.setFont(GUIFontConfig.getFont(0));
+
+			jTextFieldDatasetName.setText(dataset.nameWithoutInstanceNr());
+
+			String cloneStr = new String();
+			ArrayList<PrimaryDataset> cloneSiblings = dataset.getCloneSiblings();
+			cloneSiblings.remove(dataset);
+			for(PrimaryDataset cloneDataset : cloneSiblings){
+				cloneStr+=cloneDataset.name()+" : "+cloneDataset.parentStream().name()+"\n";
+			}
+			jTextAreaDatasetClone.setText(cloneStr);
+			
+			String splitStr = new String();
+			for(PrimaryDataset splitDataset : dataset.getSplitSiblings()){
+				splitStr+=splitDataset.name()+" : "+splitDataset.parentStream().name()+"\n";
+			}
+			jTextAreaDatasetSplit.setText(splitStr);
+			
+			
+			// Set current configuration to the prescaleService
+			PrescaleTServ = new PrescaleTableService(currentConfig);
+			// Set prescales fot the current path.
+			jTablePrescales = PrescaleTServ.getPrescaleTableEditable(dataset.datasetPath());
+
+			jTablePrescales.getModel().addTableModelListener(new TableModelListener() {
+				public void tableChanged(TableModelEvent e) {
+					PrescaleTServ.setHasChanged(); 
+					jButtonSaveDatasetPrescales.setEnabled(true);
+					jButtonCancelDatasetPrescales.setEnabled(true);
+
+				}
+			});
+
+			jScrollPaneDatasetPrescales.setViewportView(jTablePrescales);
+
+		} else {
+			jTextAreaDatasetClone.setText(new String());
+			jTextAreaDatasetSplit.setText(new String());
+		}
+
+	}
+
+
 	/** display the configuration snippet for currently selected component */
 	private void displaySnippet() {
 		// by default some tabs are disabled.
@@ -3779,6 +3871,10 @@ public class ConfDbGUI {
 			return;
 
 		Object node = e.getChildren()[0];
+		if (node instanceof PrimaryDataset){
+			displayDatasetPanel();
+		}
+
 		if (node instanceof EventContent)
 			fillEventContents();
 		else
@@ -3910,6 +4006,12 @@ public class ConfDbGUI {
 			displaySnippet();
 			if (currentParameterContainer instanceof Path)
 				displayPathFields();
+		} else if (node instanceof PrimaryDataset){			
+			clearParameters();
+			clearSnippet();
+			currentDataset = (PrimaryDataset) node;
+			displayDatasetPanel();
+			
 		} else {
 			clearParameters();
 			clearSnippet();
@@ -5046,6 +5148,78 @@ public class ConfDbGUI {
 						.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
 								javax.swing.GroupLayout.PREFERRED_SIZE)));
 
+		//////////////////////////////////////////
+
+		// Datasets:
+
+		JLabel jLabelDatasetName = new JLabel();
+		jLabelDatasetName.setFont(GUIFontConfig.getFont(0));
+		jLabelDatasetName.setText("Dataset:");
+		
+		JLabel jLabelDatasetSplit = new JLabel();
+		jLabelDatasetSplit.setFont(GUIFontConfig.getFont(0));
+		jLabelDatasetSplit.setText("Splits:");
+		
+		JLabel jLabelDatasetClone = new JLabel();
+		jLabelDatasetClone.setFont(GUIFontConfig.getFont(0));
+		jLabelDatasetClone.setText("Clones:");
+		
+		jScrollPaneDatasetClone.setViewportView(jTextAreaDatasetClone);
+		jScrollPaneDatasetSplit.setViewportView(jTextAreaDatasetSplit);
+		jTextAreaDatasetClone.setEditable(false);
+		jTextAreaDatasetSplit.setEditable(false);
+		jTextFieldDatasetName.setEditable(false);
+
+		jButtonSaveDatasetPrescales.setEnabled(false);
+		jButtonCancelDatasetPrescales.setEnabled(false);
+		jPanelDataset.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+				/* set the elements: */
+				javax.swing.GroupLayout jPanelDatasetLayout = new javax.swing.GroupLayout(jPanelDataset);
+				jPanelDataset.setLayout(jPanelDatasetLayout);
+				// Using TRAILING alignment the button will be aligned to the right.
+				jPanelDatasetLayout.setHorizontalGroup(jPanelDatasetLayout.createSequentialGroup()
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+								.addComponent(jLabelDatasetName).addComponent(jLabelDatasetSplit)
+								.addComponent(jLabelDatasetClone).addComponent(jLabelPrescales))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+								.addComponent(jTextFieldDatasetName, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+								.addComponent(jScrollPaneDatasetSplit, javax.swing.GroupLayout.DEFAULT_SIZE, 400,
+										Short.MAX_VALUE)
+								.addComponent(jScrollPaneDatasetClone, javax.swing.GroupLayout.DEFAULT_SIZE, 400,
+										Short.MAX_VALUE)
+								.addComponent(jScrollPaneDatasetPrescales, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
+								.addGroup(jPanelDatasetLayout.createSequentialGroup()
+										.addComponent(jButtonCancelDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
+												javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+										.addComponent(jButtonSaveDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
+												javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))));
+		
+				jPanelDatasetLayout.setVerticalGroup(jPanelDatasetLayout.createSequentialGroup()
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelDatasetName)
+								.addComponent(jTextFieldDatasetName, javax.swing.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelDatasetSplit).addComponent(jScrollPaneDatasetSplit,
+										javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelDatasetClone).addComponent(jScrollPaneDatasetClone, 80, 80, 80))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelPrescales)
+								.addComponent(jScrollPaneDatasetPrescales, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jButtonCancelDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
+										javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(jButtonSaveDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
+										javax.swing.GroupLayout.PREFERRED_SIZE)));
+				
 		//////////////////////////////////////////
 
 		// Parameters Section:
