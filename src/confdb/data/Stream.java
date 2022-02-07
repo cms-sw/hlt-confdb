@@ -117,7 +117,9 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	    this.outputModule.setName("hltOutput"+name);
 	    this.outputModule.setHasChanged();
         Path streamOutPath = parentContent().config().path(oldOutputPathName);
-        streamOutPath.setNameAndPropagate(outputPathName());
+        if(streamOutPath!=null){
+            streamOutPath.setNameAndPropagate(outputPathName());
+        }
 
 	}
 	catch (DataException e) {
