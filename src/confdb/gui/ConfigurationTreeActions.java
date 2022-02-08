@@ -3,10 +3,8 @@ package confdb.gui;
 import javax.swing.*;
 import javax.swing.tree.*;
 
-import org.omg.CORBA.BooleanHolder;
-
 import javax.swing.SwingWorker;
-import javax.swing.text.DefaultStyledDocument.ElementSpec;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
