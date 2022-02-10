@@ -470,13 +470,20 @@ public class PrimaryDataset extends DatabaseEntry
     public boolean updateSplitInstanceNrs() {
         boolean changed=false;
         ArrayList<PrimaryDataset> splitSiblings = getSplitSiblings();
-        for(int index=0;index<splitSiblings.size();index++){
-            PrimaryDataset splitInstance = splitSiblings.get(index);
-            if(splitInstance.splitInstanceNumber()!=index){                
-                splitInstance.setName(nameWithoutInstanceNr()+index);
-                splitInstance.setSplitInstanceNumber(index);            
-                changed = true;
+        if(splitSiblings.size()>1){
+            for(int index=0;index<splitSiblings.size();index++){
+                PrimaryDataset splitInstance = splitSiblings.get(index);
+                if(splitInstance.splitInstanceNumber()!=index){                
+                    splitInstance.setName(nameWithoutInstanceNr()+index);
+                    splitInstance.setSplitInstanceNumber(index);            
+                    changed = true;
+                }
             }
+        }else{
+            PrimaryDataset dataset = splitSiblings.get(0);
+            dataset.setName(nameWithoutInstanceNr(false));
+            dataset.setSplitInstanceNumber(0);
+            changed = true;
         }
         return changed;
     }

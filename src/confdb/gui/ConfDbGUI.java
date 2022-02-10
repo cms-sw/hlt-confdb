@@ -86,10 +86,10 @@ public class ConfDbGUI {
 	/** the import configuration */
 	private Configuration importConfig = null;
 
-	/** current parameter container (Instance | OuputModule) */
+	/** current parameter container (Instance | OuputModule)
+	 * has been repurposed over the years to be anything, including paths and datasets
+	 */
 	private Object currentParameterContainer = null;
-
-	private PrimaryDataset currentDataset = null;
 
 	/** ascii converter engine, to display config snippets (right-lower) */
 	private ConverterEngine cnvEngine = null;
@@ -1199,7 +1199,7 @@ public class ConfDbGUI {
 	public void openPrescaleEditor() {
 		// NOTE: clearPathFields() is necessary to do not interfere with
 		// the embedded editor in the rightUpperPanel (documentation panel):
-		clearPathFields();
+		clearDatasetOrPathFields();
 
 		PrescaleDialog dialog = new PrescaleDialog(frame, currentConfig);
 		dialog.pack();
@@ -1830,7 +1830,7 @@ public class ConfDbGUI {
 		jToggleButtonImport.setEnabled(false);
 
 		jSplitPane.setRightComponent(jSplitPaneRight);
-		clearPathFields();
+		clearDatasetOrPathFields();
 	}
 	
 	/** set the current configuration */
@@ -3235,7 +3235,7 @@ public class ConfDbGUI {
 	}
 
 	/** clear the paths fields panel - right upper area. */
-	private void clearPathFields() {
+	private void clearDatasetOrPathFields() {		
 		// Restore the original jPanelPlugin panel.
 		jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
 		jScrollPaneParameters.setVisible(true);
@@ -3243,7 +3243,7 @@ public class ConfDbGUI {
 		jSplitPaneRightUpper.setDividerSize(-1);
 	}
 
-	/** displays the paths fields panel - right upper area. */
+	/** displays the paths fields panel - right upjSplitPaneRightUpper.getComponents()[0].equals(jPanelPathFields)per area. */
 	private void displayPathFields() {
 		// There only can be one Component. jPanelPathFields or jPanelPlugin.
 		if (jSplitPaneRightUpper.getComponents()[0].equals(jPanelPathFields))
@@ -3310,8 +3310,8 @@ public class ConfDbGUI {
 		if (jSplitPaneRightUpper.getComponents()[0].equals(jPanelDataset))
 			return;
 
-		if (currentDataset instanceof PrimaryDataset) {
-			PrimaryDataset dataset = (PrimaryDataset) currentDataset;
+		if (currentParameterContainer instanceof PrimaryDataset) {
+			PrimaryDataset dataset = (PrimaryDataset) currentParameterContainer;
 			jSplitPaneRightUpper.setDividerLocation(100); // Set the vertical size of the panel.
 			jSplitPaneRightUpper.setDividerSize(-1);
 			jSplitPaneRightUpper.setTopComponent(jPanelDataset);
@@ -3976,7 +3976,7 @@ public class ConfDbGUI {
 		if (jSplitPane.getRightComponent().equals(jPanelContentEditor))
 			jSplitPane.setRightComponent(jSplitPaneRight);
 
-		clearPathFields();
+		clearDatasetOrPathFields();
 
 		Parameter p = null;
 		while (node instanceof Parameter) {
@@ -4011,7 +4011,7 @@ public class ConfDbGUI {
 		} else if (node instanceof PrimaryDataset){			
 			clearParameters();
 			clearSnippet();
-			currentDataset = (PrimaryDataset) node;
+			currentParameterContainer = node;
 			displayDatasetPanel();
 			
 		} else {

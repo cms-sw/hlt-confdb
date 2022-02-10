@@ -5034,7 +5034,8 @@ public class ConfigurationTreeActions {
 					model.nodeChanged(pdInstance);
 				}
 			}
-			updateSplitDatasetPathPrescales(config, pdInstance0, splitInstances.size(), splitInstances.size()+1);
+
+			updateSplitDatasetPathPrescales(model, config, pdInstance0, splitInstances.size(), splitInstances.size()+1);			
 			return true;
 		}else{
 			return false;
@@ -5101,7 +5102,7 @@ public class ConfigurationTreeActions {
 			
 
 		}
-		updateSplitDatasetPathPrescales(config, pdInstance0, nrInstances, initialNrSplitInstances);
+		updateSplitDatasetPathPrescales(model,config, pdInstance0, nrInstances, initialNrSplitInstances);
 		return true;
 
 	}
@@ -5110,7 +5111,7 @@ public class ConfigurationTreeActions {
 	 * adjusts the values of the datasetpaths of a split dataset where approprate
 	 * eg, ensuring the prescale is always equal to or greater (unless 0) of the number of datasets
 	 */
-	public static void updateSplitDatasetPathPrescales(IConfiguration config,PrimaryDataset dataset,int nrInstances,int oldNrInstances){
+	public static void updateSplitDatasetPathPrescales(ConfigurationTreeModel model,IConfiguration config,PrimaryDataset dataset,int nrInstances,int oldNrInstances){
 		//now lets adjust the prescales
 		PrescaleTable psTbl = new PrescaleTable(config);
 		PrescaleTableModel psTblModel = new PrescaleTableModel();
@@ -5130,6 +5131,11 @@ public class ConfigurationTreeActions {
 		}			
 		psTblModel.updatePrescaleService(config);
 	
+		ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();
+		for(PrimaryDataset sibling : splitSiblings){
+			model.nodeChanged(sibling);
+		}
+
 	}
 
 
@@ -5422,6 +5428,14 @@ public class ConfigurationTreeActions {
 		int index = config.indexOfDataset(dataset);
 		int indexStream = stream.indexOfDataset(dataset);
 
+		//we need the node index to set the correct tree path later
+		TreePath treePath = tree.getSelectionPath();
+		Object selected = treePath.getLastPathComponent();
+		int selectedIndex = -1;
+		if(selected instanceof PrimaryDataset){
+			selectedIndex = config.indexOfDataset((PrimaryDataset) selected);
+		}
+
 		stream.removeDataset(dataset);
 		model.nodeRemoved(model.datasetsNode(), index, dataset);
 		model.nodeRemoved(stream, indexStream, dataset);
@@ -5431,11 +5445,27 @@ public class ConfigurationTreeActions {
 			config.removePath(datasetPath);			
 			model.nodeRemoved(model.pathsNode(),indxDatasetPath,datasetPath);
 			dataset.removeDatasetPath();
-		}		
+		}
+		
+		
 
 		model.nodeStructureChanged(model.contentsNode());		
 		model.updateLevel1Nodes();
 
+		//so now we update the model
+		//updating l1 nodes clears our selection so we need to get it back
+		//we also need to figure out which we select too
+		//basically if our dataset was the node being removed, its now points to the index below that
+		//however if not, we need to figure out the new index of that node	
+		treePath = new TreePath(model.getPathToRoot(model.datasetsNode()));	
+		if(selectedIndex == index){		
+			tree.setSelectionPath(treePath.pathByAddingChild(model.getChild(model.datasetsNode(), index-1)));
+		}else if(selectedIndex!=-1 && selectedIndex < index){
+			tree.setSelectionPath(treePath.pathByAddingChild(model.getChild(model.datasetsNode(), selectedIndex)));
+		}else if(selectedIndex> index){
+			tree.setSelectionPath(treePath.pathByAddingChild(model.getChild(model.datasetsNode(), selectedIndex-1)));
+		}
+		
 		return true;
 	}
 
