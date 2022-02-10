@@ -46,7 +46,7 @@ public class MenuBar {
 	private static final String toolMenuSPSEditor = "Edit SmartPrescales";
 	private static final String toolMenuMLEditor = "Edit MessageLogger";
 	private static final String toolMenuJavaCode = "Execute Java Code";
-	private static final String toolMenuResetGUI = "Reset GUI";
+	private static final String toolMenuResetGUI = "Redraw GUI";
 
 	/** menu bar item names: options */
 	private static final String optionsMenuTrack = "Track InputTags";
