@@ -1,12 +1,12 @@
-2022-02-01 Sam Harper
+2022-02-10 Sam Harper
     * tag V03-02-00
 	* reworked datasets to use DatasetPaths to select their events and all that entails
 	* support for split and cloned datasets using DatasetPaths
 	* adds support for cms.FinalPath, auto generates per stream with DatasetPath
 	* streams are now the sum of their datasets and can no longer have unassigned paths
 	   * any existing configs with streams with unassigned paths will simply drop them on load
-	* bug fix in switchproducer reading from DB where it accidently triggered a hasChanged and then forced it all to be saved again
-	* changed EvFOutputModule to GlobalEvFModule
+	* bug fix in SwitchProducer reading from DB where it accidentally triggered a hasChanged and then forced it all to be saved again
+	* changed EvFOutputModule to GlobalEvFOutputModule
 	* added option under tools menu to redraw the GUI
 	* note: the only changes to the output python are : streams have their unassigned paths dropped and the output module class changes
 
