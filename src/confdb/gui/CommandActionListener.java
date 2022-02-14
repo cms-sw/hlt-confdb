@@ -43,6 +43,8 @@ public class CommandActionListener implements ActionListener
     private static final String cmdMLEditor         = "Edit MessageLogger";
     private static final String cmdJavaCode         = "Execute Java Code";
     private static final String cmdUPEditor         = "Add Untracked Parameter";
+    private static final String cmdResetGUI         = "Reset GUI";
+
 
     private static final String cmdTrack            = "Track InputTags";
     private static final String cmdEnableClone      = "Enable Path Deep Cloning";
@@ -92,6 +94,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdMLEditor))         app.openMessageLoggerEditor();
 	if (command.equals(cmdJavaCode))         app.openJavaCodeExecution();
 	if (command.equals(cmdUPEditor))         app.addUntrackedParameter();
+    if (command.equals(cmdResetGUI))         app.resetGUI();
 	
 	if (command.equals(cmdTrack))            app.setOptionTrackInputTags(source.isSelected());
 	if (command.equals(cmdEnableClone))      app.setEnablePathCloning(source.isSelected());

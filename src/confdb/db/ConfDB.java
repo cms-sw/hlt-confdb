@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.LinkedList;
@@ -1410,8 +1411,10 @@ public class ConfDB {
 
 					path.setDescription(pathDesc);
 					path.setContacts(pathCont);
-
-					path.setAsEndPath(flag);
+					//so we repurposed the flag field for paths to represent different path types
+					//hence we have to re get it as an int
+					Path.Type pathType = Path.Type.values()[rsInstances.getInt(5)];
+					path.setType(pathType);
 					path.setDatabaseId(id);
 					idToPaths.put(id, path);
 				} else if (type.equals("Sequence")) {
@@ -1854,25 +1857,23 @@ public class ConfDB {
 				Stream stream = idToStream.get(streamId);
 				PrimaryDataset primaryDataset = idToDataset.get(datasetId);
 
-				// System.err.println("Path to dataset "+datasetId+" id "+pathId+" streamid
-				// "+streamId);
 				if (path == null)
 					continue;
 				if (stream == null)
 					continue;
-
-				EventContent eventContent = stream.parentContent();
-				stream.insertPath(path);
-				path.addToContent(eventContent);
-
-				// System.err.println("Adding Path to dataset "+datasetId+" id "+pathId+"
-				// streamid "+streamId);
-
 				if (primaryDataset == null)
 					continue;
-				// System.err.println("Adding Path to dataset "+datasetId+" id "+pathId+"
-				// streamid "+streamId);
-				primaryDataset.insertPath(path);
+
+				//there two styles of datasets (new style and old style)
+				//new style: a dataset simply contains single path with a specific name (datasetPathName) and its TriggerResultFilter
+				//contains the list of paths
+				//old style: paths are directly contained in the dataset
+				EventContent eventContent = stream.parentContent();
+				if(path.name().equals(primaryDataset.datasetPathName())){					
+					primaryDataset.setDatasetPath(path);					
+				}else{
+					primaryDataset.insertPath(path);					
+				}
 
 				stream.setDatabaseId(streamId);
 				primaryDataset.setDatabaseId(datasetId);
@@ -1961,8 +1962,17 @@ public class ConfDB {
 			Iterator<Sequence> sequenceIt = config.sequenceIterator();
 			while (sequenceIt.hasNext()) {
 				Sequence sequence = sequenceIt.next();
-				int databaseId = sequenceToId.get(sequence);
-				sequence.setDatabaseId(databaseId);
+				//so datasets can create paths on creation and that path it creates
+				//a sequence so it may not yet exist in the database
+				//so for that specific sequence we allow 				
+				if(sequence.name().equals(PrimaryDataset.datasetPathBeginSequenceName())){
+					int databaseId = sequenceToId.getOrDefault(sequence,0);
+					sequence.setDatabaseId(databaseId);	
+				}else{
+					int databaseId = sequenceToId.get(sequence);
+					sequence.setDatabaseId(databaseId);
+				}
+				
 			}
 
 			Iterator<Task> taskIt = config.taskIterator();
@@ -1984,7 +1994,10 @@ public class ConfDB {
 				Path path = pathIt.next();
 				// System.err.println("Iterating path "+path.name()+": "+
 				// "id="+path.databaseId());
-				int databaseId = pathToId.get(path);
+				//so streams and datasets can create paths on creation
+				//therefore we may have paths which exist but are not yet in
+				//the database, so we do a getOrDefault to allow this case
+				int databaseId = pathToId.getOrDefault(path,0);
 				path.setDatabaseId(databaseId);
 			}
 
@@ -2164,7 +2177,10 @@ public class ConfDB {
 			HashMap<String, Integer> moduleHashMap = insertModules(config);
 
 			insertEventContentStatements(configId, config, eventContentHashMap);
+			//inserts path -> pd assoc which does not use path based datasets
 			insertPathStreamPDAssoc(pathHashMap, streamHashMap, primaryDatasetHashMap, config, configId);
+			//inserts path-> pd assoc for those datasets with use dataset paths
+			insertPathStreamPDAssocPathDatasets(pathHashMap, streamHashMap, primaryDatasetHashMap, config, configId);
 
 			/*
 			 * sv notyet // insert parameter bindings / values
@@ -2591,7 +2607,7 @@ public class ConfDB {
 				path.hasChanged();
 				String pathName = path.name();
 				int pathId = path.databaseId();
-				boolean pathIsEndPath = path.isSetAsEndPath();
+				Path.Type pathType = path.pathType();
 				String description = path.getDescription();
 				String contacts = path.getContacts();
 				int vpathId = -1;
@@ -2655,11 +2671,7 @@ public class ConfDB {
 						 */
 
 					psInsertPathIds.setInt(1, id_path);
-					if (pathIsEndPath) {
-						psInsertPathIds.setInt(2, 1);
-					} else {
-						psInsertPathIds.setInt(2, 0);
-					}
+					psInsertPathIds.setInt(2, pathType.value);
 					// psInsertPathIds.setInt(3,crc32);
 					psInsertPathIds.setNull(3, Types.INTEGER);// crc
 					// psInsertPathIds.setInt(4,111111);
@@ -2673,23 +2685,7 @@ public class ConfDB {
 					// System.err.println("insertPath: created vpathid "+vpathId);
 					pathId = vpathId; // if not using h_ tables
 
-					/*
-					 * only for h_ tables psCheckHPathIdCrc.setInt(1,crc32);
-					 * rs=psCheckHPathIdCrc.executeQuery(); if (rs.next()) { pathId=rs.getInt(1);
-					 * System.out.println("insertPath: found crc in pathid "+pathId); } else {
-					 * psInsertHPathIds.setInt(1,crc32); psInsertHPathIds.setInt(2,111111);
-					 * psInsertHPathIds.executeUpdate(); rs = psInsertHPathIds.getGeneratedKeys();
-					 * rs.next(); pathId=rs.getInt(1);
-					 * System.out.println("insertPath: created pathid "+pathId);
-					 * 
-					 * psInsertHPathId2Path.setInt(1,id_path);
-					 * psInsertHPathId2Path.setInt(2,pathId);
-					 * psInsertHPathId2Path.setBoolean(3,pathIsEndPath);
-					 * psInsertHPathId2Path.executeUpdate();
-					 * 
-					 * psInsertHPathId2Uq.setInt(1,vpathId); psInsertHPathId2Uq.setInt(2,pathId);
-					 * psInsertHPathId2Uq.executeUpdate(); }
-					 */
+					
 
 					result.put(pathName, pathId);
 					idToPath.put(pathId, path);
@@ -4086,20 +4082,24 @@ public class ConfDB {
 			// if(streamId<0) continue;
 
 			for (int j = 0; j < stream.pathCount(); j++) {
-				Path path = stream.path(j);
-				int pathId = pathHashMap.get(path.name());
+				Path path = stream.path(j);				
 				// PrimaryDataset primaryDataset = stream.dataset(path); //TODO Here we have a
 				// problem. there could be more than one.
 				ArrayList<PrimaryDataset> primaryDatasets = stream.datasets(path);
-				int datasetId = -1;
 
-				// Make relation between Stream and Path, datasetId = -1.
-				if (primaryDatasets.size() == 0) {
+				for (int ds = 0; ds < primaryDatasets.size(); ds++) {
+					PrimaryDataset primaryDataset = primaryDatasets.get(ds);
+					if(primaryDataset.datasetPath()!=null){
+						//has a dataset path, thus new style and not to be added by this function
+						continue;
+					}
+					int datasetId = primaryDatasetHashMap.get(primaryDataset.name());
+					// datasetId = primaryDataset.databaseId();
 					try {
-						if (streamId > 0) {
+						if ((streamId > 0) || (datasetId > 0)) {
 							psInsertPathStreamPDAssoc.setInt(1, path.databaseId());
-							psInsertPathStreamPDAssoc.setInt(2, streamId);
-							psInsertPathStreamPDAssoc.setInt(3, datasetId);
+							psInsertPathStreamPDAssoc.setInt(2, stream.databaseId());
+							psInsertPathStreamPDAssoc.setInt(3, primaryDataset.databaseId());
 							psInsertPathStreamPDAssoc.executeUpdate();
 						}
 					} catch (SQLException e) {
@@ -4107,29 +4107,35 @@ public class ConfDB {
 								+ "(batch insert): " + e.getMessage();
 						throw new DatabaseException(errMsg, e);
 					}
-				} else {
-					// Next loop makes one or more than one relations between
-					// datasets/Streams/Paths.
-					for (int ds = 0; ds < primaryDatasets.size(); ds++) {
-						PrimaryDataset primaryDataset = primaryDatasets.get(ds);
-						datasetId = primaryDatasetHashMap.get(primaryDataset.name());
-						// datasetId = primaryDataset.databaseId();
-						try {
-							if ((streamId > 0) || (datasetId > 0)) {
-								psInsertPathStreamPDAssoc.setInt(1, path.databaseId());
-								psInsertPathStreamPDAssoc.setInt(2, stream.databaseId());
-								psInsertPathStreamPDAssoc.setInt(3, primaryDataset.databaseId());
-								psInsertPathStreamPDAssoc.executeUpdate();
-							}
-						} catch (SQLException e) {
-							String errMsg = "ConfDB::Event Content(config=" + config.toString() + ") failed "
-									+ "(batch insert): " + e.getMessage();
-							throw new DatabaseException(errMsg, e);
-						}
-					}
-				} // end
+				}
 			}
 		}
+	}
+
+	private void insertPathStreamPDAssocPathDatasets(HashMap<String, Integer> pathHashMap, HashMap<String, Integer> streamHashMap, HashMap<String, Integer> primaryDatasetHashMap, Configuration config, int configId)throws DatabaseException {
+		for (int streamNr = 0; streamNr < config.streamCount(); streamNr++) {
+			Stream stream = config.stream(streamNr);
+			int streamId = streamHashMap.get(stream.name());
+			for(int datasetNr = 0; datasetNr < stream.datasetCount(); datasetNr++){
+				PrimaryDataset dataset = stream.dataset(datasetNr);
+				int datasetId = primaryDatasetHashMap.get(dataset.name());				
+				if (dataset.datasetPath() != null) {
+					try {
+						if ((streamId > 0) || (datasetId > 0)) {
+							psInsertPathStreamPDAssoc.setInt(1, dataset.datasetPath().databaseId());
+							psInsertPathStreamPDAssoc.setInt(2, stream.databaseId());
+							psInsertPathStreamPDAssoc.setInt(3, dataset.databaseId());
+							psInsertPathStreamPDAssoc.executeUpdate();
+						}
+					} catch (SQLException e) {
+						String errMsg = "ConfDB::Event Content(config=" + config.toString() + ") failed "
+								+ "(batch insert): " + e.getMessage();
+						throw new DatabaseException(errMsg, e);
+					}
+				}
+			}
+		}
+
 	}
 
 	/** insert all instance parameters */
@@ -4374,7 +4380,8 @@ public class ConfDB {
 			return rs.getInt(1);
 		} catch (SQLException e) {
 			String errMsg = "ConfDB::getConfigNewId(fullConfigName=" + fullConfigName + ") failed (dirName=" + dirName
-					+ ", configName=" + configName + ",version=" + version + "): " + e.getMessage();
+					+ ", configName=" + configName + ",version=" + version + "): " + e.getMessage()
+					+ " \n This usually means the config doesnt exist, check you are in the correct database or for typos in the name";
 			throw new DatabaseException(errMsg, e);
 		} finally {
 			dbConnector.release(rs);
@@ -6344,6 +6351,7 @@ public class ConfDB {
 							+ "FROM   u_pathids       p                       " + "WHERE  p.id = ?                ");
 			preparedStatements.add(psSelectPathExtraFields);
 
+			//not used?
 			psInsertPathDescription = dbConnector.getConnection().prepareStatement(
 					"INSERT INTO u_paths (name,isEndPath, description, contact) " + "VALUES(?, ?, ?, ?)", keyColumn);
 			preparedStatements.add(psInsertPathDescription);
@@ -7322,6 +7330,7 @@ public class ConfDB {
 
 		return value;
 	}
+
 
 	//
 	// MAIN

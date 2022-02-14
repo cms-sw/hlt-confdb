@@ -22,6 +22,7 @@ public class ModuleInstance extends Instance implements Referencable {
 	/** list of references */
 	private ArrayList<ModuleReference> references = new ArrayList<ModuleReference>();
 
+	//note changing this does not trigger a "hasChanged" as this something which is not stored in the db
 	private int moduleType = 0; //0 = standard module, 1 = switch producer module
 	//
 	// construction
@@ -83,6 +84,30 @@ public class ModuleInstance extends Instance implements Referencable {
 		return list.toArray(new Path[list.size()]);
 	}
 
+	/** check if its on a dataset path */
+	public boolean isOnDatasetPath(){
+		for (int i = 0; i < referenceCount(); i++) {
+			Path[] paths = reference(i).parentPaths();
+			for (Path p : paths){
+				if(p.isDatasetPath()){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/** tests if a module is a dataset path filter, ie the filter which selects a dataset
+	 * basically it has to be of the correct type and a member of a dataset path
+	 */
+	public boolean isDatasetPathFilter() {
+		return template().name().equals(PrimaryDataset.pathFilterType()) && isOnDatasetPath();
+	}
+
+	public boolean isDatasetPathPrescaler() {
+		return template().name().equals("HLTPrescaler") && isOnDatasetPath();
+	}
+
 	/** set the name and propagate it to all relevant downstreams InputTags */
 	public void setNameAndPropagate(String name) throws DataException {
 		String oldName = name();
@@ -96,12 +121,13 @@ public class ModuleInstance extends Instance implements Referencable {
 		for (Path path : paths)
 			pathSet.add(path);
 
-		// as well as endpaths for outputmodules/eventcontents
+		// as well as finalpaths for outputmodules/eventcontents
+		// only final paths can have output modules
 		if (config() != null) {
 			Iterator<Path> itP = config().pathIterator();
 			while (itP.hasNext()) {
 				Path path = itP.next();
-				if (path.isEndPath()) {
+				if (path.isFinalPath()) {
 					pathSet.add(path);
 				}
 			}
@@ -208,10 +234,10 @@ public class ModuleInstance extends Instance implements Referencable {
 
 	}
 
+	/** no "hasChanged"	as moduleType is not stored in the db but just exists in the gui as a flag */
 	public void setModuleType(int val) {
 		if (val != moduleType) {
-			moduleType = val;	
-			setHasChanged();
+			moduleType = val;				
 		} 
 		
 	}

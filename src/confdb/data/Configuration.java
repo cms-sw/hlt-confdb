@@ -153,6 +153,10 @@ public class Configuration implements IConfiguration {
 		contents.clear();
 	}
 
+	public String hltOutputPathDefaultName(){
+		return "HLTOutput";
+	}
+
 	/** set the configuration info */
 	public void setConfigInfo(ConfigInfo configInfo) {
 		if (!configInfo.releaseTag().equals(releaseTag()))
@@ -354,6 +358,62 @@ public class Configuration implements IConfiguration {
 				return true;
 		return false;
 	}
+
+	public ArrayList<String> getNamesOfItemsChanged(){
+		ArrayList<String> namesOfItems = new ArrayList<String>();
+		if (hasChanged)
+			namesOfItems.add("Configuration:"+name());
+		if (psets.hasChanged())
+			namesOfItems.add("PSets:"+name());
+		for (EDAliasInstance geda : globalEDAliases)
+			if (geda.hasChanged())
+			namesOfItems.add("EDAliasInstance:"+geda.name());		
+		for (EDSourceInstance eds : edsources)
+			if (eds.hasChanged())
+				namesOfItems.add("EDSourceInstance:"+eds.name());		
+		for (ESSourceInstance ess : essources)
+			if (ess.hasChanged())				
+				namesOfItems.add("ESSourceInstance:"+ess.name());		
+		for (ESModuleInstance esm : esmodules)
+			if (esm.hasChanged())
+				namesOfItems.add("ESModuleInstance:"+esm.name());		
+		for (ServiceInstance svc : services)
+			if (svc.hasChanged())
+				namesOfItems.add("ServiceInstance:"+svc.name());
+		for (Path pth : paths)
+			if (pth.hasChanged())
+				namesOfItems.add("Path:"+pth.name());
+		for (Sequence seq : sequences)
+			if (seq.hasChanged())
+				namesOfItems.add("Sequence:"+seq.name());
+		for (Task tas : tasks)
+			if (tas.hasChanged())
+				namesOfItems.add("Task:"+tas.name());
+		for (EDAliasInstance eda : edaliases)
+			if (eda.hasChanged())
+				namesOfItems.add("EDAliasInstance:"+eda.name());
+		for (SwitchProducer swp : switchproducers)
+			if (swp.hasChanged())
+				namesOfItems.add("SwitchProducer:"+swp.name());
+		for (EventContent evc : contents)
+			if (evc.hasChanged())
+				namesOfItems.add("EventContent:"+evc.name());
+		Iterator<Stream> itS = streamIterator();
+		while (itS.hasNext()){
+			Stream stream  = itS.next();
+			if (stream.hasChanged())
+				namesOfItems.add("Stream:"+stream.name());
+		}
+		Iterator<PrimaryDataset> itD = datasetIterator();
+		while (itD.hasNext()){
+			PrimaryDataset pd = itD.next();
+			if (pd.hasChanged())
+				namesOfItems.add("PrimaryDataset:"+pd.name());	
+		}
+		return namesOfItems;
+
+	}
+
 
 	/** set the 'hasChanged' flag */
 	public void setHasChanged(boolean hasChanged) {
@@ -606,7 +666,7 @@ public class Configuration implements IConfiguration {
 	public int pathNotAssignedToStreamCount() {
 		int result = 0;
 		for (Path p : paths) {
-			if (p.isEndPath())
+			if (!p.isStdPath())
 				continue;
 			if (p.streamCount() == 0)
 				result++;
@@ -618,7 +678,7 @@ public class Configuration implements IConfiguration {
 	public int pathNotAssignedToDatasetCount() {
 		int result = 0;
 		for (Path p : paths) {
-			if (p.isEndPath())
+			if (!p.isStdPath())
 				continue;
 			if (p.datasetCount() == 0)
 				result++;
@@ -1638,6 +1698,61 @@ public class Configuration implements IConfiguration {
 		hasChanged = true;
 	}
 
+	/** generates all the output path for a streams if eligible 
+	 * overwriting if necessary
+	 * returns true something was actually inserted/changed otherwise false
+	 */
+	public boolean  insertOutputPath(Stream stream){
+		if(!stream.hasDatasetPath()){
+			return false;
+		}
+		
+		Path outPath = path(stream.outputPathName());
+		if(outPath==null){
+
+			outPath = insertPath(pathCount(),stream.outputPathName());
+			outPath.setAsFinalPath();
+			insertOutputModuleReference(outPath,0,stream.outputModule());
+			return true;			
+		} else if(!outPath.isOutputPathOfStream(stream)){
+			//old style output path, override
+			if((outPath.isEndPath() || outPath.isFinalPath()) && outPath.hasOutputModule()){
+				int index = indexOfPath(outPath);
+				removePath(outPath);
+				outPath = insertPath(index,stream.outputPathName());
+				outPath.setAsFinalPath();	
+				insertOutputModuleReference(outPath,0,stream.outputModule());
+				return true;
+			}else{
+				//path is not an output path, dont override and let config checks catch it
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}	
+
+	/** generates all the output paths for streams which are eligible 
+	 * overwriting if necessary
+	 * returns true if something was actually inserted
+	 */
+	public boolean generateOutputPaths(){
+		if(!hasDatasetPath()){
+			return false;
+		}
+		boolean changed = false;
+		Iterator<Stream> streamIt = streamIterator();
+		while(streamIt.hasNext()){
+			Stream stream = streamIt.next();
+			if(stream.hasDatasetPath()){
+				if(insertOutputPath(stream)){
+					changed = true;
+				}
+			}
+		}
+		return changed;
+	}
+
 	//
 	// Sequences
 	//
@@ -2072,6 +2187,82 @@ public class Configuration implements IConfiguration {
 		return datasets.iterator();
 	}
 
+	/**
+	 * returns true if any Dataset has a DatasetPath
+	 */
+	public boolean hasDatasetPath() {
+		//dont use datasetIterator as requires looping over all streams/datasets to 
+		//construct it, this is faster as we loop just till we get one with a
+		//dataset path which will likely be the first one
+		for(EventContent content : contents){
+			Iterator<Stream> streamIt = content.streamIterator();
+			while(streamIt.hasNext()){
+				Iterator<PrimaryDataset> datasetIt = streamIt.next().datasetIterator();
+			
+				while(datasetIt.hasNext()){
+					if(datasetIt.next().datasetPath()!=null){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * returns the DatasetPathFilter matching a given TriggerResultsFilter if exists, otherwise null
+	 * 
+	 * 
+	 */
+	public PrimaryDataset.PathFilter getDatasetPathFilter(ModuleInstance filterMod){
+		//dont use datasetIterator as requires looping over all streams/datasets to 
+		//construct it, although its not such a savingas the one above as we 
+		//will often loop through all the datasets
+		if(filterMod==null){
+			return null;
+		}		
+		for(EventContent content : contents){
+			Iterator<Stream> streamIt = content.streamIterator();
+			while(streamIt.hasNext()){
+				Iterator<PrimaryDataset> datasetIt = streamIt.next().datasetIterator();
+			
+				while(datasetIt.hasNext()){
+					PrimaryDataset dataset = datasetIt.next();
+					if(dataset.pathFilter()!=null && dataset.pathFilter().sameFilter(filterMod)){
+						return dataset.pathFilter();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public ArrayList<PrimaryDataset> getDatasetsWithFilter(PrimaryDataset.PathFilter pathFilter)
+	{
+		ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();    
+        Iterator<PrimaryDataset> pdIt = datasetIterator();
+        while(pdIt.hasNext()){
+            PrimaryDataset dataset = pdIt.next();
+            if(dataset.pathFilter() == pathFilter){
+                siblings.add(dataset);
+            } 
+		}
+		return siblings;
+	}
+
+	public ArrayList<PrimaryDataset> getDatasetsWithFilter(ModuleInstance pathFilter)
+	{
+		ArrayList<PrimaryDataset> siblings = new ArrayList<PrimaryDataset>();    
+        Iterator<PrimaryDataset> pdIt = datasetIterator();
+        while(pdIt.hasNext()){
+            PrimaryDataset dataset = pdIt.next();
+            if(dataset.pathFilter().sameFilter(pathFilter)){
+                siblings.add(dataset);
+            } 
+		}
+		return siblings;
+	}
+
 	//
 	// Blocks
 	//
@@ -2091,9 +2282,7 @@ public class Configuration implements IConfiguration {
 
 		ArrayList<EventContent> cList = new ArrayList<EventContent>();
 		ArrayList<Stream> sList = new ArrayList<Stream>();
-		ArrayList<PrimaryDataset> dList = new ArrayList<PrimaryDataset>();
-		ArrayList<Path> pList = new ArrayList<Path>();
-
+		ArrayList<PrimaryDataset> dList = new ArrayList<PrimaryDataset>();				
 		cList.clear();
 		int contentCount = 0;
 		Iterator<EventContent> itC = contentIterator();
@@ -2105,9 +2294,10 @@ public class Configuration implements IConfiguration {
 			while (itS.hasNext()) {
 				Stream s = itS.next();
 				int omrefs = 0;
+				
 				OutputModule om = s.outputModule();
 				if (om != null)
-					omrefs = om.referenceCount();
+					omrefs = om.referenceCount();				
 				dList.clear();
 				int pathCount = 0;
 				Iterator<PrimaryDataset> itD = s.datasetIterator();
@@ -2119,27 +2309,27 @@ public class Configuration implements IConfiguration {
 						pathCount += d.pathCount();
 					}
 				}
-				for (PrimaryDataset id : dList) {
-					pList.clear();
-					Iterator<Path> itP = id.pathIterator();
-					while (itP.hasNext()) {
-						Path p = itP.next();
-						pList.add(p);
-					}
-					for (Path ip : pList) {
-						s.removePath(ip);
-					}
+				for (PrimaryDataset id : dList) {										
 					s.removeDataset(id);
+					if(id.datasetPath()!=null){
+						this.removePath(id.datasetPath());
+						id.removeDatasetPath();
+					}					
 				}
-				pathCount += s.pathCount();
+				pathCount += s.pathCount();				
 				if (pathCount == 0) {
 					sList.add(s);
 				} else {
 					streamCount += pathCount;
 				}
 			}
-			for (Stream is : sList)
+			for (Stream is : sList){
 				c.removeStream(is);
+				Path streamOutputPath = path(is.outputPathName());
+				if(streamOutputPath!=null){
+					removePath(streamOutputPath);
+				}
+			}
 			if (streamCount == 0 || c.commandCount() == 0) {
 				cList.add(c);
 			} else {

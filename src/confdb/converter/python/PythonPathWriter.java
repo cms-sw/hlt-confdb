@@ -15,6 +15,8 @@ public class PythonPathWriter implements IPathWriter
 		String str = "";
 		if ( path.isEndPath() )
 			str = object + path.name() +  " = cms.EndPath( "; 
+		else if( path.isFinalPath() )
+			str = object + path.name() +  " = cms.FinalPath( "; 
 		else
 			str = object + path.name() +  " = cms.Path( "; 
 		

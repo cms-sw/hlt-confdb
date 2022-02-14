@@ -9,6 +9,7 @@ import confdb.data.PSetParameter;
 import confdb.data.Parameter;
 import confdb.data.Path;
 import confdb.data.PrescaleTable;
+import confdb.data.PrimaryDataset;
 import confdb.data.ServiceInstance;
 import confdb.data.SinglePathPrescaleTable;
 import confdb.data.StringParameter;
@@ -62,6 +63,19 @@ class PrescaleTableService {
 			jTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidth);
 		}
 	}
+	
+	/** adjust the width of each table column for scrolling */
+	public void adjustTableColumnWidthsScroll() {
+		int tableWidth = jTable.getPreferredSize().width;
+		int columnCount = jTable.getColumnModel().getColumnCount();
+		int headerWidth = (int) (tableWidth * 0.05);
+		jTable.getColumnModel().getColumn(0).setPreferredWidth(headerWidth);
+		for (int i = 1; i < columnCount; i++) {
+			int columnWidth = (tableWidth - headerWidth) / (columnCount - 1);
+			jTable.getColumnModel().getColumn(i).setPreferredWidth(columnWidth);
+		}
+		jTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+	}
 
 	/** Get the Row corresponding to the given Path */
 	public JTable getPrescaleTable(Path path) {
@@ -106,10 +120,23 @@ class PrescaleTableService {
 
 class SinglePathPrescaleTableModel extends PrescaleTableModel {
 
+	ArrayList<String> pathNamesToUpdate = new ArrayList<String>();
+	
 	/* Initialize the table with only one row - the given path */
 	public void initialize(IConfiguration config, Path path) {
 		prescaleTable = new SinglePathPrescaleTable(config, path);
 		fireTableDataChanged();
+
+			if(path.isDatasetPath()){
+				PrimaryDataset pd = config.dataset(path.name().replace(PrimaryDataset.datasetPathNamePrefix(),""));
+				ArrayList<PrimaryDataset> splitSiblings = pd.getSplitSiblings();
+				for(PrimaryDataset splitSibling : splitSiblings){
+					pathNamesToUpdate.add(splitSibling.datasetPathName());
+				}
+			}else{
+				pathNamesToUpdate.add(path.name());
+			}
+
 	}
 
 	/**
@@ -143,14 +170,14 @@ class SinglePathPrescaleTableModel extends PrescaleTableModel {
 		vpsetPrescaleTable.setValue("");
 
 		// Get the values of the modified path prescale.
-		String pathNameToUpdate = prescaleTable.pathName(0); // Zero because there is only one row.
+		// String pathNameToUpdate = prescaleTable.pathName(0); // Zero because there is only one row.
 		String PrescAsString = prescaleTable.prescalesAsString(0); // Zero because there is only one row.
 
 		for (int iPath = 0; iPath < fullTable.pathCount(); iPath++) {
 			String pathName = fullTable.pathName(iPath);
 			String prescalesAsString = fullTable.prescalesAsString(iPath);
 
-			if (pathName.compareTo(pathNameToUpdate) == 0) {
+			if (pathNamesToUpdate.contains(pathName) ) {
 				prescalesAsString = PrescAsString; // Overwrite values with the update.
 			} else {
 				if (!fullTable.isPrescaled(iPath))

@@ -7,6 +7,7 @@ import java.awt.event.*;
 
 import java.util.Iterator;
 import java.util.EventObject;
+import java.util.ArrayList;
 
 import confdb.data.*;
 
@@ -138,15 +139,56 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 				treeModel.nodeChanged(itC.next());
 		} else if (toBeEdited instanceof Stream) {
 			Stream stream = (Stream) toBeEdited;
+			if(config.stream(name)!=null){				
+				return toBeEdited;
+			}
 			stream.setName(name);
 			treeModel.nodeChanged(stream);
-			treeModel.nodeChanged(stream.outputModule());
+			treeModel.nodeChanged(stream.outputModule());			
 			treeModel.nodeStructureChanged(treeModel.streamsNode());
 			treeModel.nodeStructureChanged(treeModel.outputsNode());
+			Path streamOutputPath = config.path(stream.outputPathName());
+			if(streamOutputPath!=null){
+				treeModel.nodeChanged(streamOutputPath);
+				treeModel.nodeStructureChanged(treeModel.pathsNode());
+			}
 		} else if (toBeEdited instanceof PrimaryDataset) {
 			PrimaryDataset dataset = (PrimaryDataset) toBeEdited;
-			dataset.setName(name);
-			treeModel.nodeChanged(dataset);
+			
+			//so first we check if a dataset of that name exists
+			//this is important as splitSiblings will have their instance number
+			//we dont want to say rename EGamma[1-9] to Muon[1-9] if Muon already exists			
+			//we also check for  name clash for the dataset path to be safe
+			if(config.dataset(name)!=null || !config.isUniqueQualifier(PrimaryDataset.datasetPathName(name))) {
+				return toBeEdited;	
+			}
+			
+			//so the challenge is we want to make sure there are no name clashes
+			//before making any changes
+			//so for some reason this function calls twice, why I dont know 
+			//however it'll abort the second time due to a  name clash so all is well? sigh
+			ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();			
+			ArrayList<String> splitSiblingNewNames = new ArrayList<String>();
+			for(int index = 0;index<splitSiblings.size();index++){
+				PrimaryDataset splitSibling = splitSiblings.get(index);
+				String  newName = new String(name);
+				if(splitSiblings.size()!=1){
+					newName += splitSibling.splitInstanceNumber();
+				}
+				splitSiblingNewNames.add(newName);
+				if(config.dataset(newName)!=null ||
+					!config.isUniqueQualifier(PrimaryDataset.datasetPathName(newName)) ){
+					return toBeEdited;
+				}
+			}
+
+
+			for(int index = 0;index<splitSiblings.size();index++){			
+				PrimaryDataset splitSibling = splitSiblings.get(index);
+				splitSibling.setName(splitSiblingNewNames.get(index));
+				treeModel.nodeChanged(splitSibling);			
+			}
+			treeModel.nodeStructureChanged(treeModel.datasetsNode());
 		}
 
 		return toBeEdited;

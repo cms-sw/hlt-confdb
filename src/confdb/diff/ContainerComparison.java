@@ -51,8 +51,26 @@ public class ContainerComparison extends Comparison {
 				Path oldPath = (Path) oldContainer;
 				Path newPath = (Path) newContainer;
 				pathQualifier = "";
-				if (oldPath.isEndPath() != newPath.isEndPath()) {
-					pathQualifier += (newPath.isEndPath()) ? "[ENDPATH]" : "[PATH]";
+				if (oldPath.pathType() != newPath.pathType()) {
+					switch (newPath.pathType()) {
+						case STD:
+						pathQualifier += "[PATH]";
+						break;
+					case END:
+						pathQualifier += "[ENDPATH]";
+						break;
+					case FINAL:
+						pathQualifier += "[FINALPATH]";
+						break;
+					case DATASET:
+						pathQualifier += "[DATASETPATH]";
+						break;
+					default:
+						pathQualifier += "[UNKNOWNPATH]";
+						break;
+					}
+					
+
 				}
 				if (!oldPath.getDescription().equals(newPath.getDescription())) {
 					pathQualifier += "[Description]";

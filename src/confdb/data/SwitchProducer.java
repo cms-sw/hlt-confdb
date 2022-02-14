@@ -95,12 +95,12 @@ public class SwitchProducer extends ReferenceContainer {
 		for (Path path : paths)
 			pathSet.add(path);
 
-		// as well as endpaths for outputmodules/eventcontents
+		// as well as endpaths/finalpaths for outputmodules/eventcontents		
 		if (config() != null) {
 			Iterator<Path> itP = config().pathIterator();
 			while (itP.hasNext()) {
 				Path path = itP.next();
-				if (path.isEndPath()) {
+				if (path.isEndPath() || path.isFinalPath()) {
 					pathSet.add(path);
 				}
 			}

@@ -1141,8 +1141,10 @@ public class ConfDBV1 {
 						path.setDescription(pathDesc);
 						path.setContacts(pathCont);
 					}
-
-					path.setAsEndPath(flag);
+					//code is now setup to store this as an int to support
+					//finalpath and dataset path 
+					Path.Type pathType = Path.Type.values()[rsInstances.getInt(5)];
+					path.setType(pathType);
 					path.setDatabaseId(id);
 					idToPaths.put(id, path);
 				} else if (type.equals("Sequence")) {
@@ -1318,8 +1320,7 @@ public class ConfDBV1 {
 				if (stream == null)
 					continue;
 
-				EventContent eventContent = stream.parentContent();
-				stream.insertPath(path);
+				EventContent eventContent = stream.parentContent();				
 				path.addToContent(eventContent);
 
 				if (primaryDataset == null)
@@ -1929,7 +1930,11 @@ public class ConfDBV1 {
 				path.hasChanged();
 				String pathName = path.name();
 				int pathId = path.databaseId();
-				boolean pathIsEndPath = path.isSetAsEndPath();
+				//this is a hack, this is now an int in the latest version however
+				//we need to convert it back to a bool
+				//note this code is basically best effort but it should still work
+				//in the old scheme only Paths and EndPaths exist anyways
+				boolean pathIsEndPath = path.pathType().value!=0;
 				String description = path.getDescription();
 				String contacts = path.getContacts();
 

@@ -86,7 +86,9 @@ public class ConfDbGUI {
 	/** the import configuration */
 	private Configuration importConfig = null;
 
-	/** current parameter container (Instance | OuputModule) */
+	/** current parameter container (Instance | OuputModule)
+	 * has been repurposed over the years to be anything, including paths and datasets
+	 */
 	private Object currentParameterContainer = null;
 
 	/** ascii converter engine, to display config snippets (right-lower) */
@@ -159,6 +161,17 @@ public class ConfDbGUI {
 	private JTabbedPane jTabbedPaneRightLower = new JTabbedPane();
 	private JScrollPane jScrollPaneRightLower = new JScrollPane();
 	private JEditorPane jEditorPaneSnippet = new JEditorPane();
+
+	private JPanel jPanelDataset = new JPanel();
+	private JScrollPane jScrollPaneDatasetSplit = new JScrollPane();
+	private JScrollPane jScrollPaneDatasetClone = new JScrollPane();
+	private JTextField jTextFieldDatasetName = new JTextField();
+	private JTextArea jTextAreaDatasetSplit = new JTextArea();
+	private JTextArea jTextAreaDatasetClone = new JTextArea();
+	private JButton jButtonSaveDatasetPrescales = new JButton("Apply");
+	private JButton jButtonCancelDatasetPrescales = new JButton("Cancel");
+	private JScrollPane jScrollPaneDatasetPrescales = new JScrollPane();
+
 
 	private JComboBox jComboBoxEventContent = new JComboBox();
 	private JList jListStreams = new JList();
@@ -383,6 +396,25 @@ public class ConfDbGUI {
 
 				// Reload values
 				displayPathFields();
+			}
+		});
+
+		jButtonSaveDatasetPrescales.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if ((PrescaleTServ != null) && (PrescaleTServ.hasChanged())){
+					PrescaleTServ.savePrescales();
+				}				
+
+				jButtonSaveDatasetPrescales.setEnabled(false);
+				jButtonCancelDatasetPrescales.setEnabled(false);
+			}
+		});
+
+		jButtonCancelDatasetPrescales.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				jButtonSaveDatasetPrescales.setEnabled(false);
+				jButtonCancelDatasetPrescales.setEnabled(false);
+				displayDatasetPanel();
 			}
 		});
 
@@ -716,7 +748,8 @@ public class ConfDbGUI {
 
 	/** save a new version of the current configuration */
 	public void saveConfiguration(boolean askForComment) {
-		if (currentConfig.isEmpty() || !currentConfig.hasChanged() || currentConfig.isLocked() || !checkConfiguration())
+		if (currentConfig.isEmpty() || !currentConfig.hasChanged() || 
+			currentConfig.isLocked() || !ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		if (currentConfig.version() == 0) {
@@ -765,7 +798,7 @@ public class ConfDbGUI {
 
 	/** save the current configuration under a new name */
 	public void saveAsConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		boolean isLocked = currentConfig.isLocked();
@@ -912,25 +945,9 @@ public class ConfDbGUI {
 					// update/add:"+pathName);
 					external = importConfig.path(pathName);
 					if (external == null) {
-						// System.out.println("ConfDbGUI.diffConfiguration: path not found in
-						// importConfig - skip!");
-						// } else if ( ((Path)external).isEndPath() ) {
-						// System.out.println("ConfDbGUI.diffConfiguration: path is endpath - skip!");
+					
 					} else {
-						/*
-						 * ReferenceContainer internal = currentConfig.path(external.name()); if
-						 * (internal==null) { // System.out.
-						 * println("ConfDbGUI.diffConfiguration: path not found in currentConfig - add!"
-						 * ); internal =
-						 * currentConfig.insertPath(currentConfig.pathCount(),external.name());
-						 * ((Path)internal).setAsEndPath(((Path)external).isSetAsEndPath()); } //
-						 * System.out.println("ConfDbGUI.diffConfiguration: start "+pathName+" "
-						 * +external.name()+" "+internal.name()); // result =
-						 * ConfigurationTreeActions.DeepImportContainerEntriesSimulation(currentConfig,
-						 * importConfig, external, internal);
-						 */
-						// System.out.println("ConfDbGUI.diffConfiguration: start "+pathName+"
-						// "+external.name());
+									
 						result = ConfigurationTreeActions.DeepImportReferenceContainer(jTreeCurrentConfig, importConfig,
 								external);
 						if (!result)
@@ -972,8 +989,8 @@ public class ConfDbGUI {
 			if (pathComparison.result() == Comparison.RESULT_CHANGED) {
 				path = (Path) pathComparison.newContainer();
 
-				// no re-versioning of endpaths
-				if (path.isSetAsEndPath())
+				// no re-versioning of finalpaths, endpaths, datasetpaths
+				if (!path.isStdPath())
 					break;
 
 				oldName = path.name();
@@ -1182,7 +1199,7 @@ public class ConfDbGUI {
 	public void openPrescaleEditor() {
 		// NOTE: clearPathFields() is necessary to do not interfere with
 		// the embedded editor in the rightUpperPanel (documentation panel):
-		clearPathFields();
+		clearDatasetOrPathFields();
 
 		PrescaleDialog dialog = new PrescaleDialog(frame, currentConfig);
 		dialog.pack();
@@ -1254,6 +1271,12 @@ public class ConfDbGUI {
 			}
 		}
 	}
+
+	/** resets the GUI's config tree, handy for debugging GUI update bugs */
+	public void resetGUI(){
+		treeModelCurrentConfig.nodeStructureChanged(treeModelCurrentConfig.getRoot());
+		treeModelCurrentConfig.updateLevel1Nodes();
+	}
 	
 	/** add untracked parameter to the currently active component */
 	public void addTrackedVPsetParameter() {
@@ -1300,7 +1323,7 @@ public class ConfDbGUI {
 
 	/** migrate the current configuration to a new release */
 	public void migrateConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		MigrateConfigurationDialog dialog = new MigrateConfigurationDialog(frame, database);
@@ -1321,7 +1344,7 @@ public class ConfDbGUI {
 
 	/** convert the current configuration to a text file (ascii,python,html) */
 	public void convertConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		ConvertConfigurationDialog dialog = new ConvertConfigurationDialog(frame, currentConfig);
@@ -1463,7 +1486,7 @@ public class ConfDbGUI {
 
 	/** export the current configuration to a new database */
 	public void exportConfiguration() {
-		if (!checkConfiguration())
+		if (!ConfigChecks.pass(currentConfig,frame))
 			return;
 
 		ExportConfigurationDialog dialog = new ExportConfigurationDialog(frame, currentConfig.releaseTag(),
@@ -1807,95 +1830,9 @@ public class ConfDbGUI {
 		jToggleButtonImport.setEnabled(false);
 
 		jSplitPane.setRightComponent(jSplitPaneRight);
-		clearPathFields();
+		clearDatasetOrPathFields();
 	}
-
-	/** check if current configuration is in a valid state for save/convert */
-	private boolean checkConfiguration() {
-		if (currentConfig.isEmpty())
-			return false;
-
-		int unsetParamCount = currentConfig.unsetTrackedParameterCount();
-		if (unsetParamCount > 0) {
-			String msg = "current configuration contains " + unsetParamCount
-					+ " unset tracked parameters. They *should* be set before " + "saving/converting!";
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.WARNING_MESSAGE);
-		}
-
-		int emptyContainerCount = currentConfig.emptyContainerCount();
-		if (emptyContainerCount > 0) {
-			String msg = "current configuration contains " + emptyContainerCount
-					+ " empty containers (paths/sequences/tasks/switchProducers). "
-					+ "They must be filled before saving/converting!";
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
-		boolean unassignedPaths = false;
-		String streamsWithUnassigned = new String("");
-		Iterator<Stream> streamIt = currentConfig.streamIterator();
-		while (streamIt.hasNext()) {
-			Stream stream = streamIt.next();
-			if(stream.unassignedPathCount()!=0){
-				unassignedPaths = true;				
-				if(!streamsWithUnassigned.isEmpty()){
-					streamsWithUnassigned+=" ";
-				}
-				streamsWithUnassigned += stream.name();
-			}
-		}
-		if(unassignedPaths){
-			String msg = "current configuration has following streams \"" + streamsWithUnassigned+ "\"with unassigned paths, those paths must be removed from the streams before saving/converting!";			
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
-		Iterator<ModuleInstance> modIt = currentConfig.moduleIterator();
-		String taskModsOnSeqsPaths = new String();
-		int nrRows = 3;
-		while(modIt.hasNext()){
-			ModuleInstance mod = modIt.next();
-			ArrayList<Path> paths = new ArrayList<Path>();
-			ArrayList<Sequence> seqs = new ArrayList<Sequence>();
-			ArrayList<Task> tasks = new ArrayList<Task>();
-			for(int refNr=0;refNr<mod.referenceCount();refNr++){
-				Reference ref = mod.reference(refNr);
-				if(ref.container() instanceof Path){
-					paths.add((Path) ref.container());
-				}else if(ref.container() instanceof Sequence){
-					seqs.add((Sequence) ref.container());
-				}else if (ref.container() instanceof Task){
-					tasks.add((Task) ref.container());
-				}
-			}
-			if(tasks.size()!=0 && seqs.size()+paths.size()!=0){
-				nrRows+=4;
-				taskModsOnSeqsPaths+="\nmodule "+mod.name()+"\n   tasks:";
-				for(Task task: tasks) taskModsOnSeqsPaths+=" "+task.name();
-				taskModsOnSeqsPaths+="\n   sequences:";
-				for(Sequence seq: seqs) taskModsOnSeqsPaths+=" "+seq.name();
-				taskModsOnSeqsPaths+="\n   paths:";
-				for(Path path: paths) taskModsOnSeqsPaths+=" "+path.name();
-				taskModsOnSeqsPaths+="\n";
-			}
-		}
-		if(!taskModsOnSeqsPaths.isEmpty()){
-			String msg = new String("current configuration has modules on tasks which are directly on Sequences/Paths which is forbidden\nplease remove the offending modules below from the tasks or seq/paths\n");
-			msg+=taskModsOnSeqsPaths;			
-			JTextArea textArea = new JTextArea(msg);
-			JScrollPane scrollPane = new JScrollPane(textArea);  
-			//textArea.setLineWrap(true);  
-			//textArea.setWrapStyleWord(true); 
-			textArea.setColumns(80);
-			textArea.setRows(Math.min(nrRows,50));
-			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		
-
-		return true;
-	}
-
+	
 	/** set the current configuration */
 	private void setCurrentConfig(Configuration config) {
 		TreePath tp = jTreeCurrentConfig.getSelectionPath();
@@ -3298,7 +3235,7 @@ public class ConfDbGUI {
 	}
 
 	/** clear the paths fields panel - right upper area. */
-	private void clearPathFields() {
+	private void clearDatasetOrPathFields() {		
 		// Restore the original jPanelPlugin panel.
 		jSplitPaneRightUpper.setTopComponent(jPanelPlugin);
 		jScrollPaneParameters.setVisible(true);
@@ -3306,7 +3243,7 @@ public class ConfDbGUI {
 		jSplitPaneRightUpper.setDividerSize(-1);
 	}
 
-	/** displays the paths fields panel - right upper area. */
+	/** displays the paths fields panel - right upjSplitPaneRightUpper.getComponents()[0].equals(jPanelPathFields)per area. */
 	private void displayPathFields() {
 		// There only can be one Component. jPanelPathFields or jPanelPlugin.
 		if (jSplitPaneRightUpper.getComponents()[0].equals(jPanelPathFields))
@@ -3365,6 +3302,74 @@ public class ConfDbGUI {
 		jButtonSavePathFields.setEnabled(true);
 		jButtonCancelPathFields.setEnabled(true);
 	}
+
+
+	/** displays the paths fields panel - right upper area. */
+	private void displayDatasetPanel() {
+		// There only can be one Component. jPanelPathFields or jPanelPlugin or jPannelDataset
+		if (jSplitPaneRightUpper.getComponents()[0].equals(jPanelDataset))
+			return;
+
+		if (currentParameterContainer instanceof PrimaryDataset) {
+			PrimaryDataset dataset = (PrimaryDataset) currentParameterContainer;
+			jSplitPaneRightUpper.setDividerLocation(100); // Set the vertical size of the panel.
+			jSplitPaneRightUpper.setDividerSize(-1);
+			jSplitPaneRightUpper.setTopComponent(jPanelDataset);
+			jScrollPaneParameters.setVisible(false);
+			
+
+			jTextFieldDatasetName.setFont(GUIFontConfig.getFont(0));
+			jTextAreaDatasetClone.setFont(GUIFontConfig.getFont(0));
+			jTextAreaDatasetSplit.setFont(GUIFontConfig.getFont(0));
+
+			jTextFieldDatasetName.setText(dataset.nameWithoutInstanceNr());
+
+			String cloneStr = new String();
+			ArrayList<PrimaryDataset> cloneSiblings = dataset.getCloneSiblings();
+			cloneSiblings.remove(dataset);
+			for(PrimaryDataset cloneDataset : cloneSiblings){
+				cloneStr+=cloneDataset.name()+" : "+cloneDataset.parentStream().name()+"\n";
+			}
+			jTextAreaDatasetClone.setText(cloneStr);
+			
+			String splitStr = new String();
+			for(PrimaryDataset splitDataset : dataset.getSplitSiblings()){
+				splitStr+=splitDataset.name()+" : "+splitDataset.parentStream().name()+"\n";
+			}
+			jTextAreaDatasetSplit.setText(splitStr);
+			
+			
+			if(dataset.datasetPath()!=null){
+				// Set current configuration to the prescaleService
+				PrescaleTServ = new PrescaleTableService(currentConfig);
+				// Set prescales fot the current path.
+				jTablePrescales = PrescaleTServ.getPrescaleTableEditable(dataset.datasetPath());
+			
+				PrescaleTServ.adjustTableColumnWidthsScroll();
+				jTablePrescales.doLayout();
+
+			
+				jTablePrescales.getModel().addTableModelListener(new TableModelListener() {
+					public void tableChanged(TableModelEvent e) {
+						PrescaleTServ.setHasChanged(); 
+						jButtonSaveDatasetPrescales.setEnabled(true);
+						jButtonCancelDatasetPrescales.setEnabled(true);
+
+					}
+				});
+
+				jScrollPaneDatasetPrescales.setViewportView(jTablePrescales);
+				jScrollPaneDatasetPrescales.setVisible(true);
+			}else{
+				jScrollPaneDatasetPrescales.setVisible(false);
+			}
+		} else {
+			jTextAreaDatasetClone.setText(new String());
+			jTextAreaDatasetSplit.setText(new String());
+		}
+
+	}
+
 
 	/** display the configuration snippet for currently selected component */
 	private void displaySnippet() {
@@ -3874,6 +3879,10 @@ public class ConfDbGUI {
 			return;
 
 		Object node = e.getChildren()[0];
+		if (node instanceof PrimaryDataset){
+			displayDatasetPanel();
+		}
+
 		if (node instanceof EventContent)
 			fillEventContents();
 		else
@@ -3973,7 +3982,7 @@ public class ConfDbGUI {
 		if (jSplitPane.getRightComponent().equals(jPanelContentEditor))
 			jSplitPane.setRightComponent(jSplitPaneRight);
 
-		clearPathFields();
+		clearDatasetOrPathFields();
 
 		Parameter p = null;
 		while (node instanceof Parameter) {
@@ -4005,6 +4014,12 @@ public class ConfDbGUI {
 			displaySnippet();
 			if (currentParameterContainer instanceof Path)
 				displayPathFields();
+		} else if (node instanceof PrimaryDataset){			
+			clearParameters();
+			clearSnippet();
+			currentParameterContainer = node;
+			displayDatasetPanel();
+			
 		} else {
 			clearParameters();
 			clearSnippet();
@@ -4026,7 +4041,9 @@ public class ConfDbGUI {
 			return;
 		String contentName = selectedItem.toString();
 		EventContent content = currentConfig.content(contentName);
-		jTreeCurrentConfig.setSelectionPath(new TreePath(treeModelCurrentConfig.getPathToRoot(content)));
+		
+		//this appears to be the problem of the commodification bug, commenting it out
+		//jTreeCurrentConfig.setSelectionPath(new TreePath(treeModelCurrentConfig.getPathToRoot(content)));
 
 		// fill streams
 		DefaultListModel slm = (DefaultListModel) jListStreams.getModel();
@@ -5139,6 +5156,78 @@ public class ConfDbGUI {
 						.addComponent(jButtonSavePathFields, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
 								javax.swing.GroupLayout.PREFERRED_SIZE)));
 
+		//////////////////////////////////////////
+
+		// Datasets:
+
+		JLabel jLabelDatasetName = new JLabel();
+		jLabelDatasetName.setFont(GUIFontConfig.getFont(0));
+		jLabelDatasetName.setText("Dataset:");
+		
+		JLabel jLabelDatasetSplit = new JLabel();
+		jLabelDatasetSplit.setFont(GUIFontConfig.getFont(0));
+		jLabelDatasetSplit.setText("Splits:");
+		
+		JLabel jLabelDatasetClone = new JLabel();
+		jLabelDatasetClone.setFont(GUIFontConfig.getFont(0));
+		jLabelDatasetClone.setText("Clones:");
+		
+		jScrollPaneDatasetClone.setViewportView(jTextAreaDatasetClone);
+		jScrollPaneDatasetSplit.setViewportView(jTextAreaDatasetSplit);
+		jTextAreaDatasetClone.setEditable(false);
+		jTextAreaDatasetSplit.setEditable(false);
+		jTextFieldDatasetName.setEditable(false);
+
+		jButtonSaveDatasetPrescales.setEnabled(false);
+		jButtonCancelDatasetPrescales.setEnabled(false);
+		jPanelDataset.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+				/* set the elements: */
+				javax.swing.GroupLayout jPanelDatasetLayout = new javax.swing.GroupLayout(jPanelDataset);
+				jPanelDataset.setLayout(jPanelDatasetLayout);
+				// Using TRAILING alignment the button will be aligned to the right.
+				jPanelDatasetLayout.setHorizontalGroup(jPanelDatasetLayout.createSequentialGroup()
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+								.addComponent(jLabelDatasetName).addComponent(jLabelDatasetSplit)
+								.addComponent(jLabelDatasetClone).addComponent(jLabelPrescales))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+								.addComponent(jTextFieldDatasetName, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+								.addComponent(jScrollPaneDatasetSplit, javax.swing.GroupLayout.DEFAULT_SIZE, 400,
+										Short.MAX_VALUE)
+								.addComponent(jScrollPaneDatasetClone, javax.swing.GroupLayout.DEFAULT_SIZE, 400,
+										Short.MAX_VALUE)
+								.addComponent(jScrollPaneDatasetPrescales, javax.swing.GroupLayout.DEFAULT_SIZE, 708, Short.MAX_VALUE)
+								.addGroup(jPanelDatasetLayout.createSequentialGroup()
+										.addComponent(jButtonCancelDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
+												javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+										.addComponent(jButtonSaveDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
+												javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))));
+		
+				jPanelDatasetLayout.setVerticalGroup(jPanelDatasetLayout.createSequentialGroup()
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelDatasetName)
+								.addComponent(jTextFieldDatasetName, javax.swing.GroupLayout.DEFAULT_SIZE, 18, Short.MAX_VALUE))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelDatasetSplit).addComponent(jScrollPaneDatasetSplit,
+										javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelDatasetClone).addComponent(jScrollPaneDatasetClone, 80, 80, 80))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jLabelPrescales)
+								.addComponent(jScrollPaneDatasetPrescales, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(jPanelDatasetLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(jButtonCancelDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
+										javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(jButtonSaveDatasetPrescales, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
+										javax.swing.GroupLayout.PREFERRED_SIZE)));
+				
 		//////////////////////////////////////////
 
 		// Parameters Section:

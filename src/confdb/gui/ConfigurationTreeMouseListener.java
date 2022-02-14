@@ -1,11 +1,12 @@
 package confdb.gui;
 
+import javax.sound.sampled.TargetDataLine;
 import javax.swing.*;
 import javax.swing.tree.*;
 
 import java.awt.Color;
 import java.awt.event.*;
-
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -630,40 +631,54 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.addActionListener(pathListener);
 			menuItem.setActionCommand("NEWPATH");
 			popupPaths.add(menuItem);
+			//menuItem = new JMenuItem("Rm EndPaths with OutputMods");
+			//menuItem.addActionListener(pathListener);
+			//menuItem.setActionCommand("RMENDPATHS");
+			//popupPaths.add(menuItem);
 		}
 
 		// specific path is selected
 		if (depth == 3) {
 			Path path = (Path) node;
+			Boolean isFinalOrDatasetPath = path.isDatasetPath() || path.isFinalPath();
 
 			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
+			if(isFinalOrDatasetPath) addModuleMenu.setEnabled(false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
+			if(isFinalOrDatasetPath) addPathMenu.setEnabled(false);
 			popupPaths.add(addPathMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSequenceMenu.setEnabled(false);
 			popupPaths.add(addSequenceMenu);
 
 			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addTaskMenu.setEnabled(false);
 			popupPaths.add(addTaskMenu);
 
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSwitchProducerMenu.setEnabled(false);
 			popupPaths.add(addSwitchProducerMenu);
 
 			popupPaths.addSeparator();
 
 			menuItem = new JMenuItem("Rename Path");
+			if(path.isDatasetPath()) menuItem.setEnabled(false);
 			menuItem.addActionListener(pathListener);
+			
 			popupPaths.add(menuItem);
 
 			menuItem = new JMenuItem("Remove Path");
 			menuItem.addActionListener(pathListener);
+			if(path.isDatasetPath()) menuItem.setEnabled(false);
 			popupPaths.add(menuItem);
 
 			// Copy path request 75955
 			menuItem = new JMenuItem("Clone Path");
 			menuItem.addActionListener(pathListener);
+			if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 			popupPaths.add(menuItem);
 
 			// Clone path request 75955
@@ -671,6 +686,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (enablePathCloning) {
 				menuItem = new JMenuItem("Deep Clone Path");
 				menuItem.addActionListener(pathListener);
+				if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 			}
 
@@ -678,6 +694,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			// ASSIGN TO DATASET/STREAM MENU
 			popupPaths.addSeparator();
 			JMenu assignPathMenu = new ScrollableMenu("Assign to P.Dataset");
+			if(isFinalOrDatasetPath) assignPathMenu.setEnabled(false);
 			popupPaths.add(assignPathMenu);
 			Iterator<Stream> itST = config.streamIterator();
 			while (itST.hasNext()) {
@@ -720,6 +737,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			// bug #82526: add/remove path to/from a primary dataset
 			// REMOVE FROM THIS DATASET/STREAM
 			JMenu removePathMenu = new ScrollableMenu("Remove from P.Dataset");
+			if(isFinalOrDatasetPath) removePathMenu.setEnabled(false);
 			popupPaths.add(removePathMenu);
 			itST = config.streamIterator();
 			while (itST.hasNext()) {
@@ -764,14 +782,47 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			popupPaths.add(removePathMenu);
 
 			popupPaths.addSeparator();
-			JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem("endpath");
-			cbMenuItem.setState(path.isEndPath());
-			if (path.hasOutputModule())
-				cbMenuItem.setEnabled(false);
-			cbMenuItem.addItemListener(new PathItemListener(tree));
-			popupPaths.add(cbMenuItem);
+			
+			JMenu setPathTypeMenu = new JMenu("Set Path Type");
+			JRadioButtonMenuItem stdPathItem = new JRadioButtonMenuItem("StdPath",path.isStdPath());
+			JRadioButtonMenuItem endPathItem = new JRadioButtonMenuItem("EndPath",path.isEndPath());
+			JRadioButtonMenuItem finalPathItem = new JRadioButtonMenuItem("FinalPath",path.isFinalPath());
+			JRadioButtonMenuItem datasetPathItem = new JRadioButtonMenuItem("DatasetPath",path.isDatasetPath());
+			stdPathItem.setActionCommand("std");
+			endPathItem.setActionCommand("end");
+			finalPathItem.setActionCommand("final");
+			datasetPathItem.setActionCommand("dataset");
+
+			ButtonGroup pathTypeButtons = new ButtonGroup();
+			pathTypeButtons.add(stdPathItem);
+			pathTypeButtons.add(endPathItem);
+			pathTypeButtons.add(finalPathItem);
+			pathTypeButtons.add(datasetPathItem);
+			
+			setPathTypeMenu.add(stdPathItem);
+			setPathTypeMenu.add(endPathItem);
+			setPathTypeMenu.add(finalPathItem);
+			setPathTypeMenu.add(datasetPathItem);
+
+			//you can never set/unset manually a dataset path
+			//the fact the button exists is more to let the user see it was selected
+			//and thats why they cant select other options
+			datasetPathItem.setEnabled(false);
+			finalPathItem.setEnabled(false);		
+			if (isFinalOrDatasetPath){
+				stdPathItem.setEnabled(false);
+				endPathItem.setEnabled(false);				
+			}
+
+			stdPathItem.addActionListener(new PathTypeListener(tree));
+			endPathItem.addActionListener(new PathTypeListener(tree));
+			finalPathItem.addActionListener(new PathTypeListener(tree));
+			datasetPathItem.addActionListener(new PathTypeListener(tree));
+
+			popupPaths.add(setPathTypeMenu);
 
 			JMenu repPathMenu = createAddRepPathMenu(path, false);
+			if(isFinalOrDatasetPath) repPathMenu.setEnabled(false);
 			popupPaths.add(repPathMenu);
 
 			return;
@@ -780,19 +831,25 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		// a specific module/path/sequence/task reference is selected
 		if (depth == 4) {
 			Path path = (Path) parent;
+			Boolean isFinalOrDatasetPath = path.isDatasetPath() || path.isFinalPath();
 			JMenu addModuleMenu = createAddRepModuleMenu(path, null, pathListener, true, false);
+			if(isFinalOrDatasetPath) addModuleMenu.setEnabled(false);
 			popupPaths.add(addModuleMenu);
 
 			JMenu addPathMenu = createAddRepPathMenu(path, true);
+			if(isFinalOrDatasetPath) addPathMenu.setEnabled(false);
 			popupPaths.add(addPathMenu);
 
 			JMenu addSequenceMenu = createAddRepSequenceMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSequenceMenu.setEnabled(false);
 			popupPaths.add(addSequenceMenu);
 
 			JMenu addTaskMenu = createAddRepTaskMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addTaskMenu.setEnabled(false);
 			popupPaths.add(addTaskMenu);
 
 			JMenu addSwitchProducerMenu = createAddRepSPMenu(path, pathListener, false, true);
+			if(isFinalOrDatasetPath) addSwitchProducerMenu.setEnabled(false);
 			popupPaths.add(addSwitchProducerMenu);
 
 			popupPaths.addSeparator();
@@ -800,19 +857,24 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (node instanceof ModuleReference) {
 				menuItem = new JMenuItem("Remove Module");
 				menuItem.addActionListener(pathListener);
+				if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 
 				// CLONE OPTION:
 				menuItem = new JMenuItem("Clone Module");
 				menuItem.addActionListener(pathListener);
+				if(isFinalOrDatasetPath) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 
 				popupPaths.addSeparator();
-				popupPaths.add(createSetOperatorMenu((Reference) node, pathListener));
+				JMenu setOpMenu = createSetOperatorMenu((Reference) node, pathListener);
+				if(isFinalOrDatasetPath) setOpMenu.setEnabled(false);
+				popupPaths.add(setOpMenu);
 			}
 			if (node instanceof OutputModuleReference) {
 				menuItem = new JMenuItem("Remove OutputModule");
 				menuItem.addActionListener(pathListener);
+				if(path.isFinalPath()) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 			}
 			if (node instanceof PathReference) {
@@ -823,6 +885,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (node instanceof SequenceReference) {
 				menuItem = new JMenuItem("Remove Sequence");
 				menuItem.addActionListener(pathListener);
+				if(path.isDatasetPath()) menuItem.setEnabled(false);
 				popupPaths.add(menuItem);
 			}
 			if (node instanceof TaskReference) {
@@ -1273,12 +1336,22 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 		popupModules = new JPopupMenu();
 
 		if (depth == 3) {
+			ModuleInstance module = (ModuleInstance) node;
+			
 			menuItem = new JMenuItem("Rename Module");
 			menuItem.addActionListener(moduleListener);
+			boolean isPrescaler = module.template().name().equals("HLTPrescaler");
+			if(isPrescaler){
+				//we want the a dataset path filter to be able to be renamed, its name is not fixed
+				menuItem.setEnabled(false);				
+			}
 			popupModules.add(menuItem);
-
-			ModuleInstance module = (ModuleInstance) node;
+	
 			JMenu repModuleMenu = createAddRepModuleMenu(null, module, moduleListener, false, false);
+			if(isPrescaler || module.isDatasetPathFilter()){
+				repModuleMenu.setEnabled(false);
+			}
+			
 			popupModules.add(repModuleMenu);
 		}
 
@@ -1396,14 +1469,14 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 				jrbMenuItem.setSelected(true);
 			bg.add(jrbMenuItem);
 
+			popupStreams.addSeparator();
+			menuItem = new JMenuItem("Generate Output Paths");
+			menuItem.setActionCommand("GENERATEOUTPUT");
+			menuItem.addActionListener(streamListener);
+			popupStreams.add(menuItem);
 		} else if (depth == 3) {
 			Stream stream = (Stream) node;
 
-			// we are disabling the option to directly add a path 
-			//to a stream as we see no reason why we need this feature
-			//as you should add to the primary dataset directly
-			JMenu addPathMenu = new ScrollableMenu("Add Path");
-			//popupStreams.add(addPathMenu);
 
 			menuItem = new JMenuItem("Add Primary Dataset");
 			menuItem.addActionListener(streamListener);
@@ -1432,21 +1505,6 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			menuItem.setActionCommand("REMOVEUNASSIGNED");
 			popupStreams.add(menuItem);
 
-			ArrayList<Path> paths = new ArrayList<Path>();
-			Iterator<Path> itP = config.pathIterator();
-			while (itP.hasNext()) {
-				Path path = itP.next();
-				if (stream.indexOfPath(path) < 0)
-					paths.add(path);
-			}
-			Collections.sort(paths);
-			itP = paths.iterator();
-			while (itP.hasNext()) {
-				menuItem = new JMenuItem(itP.next().name());
-				menuItem.addActionListener(streamListener);
-				menuItem.setActionCommand("ADDPATH");
-				addPathMenu.add(menuItem);
-			}
 		} else if (depth == 4) {
 			ConfigurationTreeNode treeNode = (ConfigurationTreeNode) node;
 			if (model.streamMode().equals("paths")) {
@@ -1568,6 +1626,12 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 			if (config.streamCount() == 0)
 				menuItem.setEnabled(false);
 			popupDatasets.add(menuItem);
+			
+			menuItem = new JMenuItem("Convert To Path Based");
+			menuItem.addActionListener(datasetListener);
+			menuItem.setActionCommand("CONVERT");
+			popupDatasets.add(menuItem);
+			
 		} else if (depth == 3) {
 			PrimaryDataset dataset = (PrimaryDataset) node;
 
@@ -1581,6 +1645,18 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			popupDatasets.addSeparator();
 
+			menuItem = new JMenuItem("<html>Split <i>" + dataset.name() + "</i></html>");
+			menuItem.addActionListener(datasetListener);
+			menuItem.setActionCommand("SPLIT:"+ dataset.name());
+			popupDatasets.add(menuItem);
+
+			menuItem = new JMenuItem("<html>Clone <i>" + dataset.name() + "</i></html>");
+			menuItem.addActionListener(datasetListener);
+			menuItem.setActionCommand("CLONE:"+ dataset.name());
+			popupDatasets.add(menuItem);
+			
+			popupDatasets.addSeparator();
+			
 			menuItem = new JMenuItem("<html>Rename <i>" + dataset.name() + "</i></html>");
 			menuItem.addActionListener(datasetListener);
 			menuItem.setActionCommand("RENAME");
@@ -1602,7 +1678,7 @@ public class ConfigurationTreeMouseListener extends MouseAdapter {
 
 			while (itP.hasNext()) {
 				Path path = itP.next();
-				if (path.isEndPath())
+				if (!path.isStdPath())
 					continue;
 				Stream stream = dataset.parentStream();
 
@@ -2371,6 +2447,8 @@ class PathMenuListener implements ActionListener {
 			dialog.pack();
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
+		}else if (action.equals("RMENDPATHS")) {
+			ConfigurationTreeActions.rmEndPathsWithOutputMods(tree);
 		}
 		// add a module(-reference) to the currently selected path
 		else {
@@ -2760,9 +2838,7 @@ class StreamMenuListener implements ActionListener {
 			dlg.setVisible(true);
 			if (dlg.isSuccess())
 				ConfigurationTreeActions.insertStream(tree, dlg.stream());
-		} else if (action.equals("ADDPATH")) {
-			ConfigurationTreeActions.addPathToStream(tree, cmd);
-		} else if (action.startsWith("ADDDATASETTO:")) {
+		}  else if (action.startsWith("ADDDATASETTO:")) {
 			String streamName = action.split(":")[1];
 			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config);
 			dlg.fixStreamName(streamName);
@@ -2801,6 +2877,8 @@ class StreamMenuListener implements ActionListener {
 		} else if (action.startsWith("ADDPATHTO:")) {
 			String datasetName = action.split(":")[1];
 			ConfigurationTreeActions.addPathToDataset(tree, datasetName);
+		} else if (action.equals("GENERATEOUTPUT")){
+			ConfigurationTreeActions.generateStreamOutputPaths(tree);			
 		}
 	}
 }
@@ -2848,10 +2926,12 @@ class DatasetMenuListener implements ActionListener {
 			dlg.setLocationRelativeTo(frame);
 			dlg.setVisible(true);
 			if (dataset.hasChanged()) {
-				model.nodeStructureChanged(dataset);
-				model.nodeStructureChanged(dataset.parentStream());
+				ArrayList<PrimaryDataset> siblings = dataset.getSiblings();		
+				for(PrimaryDataset sibling : siblings) {
+					model.nodeStructureChanged(sibling);
+					model.nodeStructureChanged(sibling.parentStream());					
+				}
 				model.updateLevel1Nodes();
-
 				/////////////
 				// bug 86605:
 				// Editing datasets must update OutputModules from here and not
@@ -2860,22 +2940,25 @@ class DatasetMenuListener implements ActionListener {
 				// and Output Modules by checking the paths differences.
 				// Only recently added paths must be prescaled with 1.
 				// Compare list
-				ArrayList<Path> paths_later = new ArrayList<Path>();
-				paths_ = dataset.pathIterator();
-				while (paths_.hasNext())
-					paths_later.add(paths_.next());
+				// legacy code for old style datasets
+				if(dataset.datasetPath()==null){
+					ArrayList<Path> paths_later = new ArrayList<Path>();
+					paths_ = dataset.pathIterator();
+					while (paths_.hasNext())
+						paths_later.add(paths_.next());
 
-				// Select only new paths:
-				ArrayList<Path> newpaths = new ArrayList<Path>();
-				if (!paths.containsAll(paths_later)) {
-					for (int i = 0; i < paths_later.size(); i++) {
-						if (!paths.contains(paths_later.get(i)))
-							newpaths.add(paths_later.get(i));
+					// Select only new paths:
+					ArrayList<Path> newpaths = new ArrayList<Path>();
+					if (!paths.containsAll(paths_later)) {
+						for (int i = 0; i < paths_later.size(); i++) {
+							if (!paths.contains(paths_later.get(i)))
+								newpaths.add(paths_later.get(i));
+						}
 					}
-				}
 
-				Stream parentStream = dataset.parentStream();
-				ConfigurationTreeActions.updateFilter(config, parentStream, newpaths);
+					Stream parentStream = dataset.parentStream();
+					ConfigurationTreeActions.updateFilter(config, parentStream, newpaths);
+				}
 			}
 		} else if (action.equals("ADD")) {
 			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config);
@@ -2884,6 +2967,8 @@ class DatasetMenuListener implements ActionListener {
 			dlg.setVisible(true);
 			if (dlg.isSuccess())
 				ConfigurationTreeActions.insertPrimaryDataset(tree, dlg.dataset());
+		} else if(action.equals("CONVERT")) {
+			ConfigurationTreeActions.convertPDsToPathBased(tree);
 		} else if (action.equals("ADDPATH")) {
 
 			// if (cmd.startsWith("<html><b>")) cmd = cmd.substring(9);
@@ -2899,7 +2984,27 @@ class DatasetMenuListener implements ActionListener {
 		} else if (action.startsWith("MOVEPATH:")) {
 			String targetDatasetName = action.split(":")[1];
 			ConfigurationTreeActions.movePathToDataset(tree, targetDatasetName);
-		}
+		} else if (action.startsWith("SPLIT:")) {
+			String datasetToSplitName = action.split(":")[1];
+			SplitDatasetDialog dialog = new SplitDatasetDialog(null,datasetToSplitName);
+			dialog.pack();
+			dialog.setVisible(true);
+			if(dialog.isSuccess()){
+				ConfigurationTreeActions.splitPrimaryDataset(tree,datasetToSplitName,dialog.nrInstances());
+			}
+		} else if (action.startsWith("CLONE:")) {
+			String datasetToCloneName = action.split(":")[1];
+			PrimaryDataset datasetToClone = config.dataset(datasetToCloneName);
+			CreateDatasetDialog dlg = new CreateDatasetDialog(frame, config, datasetToClone);
+			dlg.pack();
+			dlg.setLocationRelativeTo(frame);
+			dlg.setVisible(true);
+			if (dlg.isSuccess()){
+				ConfigurationTreeActions.insertPrimaryDataset(tree, dlg.dataset());
+				//need to force a redraw of the datasetpanel by changing the node 				
+				model.nodeChanged(datasetToClone);
+			}
+		} 
 	}
 
 	private String cleanHtmlTags(String cmd) {
@@ -2942,9 +3047,45 @@ class PathItemListener implements ItemListener {
 	}
 
 	/** ItemListener.itemStateChanged() */
+	//FIX ME: set correct logic here to impliment rules for hcanging
+	//path type
 	public void itemStateChanged(ItemEvent e) {
 		JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getItemSelectable();
-		ConfigurationTreeActions.setPathAsEndpath(tree, item.isSelected());
+		if(item.isSelected()){
+			ConfigurationTreeActions.setPathAsEndPath(tree);
+		}else{
+			ConfigurationTreeActions.setPathAsStdPath(tree);
+		}
+		
+	}
+
+}
+
+class PathTypeListener implements ActionListener {
+	/** reference to tree */
+	private JTree tree = null;
+
+	/** constructor */
+	public PathTypeListener(JTree tree) {
+		this.tree = tree;
+	}
+
+	/** ItemListener.itemStateChanged() */
+	//FIX ME: set correct logic here to impliment rules for hcanging
+	//path type
+	public void actionPerformed(ActionEvent e) {
+		
+		JMenuItem source = (JMenuItem) (e.getSource());		
+		String action = source.getActionCommand();	
+		if (action.equals("std") ){
+			ConfigurationTreeActions.setPathAsStdPath(tree);
+		}else if (action.equals("end") ){
+			ConfigurationTreeActions.setPathAsEndPath(tree);
+		}else if (action.equals("final") ){
+			ConfigurationTreeActions.setPathAsFinalPath(tree);
+		}else if (action.equals("dataset") ){
+			ConfigurationTreeActions.setPathAsDatasetPath(tree);
+		}
 	}
 
 }

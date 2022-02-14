@@ -36,7 +36,8 @@ public class SinglePathPrescaleTable extends PrescaleTable {
 		defaultName="";
 		columnNames.clear();
 		rows.clear();
-		
+		rowSiblings.clear();
+
 		columnNames.add("Path");
 	 
 		ServiceInstance prescaleSvc = config.service("PrescaleService");
@@ -102,7 +103,14 @@ public class SinglePathPrescaleTable extends PrescaleTable {
 			    if (row==null) 	rows.add(new PrescaleTableRow(path.name(),prescaleCount()));
 			    else 			rows.add(row);				
 			}
-
+		}
+		//in theory should just need to set one entry as there is exacly one row
+		//but we will be generic as its no effort to be
+		for(int rowNr=0;rowNr<rows.size();rowNr++){
+			//only one entry so always 0
+			ArrayList<Integer> al = new ArrayList<Integer>();
+			al.add(rowNr);
+			rowSiblings.add(al);
 		}
     }
 }

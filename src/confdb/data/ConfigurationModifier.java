@@ -286,7 +286,7 @@ public class ConfigurationModifier implements IConfiguration {
 			Path out = new Path("output");
 			ModuleInstance outputI = modifications.outputModuleToBeAdded("out");
 			outputI.createReference(out, 0);
-			out.setAsEndPath(true);
+			out.setAsFinalPath();
 			paths.add(out);
 		}
 
@@ -694,7 +694,7 @@ public class ConfigurationModifier implements IConfiguration {
 		Iterator<Path> itP = pathIterator();
 		while (itP.hasNext()) {
 			Path path = itP.next();
-			if (path.isEndPath())
+			if (!path.isStdPath())
 				continue;
 			if (path.datasetCount() == 0)
 				result++;

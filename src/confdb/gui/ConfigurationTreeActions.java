@@ -2,7 +2,9 @@ package confdb.gui;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+
 import javax.swing.SwingWorker;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -637,17 +639,30 @@ public class ConfigurationTreeActions {
 		model.updateLevel1Nodes();
 	}
 
-	/** set a path as endpath */
-	public static void setPathAsEndpath(JTree tree, boolean isEndPath) {
+	public static void setPathType(JTree tree,Path.Type pathType) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		IConfiguration config = (IConfiguration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
-
 		Path path = (Path) treePath.getLastPathComponent();
-		path.setAsEndPath(isEndPath);
-		// config.setHasChanged(true);
+		path.setType(pathType);		
 		model.nodeChanged(path);
 	}
+
+	public static void setPathAsStdPath(JTree tree) {
+		setPathType(tree,Path.Type.STD);
+	}
+
+	public static void setPathAsEndPath(JTree tree) {
+		setPathType(tree,Path.Type.END);
+	}
+
+	public static void setPathAsFinalPath(JTree tree) {
+		setPathType(tree,Path.Type.FINAL);
+	}
+
+	public static void setPathAsDatasetPath(JTree tree) {
+		setPathType(tree,Path.Type.DATASET);
+	}
+	
 
 	/** insert a new path */
 	public static boolean insertPath(JTree tree) {
@@ -3187,6 +3202,27 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
+	/** remove all end paths with an output module */
+	public static boolean rmEndPathsWithOutputMods(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		Iterator<Path> pathIt = config.pathIterator();
+		ArrayList<Path> pathsToRm = new ArrayList<Path>();
+		while(pathIt.hasNext()){
+			Path path = pathIt.next();
+			if(path.isEndPath() && path.hasOutputModule()){
+				pathsToRm.add(path);				
+			}
+		}
+		if( !pathsToRm.isEmpty()) {
+			for(Path path : pathsToRm){
+				config.removePath(path);
+			}
+			model.nodeStructureChanged(model.getRoot());
+			model.updateLevel1Nodes();
+		}
+		return true;
+	}
 	/** remove a reference container */
 	public static boolean removeReferenceContainer(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
@@ -4452,9 +4488,6 @@ public class ConfigurationTreeActions {
 			Iterator<PrimaryDataset> itPD = oldPath.datasetIterator();
 			while (itPD.hasNext())
 				itPD.next().insertPath(newPath);
-			Iterator<Stream> itST = oldPath.streamIterator();
-			while (itST.hasNext())
-				itST.next().insertPath(newPath);
 			Iterator<EventContent> itEC = oldPath.contentIterator();
 			while (itEC.hasNext())
 				newPath.addToContent(itEC.next());
@@ -4686,20 +4719,12 @@ public class ConfigurationTreeActions {
 		OutputModule om = new OutputModule(external.outputModule().name(), stream);
 		stream.setOutputModule(om);
 
-		Iterator<Path> itP = external.pathIterator();
-		while (itP.hasNext()) {
-			String pathName = itP.next().name();
-			Path path = config.path(pathName);
-			if (path == null) {
-				System.out.println("importStream: skip path " + pathName);
-				continue;
-			}
-			stream.insertPath(path);
-		}
-
 		Iterator<PrimaryDataset> itPD = external.datasetIterator();
+		ArrayList<PrimaryDataset> externalPDs = new ArrayList<PrimaryDataset>();
 		while (itPD.hasNext()) {
-			PrimaryDataset dataset = itPD.next();
+			externalPDs.add(itPD.next());
+		}
+		for(PrimaryDataset dataset : externalPDs){
 			importPrimaryDataset(tree, stream.name(), dataset);
 		}
 
@@ -4743,57 +4768,18 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/**
-	 * add a path to an existing stream This function also updates the prescaler
-	 * modules
-	 */
-	public static boolean addPathToStream(JTree tree, String pathName) {
+	public static boolean generateStreamOutputPaths(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
-		TreePath treePath = tree.getSelectionPath();
-
-		Stream stream = (Stream) treePath.getLastPathComponent();
-		EventContent content = stream.parentContent();
-		Path path = config.path(pathName);
-
-		stream.insertPath(path);
-
-		if (model.contentMode().equals("paths"))
-			model.nodeInserted(content, content.indexOfPath(path));
-
-		if (model.streamMode().equals("paths"))
-			model.nodeInserted(stream, stream.indexOfPath(path));
-
-		Iterator<Stream> itS = content.streamIterator();
-		while (itS.hasNext()) {
-			OutputModule output = itS.next().outputModule();
-			PSetParameter psetSelectEvents = (PSetParameter) output.parameter("SelectEvents");
-			model.nodeChanged(psetSelectEvents.parameter(0));
-			if (output.referenceCount() > 0)
-				model.nodeStructureChanged(output.reference(0));
-		}
-
-		// Fixes the unassignedPathsList mess.
-		// I need to update the unassigned paths.
-		// NOTE: nothing but the last item of this container is a stringBuffer.
-		// the rest of the nodes are primaryDatasets (So we need to loop).
-		int index = model.getChildCount(stream);
-		for (int i = 0; i < index; i++) {
-			ConfigurationTreeNode unassignedPathsNode = (ConfigurationTreeNode) model.getChild(stream, i);
-			if (unassignedPathsNode.object() instanceof StringBuffer)
-				model.nodeStructureChanged(unassignedPathsNode);
-		}
-
+		
+		config.generateOutputPaths();
+		
+		model.nodeStructureChanged(model.getRoot());
 		model.updateLevel1Nodes();
-
-		// Feature/Bug 86605
-		ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
-		newPaths.add(path);
-		updateFilter(config, stream, newPaths); // To copy update prescaler.
-
+		
 		return true;
 	}
-
+	
 	/** remove a path from a stream */
 	// TODO deprecated method, sharing one path in more than one dataset.
 	/*
@@ -4935,7 +4921,10 @@ public class ConfigurationTreeActions {
 	//
 	// PrimaryDatasets
 	//
-	/** insert a newly created primary dataset */
+	/** insert a newly created primary dataset  in the config tree model
+	 * it may create a stream output path
+	 * note all newly created have a dataset path on creation
+	*/
 	public static boolean insertPrimaryDataset(JTree tree, PrimaryDataset dataset) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -4944,6 +4933,28 @@ public class ConfigurationTreeActions {
 
 		int index = config.indexOfDataset(dataset);
 		model.nodeInserted(model.datasetsNode(), index);
+		index = config.indexOfPath(dataset.datasetPath());
+		model.nodeInserted(model.pathsNode(), index);
+		
+		//we may need to generate a streams output path which is triggered if it has 
+		//a dataset path
+		//if insertOutputPath is true, we have always created a new path and need to
+		//insert it into the module
+		//however if the path existed before we also have to remove it first
+		//note: we dont change if its not an output path so it wont belong to streams/datasets
+		//      so we dont have to worry about removing from nodes other than path
+		Path oldStreamOutPath = config.path(dataset.parentStream().outputPathName());
+		int oldOutPathIndex = oldStreamOutPath!=null ? config.indexOfPath(oldStreamOutPath) : -1;
+		if(config.insertOutputPath(dataset.parentStream())){
+			
+			if(oldOutPathIndex!=-1){
+				model.nodeRemoved(model.pathsNode(),oldOutPathIndex,oldStreamOutPath);
+			}
+			Path streamOutPath = config.path(dataset.parentStream().outputPathName());
+			int outPathIndex = config.indexOfPath(streamOutPath);
+			model.nodeInserted(model.pathsNode(),outPathIndex);
+		}
+
 		if (model.streamMode().equals("datasets"))
 			model.nodeInserted(dataset.parentStream(), dataset.parentStream().indexOfDataset(dataset));
 
@@ -5000,56 +5011,243 @@ public class ConfigurationTreeActions {
 		return inserted;
 	}
 
+	public static boolean rmSplitPrimaryDatasetInstance(JTree tree, PrimaryDataset dataset, Stream stream)
+	{
+		ArrayList<PrimaryDataset> splitInstances  = dataset.getSplitSiblings();		
+		if(splitInstances.size()==1){
+			return removePrimaryDataset(tree,dataset,stream);
+		}
+
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		PrimaryDataset pdInstance0 = splitInstances.get(0);
+		//incase we are removing the first instance, the second is now the new instance 0
+		if(pdInstance0==dataset){ 
+			pdInstance0 = splitInstances.get(1);
+		}
+		int instanceNrRemoved = dataset.splitInstanceNumber();		
+		if(removePrimaryDataset(tree,dataset,stream)){					
+			splitInstances  = pdInstance0.getSplitSiblings();			
+			pdInstance0.updateSplitInstanceNrs();
+			for(PrimaryDataset pdInstance : splitInstances){
+				if(pdInstance.splitInstanceNumber()>=instanceNrRemoved){					
+					model.nodeChanged(pdInstance);
+				}
+			}
+
+			updateSplitDatasetPathPrescales(model, config, pdInstance0, splitInstances.size(), splitInstances.size()+1);			
+			return true;
+		}else{
+			return false;
+		}
+
+
+
+	}
+
+	/** splits the primary dataset, dataset must be path based for this to work
+	 * 
+	*/
+	public static boolean splitPrimaryDataset(JTree tree,String datasetName,int nrInstances)
+	{
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		PrimaryDataset dataset = config.dataset(datasetName);
+		ArrayList<PrimaryDataset> splitInstances  = dataset.getSplitSiblings();
+		PrimaryDataset pdInstance0 = splitInstances.get(0);
+		int initialNrSplitInstances = splitInstances.size();		
+		//we already have the correct number of instances
+		if(splitInstances.size()==nrInstances){
+			return false;
+		}else if(nrInstances<splitInstances.size()){			
+			//now we have to remove the extra instances
+			for(PrimaryDataset datasetInstance : splitInstances){
+				if(datasetInstance.splitInstanceNumber()>=nrInstances){					
+					removePrimaryDataset(tree,datasetInstance,datasetInstance.parentStream());
+				}
+			}
+			if(nrInstances==1){
+				//dataset is now unsplit so remove instance number from the name
+				pdInstance0.setName(pdInstance0.nameWithoutInstanceNr(false));
+				//need to adjust the model now
+				model.nodeChanged(pdInstance0);
+			}			
+		}else{			
+			Stream stream = pdInstance0.parentStream();
+			boolean firstTimeSplit = splitInstances.size()==1;
+			if(pdInstance0.splitInstanceNumber()!=0){
+				String errMsg = "Dataset Split Failure, Instance0 has instance nr "+pdInstance0.splitInstanceNumber()+"\nThis is taken from the DatasetPath prescale module\nThis should not be possible and represents a logic bug \nyou should report in the TSG ConfdbDev mattermost channel";
+				JOptionPane.showMessageDialog(null, errMsg, "Split Failure", JOptionPane.ERROR_MESSAGE,null);
+				return false;
+			}
+			
+			for(int instanceNr=splitInstances.size();instanceNr<nrInstances;instanceNr++){
+				PrimaryDataset splitDataset = stream.insertDataset(pdInstance0.nameWithoutInstanceNr()+instanceNr);
+				splitDataset.createDatasetPath(pdInstance0.pathFilter());
+				TreePath streamPath = new TreePath(model.getPathToRoot(stream));
+				TreePath oldPath = tree.getSelectionPath();
+				tree.setSelectionPath(streamPath);
+				ConfigurationTreeActions.insertPrimaryDataset(tree,splitDataset);
+				tree.setSelectionPath(oldPath);
+			}
+			if(firstTimeSplit){
+				//we are splitting dataset for the first time so add instance number to the name
+				//note we are doing this after making the other datasets so primary dataset is aware it has
+				//split siblings when renaming itself (and thus can properly deal with the instance number)
+				//it also helps when reutrning its name for the newly split datasets above
+				pdInstance0.setName(pdInstance0.name()+pdInstance0.splitInstanceNumber());
+				//need to adjust the model now
+				model.nodeChanged(pdInstance0);
+			}
+			
+
+		}
+		updateSplitDatasetPathPrescales(model,config, pdInstance0, nrInstances, initialNrSplitInstances);
+		return true;
+
+	}
+
 	/**
-	 * movePrimaryDataset Uses sourceTree and targetTree to retrieve the transferred
-	 * components NOTE: - Launch an error message to the user and revert the
-	 * operation in case of failure. - When a Primary Dataset is transferred/moved
-	 * from one stream to another, paths are not removed from the parent source
-	 * stream. bug/feature 88066
+	 * adjusts the values of the datasetpaths of a split dataset where approprate
+	 * eg, ensuring the prescale is always equal to or greater (unless 0) of the number of datasets
+	 */
+	public static void updateSplitDatasetPathPrescales(ConfigurationTreeModel model,IConfiguration config,PrimaryDataset dataset,int nrInstances,int oldNrInstances){
+		//now lets adjust the prescales
+		PrescaleTable psTbl = new PrescaleTable(config);
+		PrescaleTableModel psTblModel = new PrescaleTableModel();
+		psTblModel.initialize(psTbl);
+	
+		int rowNr = psTbl.rowNr(dataset.datasetPathName());
+		ArrayList<Long> prescales = psTbl.prescales(rowNr);
+		for(int colNr=0;colNr<prescales.size();colNr++){
+			Long prescale = prescales.get(colNr);
+			if( (prescale<nrInstances && prescale!=0) ||
+				prescale.equals(Long.valueOf(oldNrInstances))){
+				psTbl.setPrescale(rowNr,colNr,nrInstances);
+			}else{
+				//we set it agian to automatically propagate it to any new paths
+				psTbl.setPrescale(rowNr,colNr,prescale);
+			}
+		}			
+		psTblModel.updatePrescaleService(config);
+	
+		ArrayList<PrimaryDataset> splitSiblings = dataset.getSplitSiblings();
+		for(PrimaryDataset sibling : splitSiblings){
+			model.nodeChanged(sibling);
+		}
+
+	}
+
+
+	/**
+	 * converts all datasets of a config to the new path based ones
+	 * does this by just generating the DatasetPath
+	 * in general this is just to ease migration and will become redudant in time
+	 */
+
+	public static boolean convertPDsToPathBased(JTree tree) {
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+		Iterator<PrimaryDataset> datasetIt = config.datasetIterator();
+		while(datasetIt.hasNext()){
+			PrimaryDataset dataset = datasetIt.next();
+			dataset.createDatasetPath();
+		}		
+		//now we need to make the output path as its triggered by path based datasets
+		config.generateOutputPaths();
+		
+		model.nodeStructureChanged(model.getRoot());
+		model.updateLevel1Nodes();
+		
+		return true;
+	}
+	
+
+
+
+	/**
+	 * this function has been re-worked with the big dataset update
+	 * 1) it now moves rather than deletes then adds (easier to deal with the dataset + dataset path)
+	 * 2) it only works when the source and target tree is identical, so far its not thought
+	 *    there is a case where they are different, it would need to be reworked for this
+	 * 3) because of contraint 2, we no longer have to worry about moving paths over etc 
+	 *    which simplifies the logic
+	 * 4) finally this path assumes that a PrimaryDataset can belong to exactly 1 stream
 	 */
 	public static boolean movePrimaryDataset(JTree sourceTree, JTree targetTree, PrimaryDataset dataset) {
 
-		TreePath targetPath = targetTree.getSelectionPath();
-		Object targetNode = targetPath.getLastPathComponent();
-		ConfigurationTreeModel sourceModel = (ConfigurationTreeModel) sourceTree.getModel();
-		Configuration config = (Configuration) sourceModel.getRoot();
+		if(sourceTree!=targetTree){
+			String errMsg = "Move Primary Dataset Failed";
+			String moreDetail = "We are currently constrained only to move between the same config and not across configs.\nPlease ping the TSG mattermost (ConfdbDev or HLT User Support) to report this issue as we thought cross config PD moving was not required";
 
-		// Remove
-		TreePath SourcePath = new TreePath(sourceModel.getPathToRoot(dataset));
-		sourceTree.setSelectionPath(SourcePath);
-		ConfigurationTreeActions.removePrimaryDataset(sourceTree);
-
-		// Insert
-		TreePath TargetPath = new TreePath(sourceModel.getPathToRoot(targetNode));
-		targetTree.setSelectionPath(TargetPath);
-		boolean ok = ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(targetTree, dataset);
-
-		if (!ok) {
-			// REVERT THE OPERATION
-
-			// Restore the dataset to the previous Stream:
-			SourcePath = new TreePath(sourceModel.getPathToRoot(dataset.parentStream())); // Point to the parent Stream.
-			sourceTree.setSelectionPath(SourcePath);
-			ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(sourceTree, dataset);
-
-			// ERROR:
-			// Add the configuration details:
-			AboutDialog ad = new AboutDialog(null); // Only to get version and contact info. //DONT SHOW DIALOG!
-			String StackTrace = "ConfDb Version: " + ad.getConfDbVersion() + "\n";
-			StackTrace += "Release Tag: " + config.releaseTag() + "\n";
-			StackTrace += "Configuration: " + config.name() + "\n";
-			StackTrace += "-----------------------------------------------------------------\n";
-			StackTrace += "ERROR: ConfigurationTreeActions.insertPrimaryDatasetPathsIncluded(targetTree, pset); \n";
-			StackTrace += "ERROR: PrimaryDataset.insertPath() \n";
-
-			String errMsg = "Drag and Drop operation FAILED!\n"
-					+ "path already associated with dataset in the parent stream!\n";
-
-			errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, StackTrace);
+			errorNotificationPanel cd = new errorNotificationPanel("ERROR", errMsg, moreDetail);
 			cd.createAndShowGUI();
+			return false;
+		}
+		
+		//Datasets only exist as part of a stream in the config
+		//1) remove the dataset from source stream, this will remove it from the config but remove
+		//   the dataset path
+		//2) add the dataset to the target stream, it will add it back to the config but also not 
+		//   touch the dataset path
+		//3) we now need to adjust the model, specifically we need to
+		//   a) remove the dataset from source stream
+		//   b) add the dataset in the target stream		
+		//   c) no change is needed to the dataset as its alphabetical 
+		//   d) however we do need to update the event content dataset /path view as the order of
+		//      is stream based. Dataset is not so bad but paths have massive changes therefore
+		//      we will reset it
+	
+
+
+		TreePath targetPath = targetTree.getSelectionPath();
+		Object targetNode = targetPath.getLastPathComponent();		
+		ConfigurationTreeModel model = (ConfigurationTreeModel) targetTree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		Stream targetStream = null;
+		if (targetNode instanceof Stream) {
+			targetStream = (Stream) targetNode;			
+		} else if (targetNode instanceof ConfigurationTreeNode) {
+			ConfigurationTreeNode treeNode = (ConfigurationTreeNode) targetNode;			
+			targetStream = (Stream) treeNode.object();
+		//	tree.setSelectionPath(treePath.getParentPath());
+		}
+		Stream sourceStream = dataset.parentStream();
+		//we are disabling dataset moving accross event contents when they have 
+		//siblings as it would change the status of split/clone
+		//we can support this but in a rush so disabling for now till we can put the logic in
+		//which properly handles the changing of a clone to split of an instance
+		if(sourceStream.parentContent()!=targetStream.parentContent() && 
+			dataset.getSiblings().size()!=1){
+			String msg = "A dataset with siblings can not currently move between streams with different event content.\n Please remove the siblings or clone to a different stream.\n We can impliment this feature if needed, report it in the TSG ConfdbDev Mattermost channel";
+			JOptionPane.showMessageDialog(null, msg, "", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
 
-		return ok;
+		int sourceIndex = dataset.parentStream().indexOfDataset(dataset);
+		dataset.parentStream().removeDataset(dataset);
+		targetStream.insertDataset(dataset);
+		int targetIndex = dataset.parentStream().indexOfDataset(dataset);
+		model.nodeRemoved(sourceStream, sourceIndex, dataset);
+		model.nodeInserted(targetStream, targetIndex);
+
+		//we now need to check if we had to make or remake the streams output path
+		Path oldStreamOutPath = config.path(dataset.parentStream().outputPathName());
+		int oldOutPathIndex = oldStreamOutPath!=null ? config.indexOfPath(oldStreamOutPath) : -1;
+		if(config.insertOutputPath(dataset.parentStream())){
+			
+			if(oldOutPathIndex!=-1){
+				model.nodeRemoved(model.pathsNode(),oldOutPathIndex,oldStreamOutPath);
+			}
+			Path streamOutPath = config.path(dataset.parentStream().outputPathName());
+			int outPathIndex = config.indexOfPath(streamOutPath);
+			model.nodeInserted(model.pathsNode(),outPathIndex);
+		}
+
+		model.nodeStructureChanged(model.contentsNode());
+		model.updateLevel1Nodes();
+		return true;
 	}
 
 	/**
@@ -5108,35 +5306,86 @@ public class ConfigurationTreeActions {
 			return false;
 		}
 
-		PrimaryDataset dataset = stream.insertDataset(external.name());
-		if (dataset == null) {
-			if (config.dataset(external.name()) != null) {
-				System.err.println("dataset already exists in the stream!");
+		PrimaryDataset dataset = null;
+		boolean updatePaths = false;
+
+		ModuleInstance externalPathFilter = external.pathFilterMod();
+		if(externalPathFilter == null){
+			//old style dataset
+			if( config.isUniqueQualifier(external.pathFilterDefaultName()) && 
+				config.isUniqueQualifier(external.datasetPathName()) &&
+			   	config.dataset(external.name())==null)  
+			   {				
+				dataset = stream.insertDataset(external.name());
+				dataset.createDatasetPath();
+				updatePaths = true;
+			}else{
+				System.err.println("error the dataset "+external.name()+", its datasetpath or its datasetpathfilter already exists in the menu");
 				return false;
 			}
-			dataset = stream.dataset(external.name());
-		}
+		}else{
+			//new style dataset which may be split
+			ModuleInstance datasetPathFilterMod = config.module(externalPathFilter.name());
+			String name = null;
+			PrimaryDataset instance0ToRename = null;
 
-		Iterator<Path> itP = external.pathIterator();
-		while (itP.hasNext()) {
-			String pathName = itP.next().name();
-			Path path = config.path(pathName);
-			if (path == null) {
-				System.out.println("importPrimaryDataset: skip path " + pathName);
-				continue;
+			if (datasetPathFilterMod != null) {
+				ArrayList<PrimaryDataset> splitSiblings = config.getDatasetsWithFilter(datasetPathFilterMod);
+				final EventContent content = stream.parentContent();
+				splitSiblings.removeIf((PrimaryDataset d) -> d.parentStream().parentContent() != content);
+				if (!splitSiblings.isEmpty() && external.getSplitSiblings().size()>1) {
+					int instanceNr = splitSiblings.size();
+					name = external.nameWithoutInstanceNr() + instanceNr;	
+					if(instanceNr==1){
+						//dataset is being split for the first time, we'll need to rename the 0th instance
+						instance0ToRename = splitSiblings.get(0);
+					}
+				} else {
+					name = external.nameWithoutInstanceNr();					
+				}
+			} else {
+				name = external.nameWithoutInstanceNr();
+				updatePaths = true;
 			}
-			dataset.insertPath(path);
+				
+			if(config.dataset(name)==null && config.isUniqueQualifier(PrimaryDataset.datasetPathName(name))){
+				dataset = stream.insertDataset(name);
+				dataset.createDatasetPath(config.getDatasetPathFilter(datasetPathFilterMod));
+				if(instance0ToRename!=null){
+					instance0ToRename.setName(instance0ToRename.name() + instance0ToRename.splitInstanceNumber());
+					model.nodeChanged(instance0ToRename);
+				}
+			}else{
+				System.err.println("error dataset "+name+" from source pd "+external.name()+"already exists as a dataset or dataset path. Note can only add to dataset instances if source was also split");
+				return false;
+			}
 		}
-
-		model.nodeInserted(model.datasetsNode(), config.indexOfDataset(dataset));
+				
+		TreePath streamPath = new TreePath(model.getPathToRoot(stream));
+		TreePath oldPath = tree.getSelectionPath();
+		tree.setSelectionPath(streamPath);
+		ConfigurationTreeActions.insertPrimaryDataset(tree,dataset);
+		tree.setSelectionPath(oldPath);	
+				
+		if(updatePaths) {
+			Iterator<Path> itP = external.pathIterator();
+			while (itP.hasNext()) {
+				String pathName = itP.next().name();
+				Path path = config.path(pathName);
+				if (path == null) {
+					System.out.println("importPrimaryDataset: skip path " + pathName);
+					continue;
+				}
+				dataset.insertPath(path);
+			}
+		}		
 
 		return true;
 	}
 
 	/** remove an existing primary dataset */
 	public static boolean removePrimaryDataset(JTree tree) {
-		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
-		Configuration config = (Configuration) model.getRoot();
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();		
 		TreePath treePath = tree.getSelectionPath();
 		Object node = treePath.getLastPathComponent();
 		PrimaryDataset dataset = null;
@@ -5151,20 +5400,72 @@ public class ConfigurationTreeActions {
 			stream = (Stream) treeNode.parent();
 			tree.setSelectionPath(treePath.getParentPath());
 		}
+		//so here we have to treat removing a split instance of a dataset diffently
+		//if we remove one instance, we should adjust the numbering of all others
+		int nrSplitSiblings = dataset.getSplitSiblings().size();
+		if(nrSplitSiblings>1){
+			return rmSplitPrimaryDatasetInstance(tree, dataset, stream);
+		}else{
+			return removePrimaryDataset(tree,dataset,stream);
+		}
+	}
+
+	/** removes the primary dataset when given a dataset and stream 
+	 * note the stream seems redundant as should be dataset.parentStream
+	 * but in the spirit of not changing too much from the original function
+	 * we will pass in the stream and if null set it to the parentStream
+	 * 
+	*/
+	public static boolean removePrimaryDataset(JTree tree,PrimaryDataset dataset,Stream stream) {
+		
+		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
+		Configuration config = (Configuration) model.getRoot();
+
+		if(stream==null){
+			stream = dataset.parentStream();
+		}
 
 		int index = config.indexOfDataset(dataset);
 		int indexStream = stream.indexOfDataset(dataset);
 
+		//we need the node index to set the correct tree path later
+		TreePath treePath = tree.getSelectionPath();
+		Object selected = treePath.getLastPathComponent();
+		int selectedIndex = -1;
+		if(selected instanceof PrimaryDataset){
+			selectedIndex = config.indexOfDataset((PrimaryDataset) selected);
+		}
+
 		stream.removeDataset(dataset);
 		model.nodeRemoved(model.datasetsNode(), index, dataset);
 		model.nodeRemoved(stream, indexStream, dataset);
-		model.nodeStructureChanged(model.contentsNode());
-		Iterator<Path> itP = dataset.pathIterator();
-		while (itP.hasNext())
-			model.nodeInserted(model.getChild(stream, stream.datasetCount()),
-					stream.listOfUnassignedPaths().indexOf(itP.next()));
+		if(dataset.datasetPath()!=null){			
+			Path datasetPath = dataset.datasetPath();
+			int indxDatasetPath = config.indexOfPath(datasetPath);
+			config.removePath(datasetPath);			
+			model.nodeRemoved(model.pathsNode(),indxDatasetPath,datasetPath);
+			dataset.removeDatasetPath();
+		}
+		
+		
+
+		model.nodeStructureChanged(model.contentsNode());		
 		model.updateLevel1Nodes();
 
+		//so now we update the model
+		//updating l1 nodes clears our selection so we need to get it back
+		//we also need to figure out which we select too
+		//basically if our dataset was the node being removed, its now points to the index below that
+		//however if not, we need to figure out the new index of that node	
+		treePath = new TreePath(model.getPathToRoot(model.datasetsNode()));	
+		if(selectedIndex == index){		
+			tree.setSelectionPath(treePath.pathByAddingChild(model.getChild(model.datasetsNode(), index-1)));
+		}else if(selectedIndex!=-1 && selectedIndex < index){
+			tree.setSelectionPath(treePath.pathByAddingChild(model.getChild(model.datasetsNode(), selectedIndex)));
+		}else if(selectedIndex> index){
+			tree.setSelectionPath(treePath.pathByAddingChild(model.getChild(model.datasetsNode(), selectedIndex-1)));
+		}
+		
 		return true;
 	}
 
@@ -5215,25 +5516,21 @@ public class ConfigurationTreeActions {
 			stream = dataset.parentStream();
 		}
 
-		int index = -1;
-		if (stream.indexOfPath(path) < 0)
-			stream.insertPath(path);
-		else
-			index = stream.listOfUnassignedPaths().indexOf(path);
-
-		// bug/feature #93322 Remove GUI and database restriction to share a path in
-		// more than one PrimaryDataset in a Stream.
+		
+		// datasets can be linked to each other, they will all update automatically
+		// but we need to adjust their nodes individually
 		if (dataset.path(path.name()) == null) {
-			dataset.insertPath(path);
-			model.nodeInserted(dataset, dataset.indexOfPath(path));
-			if (model.streamMode().equals("datasets")) {
-				model.nodeInserted(model.getChild(stream, stream.indexOfDataset(dataset)), dataset.indexOfPath(path));
-				if (index != -1) {
-					model.nodeRemoved(model.getChild(stream, stream.datasetCount()), index, path);
+			dataset.insertPath(path); //adds it to all paths
+			int index = dataset.indexOfPath(path);
+			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();			
+			for(PrimaryDataset sibling : siblings) {	
+				model.nodeInserted(sibling, index);
+				if (model.streamMode().equals("datasets")) {
+					
+					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), index);					
 				}
 			}
-		}
-
+		}		
 		model.nodeChanged(path);
 		model.updateLevel1Nodes();
 
@@ -5274,26 +5571,26 @@ public class ConfigurationTreeActions {
 			tree.setSelectionPath(treePath.getParentPath());
 		}
 
-		int index = -1;
-		if (stream.indexOfPath(path) < 0)
-			stream.insertPath(path);
-		else
-			index = stream.listOfUnassignedPaths().indexOf(path);
-
-		boolean inserted = dataset.insertPath(path);
+		boolean inserted = dataset.insertPath(path);		
 		if (inserted) {
-			model.nodeInserted(dataset, dataset.indexOfPath(path));
-			if (model.streamMode().equals("datasets")) {
-				model.nodeInserted(model.getChild(stream, stream.indexOfDataset(dataset)), dataset.indexOfPath(path));
-				model.nodeRemoved(model.getChild(stream, stream.datasetCount()), index, path);
-			}
-			// model.nodeChanged(path);
-			// model.updateLevel1Nodes();
+			int index = dataset.indexOfPath(path);
+			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();			
+			
+			for(PrimaryDataset sibling : siblings) {	
+				model.nodeInserted(sibling, index );
+				if (model.streamMode().equals("datasets")) {
+					model.nodeInserted(model.getChild(sibling.parentStream(), sibling.parentStream().indexOfDataset(sibling)), index);
+				}
+				// model.nodeChanged(path);
+				// model.updateLevel1Nodes();
 
-			// Feature/Bug 86605
-			ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
-			newPaths.add(path);
-			updateFilter(config, stream, newPaths); // To copy update prescaler.
+				// Feature/Bug 86605
+				if(dataset.datasetPath()==null){
+					ArrayList<Path> newPaths = new ArrayList<Path>(); // Needed for method definition.
+					newPaths.add(path);
+					updateFilter(config, stream, newPaths); // To copy update prescaler.
+				}
+			}
 		} else {
 			// This will invoke an errorNotificationPanel.
 			return false;
@@ -5302,7 +5599,11 @@ public class ConfigurationTreeActions {
 		return true;
 	}
 
-	/** remove a path from its parent dataset */
+	/** remove a path from its parent dataset 
+	 * note while a path removes automatically from any sibling datasets
+	 * we need to update the model
+	 * likewise we need to adjust the event content and streams
+	*/
 	public static boolean removePathFromDataset(JTree tree) {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
@@ -5312,25 +5613,49 @@ public class ConfigurationTreeActions {
 
 		if (treeNode.parent() instanceof PrimaryDataset) {
 			PrimaryDataset dataset = (PrimaryDataset) treeNode.parent();
-			Stream stream = dataset.parentStream();
+			
 			Path path = (Path) treeNode.object();
 			int index = dataset.indexOfPath(path);
 
+			//if the streams / content node is displaying paths, we need the path indices in the 
+			//to be able to remove them
+			ArrayList<PrimaryDataset.StreamIndexPair> streamPathIndices = model.streamMode().equals("paths") ? dataset.getSiblingsStreamsIndexOfPath(path) : null;
+			ArrayList<PrimaryDataset.ContentIndexPair> contentPathIndices = model.contentMode().equals("paths") ? dataset.getSiblingsContentsIndexOfPath(path) : null;
+						
 			dataset.removePath(path);
 
-			model.nodeRemoved(dataset, index, treeNode);
-			if (model.streamMode().equals("datasets")) {
-				model.nodeRemoved(model.getChild(stream, stream.indexOfDataset(dataset)), index, treeNode);
+			ArrayList<PrimaryDataset> siblings = dataset.getSiblings();
+			for(PrimaryDataset sibling : siblings){
+				model.nodeRemoved(sibling, index, treeNode);
+				Stream stream = sibling.parentStream();
+				EventContent content = stream.parentContent();
+				if (model.streamMode().equals("datasets")) {
+					model.nodeRemoved(model.getChild(stream, stream.indexOfDataset(sibling)), index, treeNode);
+				}
+				if (model.contentMode().equals("datasets")) {
+					model.nodeRemoved(model.getChild(content, content.indexOfDataset(sibling)), index, treeNode);
+				}
 			}
 
-			if (stream.datasets(path).size() == 0) {
-				// Only if the path goes to unassignedPaths.
-				model.nodeInserted(model.getChild(stream, stream.datasetCount()),
-						stream.listOfUnassignedPaths().indexOf(path));
+			
+			if (streamPathIndices!=null){
+				for(PrimaryDataset.StreamIndexPair streamPathIndex : streamPathIndices){
+					if(streamPathIndex.stream.indexOfPath(path)==-1){
+						model.nodeRemoved(streamPathIndex.stream,streamPathIndex.index,treeNode);
+					}
+				}												
+			}
+			if (contentPathIndices!=null){
+				for(PrimaryDataset.ContentIndexPair contentPathIndex : contentPathIndices){
+					if(contentPathIndex.content.indexOfPath(path)==-1){
+						model.nodeRemoved(contentPathIndex.content,contentPathIndex.index,treeNode);
+					}
+				}												
 			}
 
 		} else {
 			// Unnasigned path.
+			// this should no longer be possible to call
 
 			Stream stream = (Stream) ((ConfigurationTreeNode) treeNode.parent()).parent();
 			EventContent content = stream.parentContent();
@@ -6040,6 +6365,12 @@ public class ConfigurationTreeActions {
 	 * 
 	 * Module template : TriggerResultsFilter module --> HLTFilter --> T -->
 	 * TriggerResultsFilter
+	 * 
+	 * note: this is legacy code before the Dataset update to DatasetPaths
+	 * this will fail gracefully for new style Datasets as the TriggerResultsFilter
+	 * is not on an output path but the dataset path
+	 * this is referring to the old style smart prescales on the end path and not 
+	 * the PathFilters of a DatasetPath
 	 */
 	public static boolean updateFilter(Configuration config, Stream stream, ArrayList<Path> newPaths) {
 		OutputModule OutputM = stream.outputModule();
@@ -6558,6 +6889,12 @@ class ImportAllReferencesThread extends SwingWorker<String, String> {
 		String oldValue = "";
 		for (int i = 0; i < count; i++) {
 			container = (ReferenceContainer) sourceModel.getChild(ext, i);
+			if(container instanceof Path){
+				Path path = (Path) container;
+				if(path.isDatasetPath() || path.isFinalPath()){
+					continue;
+				}
+			}
 			ConfigurationTreeActions.importReferenceContainersNoModel(tree, container, updateAll);
 			items.add(container.name()); // registering container name for diff.
 			int progress = (i * 100) / count; // range 0-100.

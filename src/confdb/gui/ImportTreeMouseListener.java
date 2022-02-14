@@ -123,15 +123,23 @@ public class ImportTreeMouseListener extends MouseAdapter {
 			currentTree.setSelectionPath(null);
 			ReferenceContainer container = (ReferenceContainer) node;
 			JPopupMenu popup = new JPopupMenu();
+			boolean isDatasetOrFinalPath = false;
+			if(node instanceof Path){
+				Path path = (Path) node;
+				isDatasetOrFinalPath = path.isDatasetPath() || path.isFinalPath();
+			}
+
 			JMenuItem item = new JMenuItem("Import " + container.name());
 			item.addActionListener(new AddContainerListener(currentTree, container));
 			popup.add(item);
-
+			if(isDatasetOrFinalPath) item.setEnabled(false);
+			
 			// Specific menu:
 			item = new JMenuItem("Deep import " + container.name());
 			if (node instanceof Path) {
 				item.addActionListener(new AddDeepContainerListener(currentTree, importConfiguration, container));
 				popup.add(item);
+				if(isDatasetOrFinalPath) item.setEnabled(false);
 			} else if (node instanceof Sequence) {
 				item.addActionListener(new AddDeepContainerListener(currentTree, importConfiguration, container));
 				popup.add(item);
