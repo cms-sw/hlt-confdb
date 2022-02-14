@@ -3339,24 +3339,30 @@ public class ConfDbGUI {
 			jTextAreaDatasetSplit.setText(splitStr);
 			
 			
-			// Set current configuration to the prescaleService
-			PrescaleTServ = new PrescaleTableService(currentConfig);
-			// Set prescales fot the current path.
-			jTablePrescales = PrescaleTServ.getPrescaleTableEditable(dataset.datasetPath());
-			PrescaleTServ.adjustTableColumnWidthsScroll();
-			jTablePrescales.doLayout();
+			if(dataset.datasetPath()!=null){
+				// Set current configuration to the prescaleService
+				PrescaleTServ = new PrescaleTableService(currentConfig);
+				// Set prescales fot the current path.
+				jTablePrescales = PrescaleTServ.getPrescaleTableEditable(dataset.datasetPath());
 			
-			jTablePrescales.getModel().addTableModelListener(new TableModelListener() {
-				public void tableChanged(TableModelEvent e) {
-					PrescaleTServ.setHasChanged(); 
-					jButtonSaveDatasetPrescales.setEnabled(true);
-					jButtonCancelDatasetPrescales.setEnabled(true);
+				PrescaleTServ.adjustTableColumnWidthsScroll();
+				jTablePrescales.doLayout();
 
-				}
-			});
+			
+				jTablePrescales.getModel().addTableModelListener(new TableModelListener() {
+					public void tableChanged(TableModelEvent e) {
+						PrescaleTServ.setHasChanged(); 
+						jButtonSaveDatasetPrescales.setEnabled(true);
+						jButtonCancelDatasetPrescales.setEnabled(true);
 
-			jScrollPaneDatasetPrescales.setViewportView(jTablePrescales);
+					}
+				});
 
+				jScrollPaneDatasetPrescales.setViewportView(jTablePrescales);
+				jScrollPaneDatasetPrescales.setVisible(true);
+			}else{
+				jScrollPaneDatasetPrescales.setVisible(false);
+			}
 		} else {
 			jTextAreaDatasetClone.setText(new String());
 			jTextAreaDatasetSplit.setText(new String());
