@@ -1,3 +1,7 @@
+2022-02-15 Sam Harper
+    * tag V03-02-01
+    * bug fix: standard paths can now have a trigger results filter if that trigger results filter has usePathStatus=True
+
 2022-02-10 Sam Harper
     * tag V03-02-00
 	* reworked datasets to use DatasetPaths to select their events and all that entails
