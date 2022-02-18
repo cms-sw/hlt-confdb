@@ -31,6 +31,7 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// customiseForCMSHLT2210();
 		// customiseFor36459();
 		// NoiseCleanedClusterShape();
 		// globalPSetUpdate35309("CkfBaseTrajectoryFilter");
@@ -131,6 +132,35 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void customiseForCMSHLT2210(){
+
+          for (int i = 0; i < config.moduleCount(); i++) {
+            ModuleInstance iMod = config.module(i);
+            if (iMod.template().name().equals("CorrectedECALPFClusterProducer")) {
+              System.out.println("Found instance of \"CorrectedECALPFClusterProducer\": "+iMod.name());
+
+              PSetParameter pset0 = (PSetParameter) iMod.parameter("energyCorrector", "PSet");
+              if(pset0 != null){
+
+                PSetParameter pset1 = new PSetParameter("energyCorrector", "", true);
+                pset1.addParameter(new BoolParameter("applyCrackCorrections", false, true));
+                pset1.addParameter(new BoolParameter("srfAwareCorrection", true, true));
+                pset1.addParameter(new BoolParameter("applyMVACorrections", true, true));
+                pset1.addParameter(new DoubleParameter("maxPtForMVAEvaluation", 300., true));
+                pset1.addParameter(new InputTagParameter("recHitsEBLabel", "hltEcalRecHit", "EcalRecHitsEB", "", true));
+                pset1.addParameter(new InputTagParameter("recHitsEELabel", "hltEcalRecHit", "EcalRecHitsEE", "", true));
+                pset1.addParameter(new InputTagParameter("ebSrFlagLabel", "hltEcalDigis", "", "", true));
+                pset1.addParameter(new InputTagParameter("eeSrFlagLabel", "hltEcalDigis", "", "", true));
+
+                iMod.removeParameter(pset0);
+                iMod.addParameter(pset1);
+
+                System.out.println("Updated \"energyCorrector\" PSet of instance of \"CorrectedECALPFClusterProducer\": "+iMod.name());
+              }
+            }
+          }
+        }
 
         private void customiseFor36459(){
 
