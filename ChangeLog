@@ -1,3 +1,16 @@
+2022-02-15 Sam Harper
+    * tag V03-02-01
+    * bug fix: standard paths can now have a trigger results filter if that trigger results filter has usePathStatus=True
+	* dataset paths now are constrained to have their dataset path filter before their prescale module
+	    * the reason for this is an individual fu can lock to only outputing on some instances of a split dataset if there is a prescale in the dataset path filter
+		* eg say there its split into 4 paths and the dataset path filter simply has a prescale of 2
+		   * event 1: passes path 0 prescale filter, dataset path filter count goes to 1, fails as 1%2!=0
+		   * event 2: passes path 1 prescale filter, dataset path filter count goes to 2, passes as 2%2==0
+		   * event 3: passes path 2, dataset path filter fails
+		   * event 4: passes path 3, dataset path filter passes
+		   * event 1: passes path 0, dataset path filter fails
+		   * and so on, only paths 1 and 3 select. Now each fu will have a different offset so it'll be random for a given fu for which paths it locks to but best to fix it
+
 2022-02-10 Sam Harper
     * tag V03-02-00
 	* reworked datasets to use DatasetPaths to select their events and all that entails

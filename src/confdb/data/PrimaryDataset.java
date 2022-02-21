@@ -366,7 +366,11 @@ public class PrimaryDataset extends DatabaseEntry
             cfg.insertSequenceReference(this.datasetPath, 0, beginSeq);            
             cfg.insertModuleReference(this.datasetPath,1,"HLTPrescaler",Path.hltPrescalerLabel(this.datasetPath.name()));
             addPathFilter(cfg,existingPathFilter);
+            
         }else{
+            if(existingPathFilter!=null){
+                System.err.println("PrimaryDataset::createDatasetPath error, specifying an existing path filter with the dataset path pre existing, the path filter will be ignored");
+            }
             setPathFilter();
         }
     }
@@ -518,7 +522,9 @@ public class PrimaryDataset extends DatabaseEntry
     
     private void addPathFilter(Configuration cfg,PathFilter existingPathFilter) {
         
-        ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,this.datasetPath.entryCount(),pathFilterType(),existingPathFilter!=null ? existingPathFilter.name() : pathFilterDefaultName());
+        //the path filter must be always before the hlt prescaler which means index 1 as only 3 things are allowed on
+        //a dataset path
+        ModuleReference pathFilterRef =  cfg.insertModuleReference(this.datasetPath,1,pathFilterType(),existingPathFilter!=null ? existingPathFilter.name() : pathFilterDefaultName());
 
     
         ModuleInstance pathFilterMod = (ModuleInstance) pathFilterRef.parent(); 

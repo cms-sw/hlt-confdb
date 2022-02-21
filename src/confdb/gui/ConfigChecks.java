@@ -24,6 +24,7 @@ class ConfigChecks {
         checkModsAndTaskAndSequence(config, frame) &&
         checkUnassignedPaths(config, frame) &&
         checkDatasetPaths(config, frame) && 
+        checkDatasetPathContent(config, frame) &&
         checkDatasetPathPrescales(config, frame) &&
         checkStreamOutputPaths(config, frame) &&
         checkFinalPathContent(config, frame) &&
@@ -174,6 +175,56 @@ class ConfigChecks {
                 errStr+="\n"+error;
             }
             String msg = new String("The current config has problems with the dataset paths.\nThis shouldnt really be possible and it would be good to report this to the ConfdbDev channel of the TSG mattermost.\nIt may not be possible to fix this without expert help.\n");
+			msg+=errStr;			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(errors.size()+5,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * a dataset path should have exactly three items
+     * HLTDatasetPathBeginSequence
+     * a TriggerResultsFilter
+     * a prescale module
+     * in that order
+     */
+    public static boolean checkDatasetPathContent(Configuration config, JFrame frame){
+        ArrayList<String> errors = new ArrayList<String>();
+        Iterator<Path> pathIt = config.pathIterator();
+        while(pathIt.hasNext()){
+            Path path = pathIt.next();
+            if(path.isDatasetPath()){
+                if(path.entryCount()!=3){
+                    errors.add("path "+path.name()+" has "+path.entryCount()+" when exactly three are required");
+                }else{
+                    if(!path.entry(0).name().equals(PrimaryDataset.datasetPathBeginSequenceName())){
+                        errors.add("path "+path.name()+" first entry is not "+PrimaryDataset.datasetPathBeginSequenceName()+" as required");
+                    }   
+                    if(!(path.entry(1).parent() instanceof ModuleInstance) || !((ModuleInstance) path.entry(1).parent()).isDatasetPathFilter()){
+                        errors.add("path "+path.name()+" second entry is not a datasetPathFilter as required");
+                    }
+                    if(!(path.entry(2).parent() instanceof ModuleInstance) || !((ModuleInstance) path.entry(2).parent()).isDatasetPathPrescaler()){
+                        errors.add("path "+path.name()+" third entry is not a prescale module as required");
+                    }   
+                }
+            }
+        }
+                
+        if(!errors.isEmpty()){
+            String errStr = new String();
+            for(String error : errors ){
+                errStr+="\n"+error;
+            }
+            String msg = new String("The current config the following dataset paths with invalid content.\nA dataset path should solely contain the following in this exact order:\n   "+PrimaryDataset.datasetPathBeginSequenceName()+", a "+PrimaryDataset.pathFilterType()+" and a prescaler module\n");
+
 			msg+=errStr;			
 			JTextArea textArea = new JTextArea(msg);
 			JScrollPane scrollPane = new JScrollPane(textArea);  
@@ -356,4 +407,5 @@ class ConfigChecks {
         return true;
 
     }
+
 }

@@ -164,6 +164,14 @@ public class SmartPrescaleTable {
         //in fact all paths probably wont from now on (usePathStatus=true)
         if (((InputTagParameter) module.parameter("hltResults")).valueAsString().length() <= 2 && dataset==null) hasAccessToHLTResults = false;
 
+        //now we quickly check if it has usePathStatus = true and thus has access to HLT results
+        Parameter usePathStatus = module.findParameter("usePathStatus");
+        if(usePathStatus!=null){
+            if( (Boolean)((BoolParameter) usePathStatus).value()==true) {
+                hasAccessToHLTResults = true;
+            }
+        }
+
         hasAccessToL1TResults = (((InputTagParameter) module.parameter("l1tResults")).valueAsString().length() > 2);
 
         update();
