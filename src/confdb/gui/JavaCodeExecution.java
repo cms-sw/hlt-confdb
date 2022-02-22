@@ -31,6 +31,7 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// customiseFor36459();
 		// NoiseCleanedClusterShape();
 		// globalPSetUpdate35309("CkfBaseTrajectoryFilter");
 		// runChecker();
@@ -131,6 +132,113 @@ public class JavaCodeExecution {
 		}
 	}
 
+        private void customiseFor36459(){
+
+	    // After GUI migration to 12_3_0_pre3:
+	    
+	    Integer numChanges = 0;
+
+	    // EDProducers
+	    numChanges = 0;
+	    for (int i = 0; i < config.moduleCount(); i++) {
+		ModuleInstance module = config.module(i);
+		Parameter param = null;
+
+		if (module.template().name().equals("SeedCreatorFromRegionConsecutiveHitsEDProducer")
+		    || module.template().name().equals("SeedCreatorFromRegionConsecutiveHitsTripletOnlyEDProducer")
+		    ) {
+		    PSetParameter pset0 = (PSetParameter) module.parameter("SeedComparitorPSet", "PSet");
+		    if(pset0 != null){
+			
+			VPSetParameter vpset = (VPSetParameter) pset0.parameter("comparitors");
+			if(vpset == null) continue;
+			
+			for (int pset_i = 0; pset_i < vpset.parameterSetCount(); pset_i++) {
+			    PSetParameter pset = vpset.parameterSet(pset_i);
+			    StringParameter ComponentName = (StringParameter) pset.parameter("ComponentName");
+			    if(ComponentName != null && ComponentName.valueAsString().equals("\"StripSubClusterShapeSeedFilter\"")
+			       && pset.parameter("layerMask") == null){
+				System.out.printf(numChanges.toString() + " | " + module.name() + "." + pset.fullName());
+				PSetParameter newpar = new PSetParameter("layerMask", "", true);
+				pset.addParameter(newpar);
+				numChanges++;
+				System.out.println("." + newpar.name() + " ( " + newpar.type() + " ) -> ADDED");
+				module.setHasChanged();
+			    }
+			}
+		    }
+		}
+	    }
+
+	    // PSets
+	    numChanges = 0;
+	    for (int i = 0; i < config.psetCount(); i++) {
+		PSetParameter pset = config.pset(i);
+		Parameter param = null;
+		
+		if (pset.parameter("ComponentType") != null) {
+		    String ComponentType = pset.parameter("ComponentType").valueAsString();
+		    if(ComponentType.equals("\"CkfTrajectoryBuilder\"") ||
+		       ComponentType.equals("\"GroupedCkfTrajectoryBuilder\"") ||
+		       ComponentType.equals("\"MuonCkfTrajectoryBuilder\"")){
+			
+			String[] parNames = new String[]
+			    { "MeasurementTrackerName", "cleanTrajectoryAfterInOut", "doSeedingRegionRebuilding", "useHitsSplitting" };
+			for (int parName_i = 0; parName_i < parNames.length; parName_i++) {
+			    param = pset.parameter(parNames[parName_i]);
+			    if(param != null){
+				System.out.printf(numChanges.toString() + " | " + pset.name() + "." + param.name() + " ( " + param.type() + " )");
+				pset.removeParameter(param);
+				numChanges++;
+				System.out.println(" -> REMOVED");
+				config.psets().setHasChanged();
+			    }
+			}
+			
+			if(ComponentType.equals("\"GroupedCkfTrajectoryBuilder\"")){
+			    param = pset.parameter("useSameTrajFilter");
+			    if(param != null && param.valueAsString() == "true"){
+				param = pset.parameter("inOutTrajectoryFilter");
+				if(param == null){
+				    PSetParameter param2 = (PSetParameter) pset.parameter("trajectoryFilter");
+				    PSetParameter newpar = (PSetParameter) param2.clone(pset);
+				    newpar.setName("inOutTrajectoryFilter");
+				    System.out.printf(numChanges.toString() + " | " + pset.name() + "." + newpar.name() + " ( " + newpar.type() + " )");
+				    pset.addParameter(newpar);
+				    numChanges++;
+				    System.out.println(" -> ADDED");
+				    config.psets().setHasChanged();
+				}
+			    }
+			}
+			
+			if(ComponentType.equals("\"CkfTrajectoryBuilder\"")){
+			    param = pset.parameter("minNrOfHitsForRebuild");
+			    if(param != null){
+				System.out.printf(numChanges.toString() + " | " + pset.name() + "." + param.name() + " ( " + param.type() + " )");
+				pset.removeParameter(param);
+				numChanges++;
+				System.out.println(" -> REMOVED");
+				config.psets().setHasChanged();
+			    }
+			}
+			
+			if(!ComponentType.equals("\"GroupedCkfTrajectoryBuilder\"")){
+			    param = pset.parameter("useSameTrajFilter");
+			    if(param != null){
+				System.out.printf(numChanges.toString() + " | " + pset.name() + "." + param.name() + " ( " + param.type() + " )");
+				pset.removeParameter(param);
+				numChanges++;
+				System.out.println(" -> REMOVED");
+				config.psets().setHasChanged();
+			    }
+			}
+		    }
+		}
+
+	    }
+	}
+    
         private void NoiseCleanedClusterShape() {
 		ModuleInstance module = null;
 		InputTagParameter inputtag = null;
