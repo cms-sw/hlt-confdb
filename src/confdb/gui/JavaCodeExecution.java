@@ -31,6 +31,7 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// removeSelectedPSets();
 		// customiseForCMSHLT2210();
 		// customiseFor36459();
 		// NoiseCleanedClusterShape();
@@ -132,6 +133,47 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void removeSelectedPSets(){
+
+          String[] psetNames = new String[] {
+            // fill this array with the list of PSets to be removed
+          };
+
+          ArrayList<PSetParameter> psetList = new ArrayList<PSetParameter>();
+
+          for (int psetName_i = 0; psetName_i < psetNames.length; psetName_i++) {
+
+            PSetParameter pset = null;
+            for (int i = 0; i < config.psetCount(); i++) {
+              PSetParameter pset0 = config.pset(i);
+              if(pset0.name().equals(psetNames[psetName_i])) {
+                pset = pset0;
+                break;
+              }
+            }
+
+            if(pset != null){
+              psetList.add(pset);
+            }
+            else {
+              System.out.println("Deprecated PSet not found (will be ignored): "+psetNames[psetName_i]);
+            }
+          }
+
+          for (int pset_i = 0; pset_i < psetList.size(); pset_i++) {
+            System.out.println("Removed PSet: "+psetList.get(pset_i).name());
+            config.removePSet(psetList.get(pset_i));
+          }
+
+          Integer numOfRemovedPSets = psetList.size();
+
+          if(numOfRemovedPSets > 0){
+            config.psets().setHasChanged();
+          }
+
+          System.out.println("Number of PSets removed: "+numOfRemovedPSets.toString());
+        }
 
         private void customiseForCMSHLT2210(){
 
