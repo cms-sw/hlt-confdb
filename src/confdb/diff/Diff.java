@@ -1513,14 +1513,22 @@ public class Diff {
 				if (r.isChanged())
 					result.addComparison(r);
 				if (parent2 instanceof ReferenceContainer) {
-					Comparison c = compareContainersIgnoreStreams((ReferenceContainer) parent1,
-							(ReferenceContainer) parent2);
-					if (!c.isIdentical())
-						result.addComparison(c);
+					if (parent1 instanceof ReferenceContainer || parent1 ==null) {
+						Comparison c = compareContainersIgnoreStreams((ReferenceContainer) parent1,
+								(ReferenceContainer) parent2);
+						if (!c.isIdentical())
+							result.addComparison(c);
+					}else{
+						result.addComparison(new DiffTypesComparison(parent1,parent2));
+					}
 				} else if (parent2 instanceof ModuleInstance || parent2 instanceof EDAliasInstance) {
-					Comparison c = compareInstances((Instance) parent1, (Instance) parent2);
-					if (!c.isIdentical())
-						result.addComparison(c);
+					if(parent1 instanceof Instance || parent1 ==null){
+						Comparison c = compareInstances((Instance) parent1, (Instance) parent2);
+						if (!c.isIdentical())
+							result.addComparison(c);
+					}else{
+						result.addComparison(new DiffTypesComparison(parent1,parent2));
+					}
 				} else if (parent2 instanceof OutputModule) {
 					if (parent1 == null || (parent1 instanceof OutputModule)) {
 						// avoid checking the Streams using the flag TRUE.
