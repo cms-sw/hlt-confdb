@@ -518,6 +518,13 @@ public class PrimaryDataset extends DatabaseEntry
         return contentsAndIndex;
     }
 
+    public void addPathPrescale(String pathName,Long prescale)
+    {
+        if(datasetPath!=null){
+            pathFilter.addPathPrescale(pathName, prescale);
+        }
+
+    }
 
     
     private void addPathFilter(Configuration cfg,PathFilter existingPathFilter) {
@@ -758,6 +765,22 @@ public class PrimaryDataset extends DatabaseEntry
                 return true;                
             }else{
                 return false;
+            }
+        }
+
+        /**
+         * adds the path prescale, can assume no compound path experessions
+         * intended for the auto transfer of prescales from endpath smart prescalers on initial 
+         * conversion
+         */
+        public void addPathPrescale(String pathName,Long prescale){
+            for(int entryNr=0;entryNr<this.pathFilterParam.vectorSize();entryNr++){       
+                String pathNameAndPrescaleStr = (String) this.pathFilterParam.value(entryNr);       
+                SmartPrescaleTableRow pathNameAndPrescale = new SmartPrescaleTableRow(pathNameAndPrescaleStr);
+                if(pathName.equals(pathNameAndPrescale.pathName)){
+                    this.pathFilterParam.setValue(entryNr,pathName+ " / "+prescale*pathNameAndPrescale.prescale);
+                    break;
+                }
             }
         }
 

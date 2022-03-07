@@ -1718,6 +1718,7 @@ public class Configuration implements IConfiguration {
 			//old style output path, override
 			if((outPath.isEndPath() || outPath.isFinalPath()) && outPath.hasOutputModule()){
 				int index = indexOfPath(outPath);
+				transferOverSmartPrescales(stream, outPath);
 				removePath(outPath);
 				outPath = insertPath(index,stream.outputPathName());
 				outPath.setAsFinalPath();	
@@ -1731,6 +1732,54 @@ public class Configuration implements IConfiguration {
 			return false;
 		}
 	}	
+
+	/**
+	 * this function is used when converting to dataset paths, it transfers over the 
+	 * any prescales in the streams end path to the datasets of that stream
+	 * it is imperfect and is only intended to get it roughly correct and for 
+	 * the person doing the conversion to manually clean it up afterwards
+	 * (basically it saves them clicking prescales 100 times...)
+	 */
+	private void transferOverSmartPrescales(Stream stream,Path outPath){
+		ArrayList<ModuleInstance> trigResFilters = outPath.moduleArray("TriggerResultsFilter");
+		ArrayList<Path> pathsInSmartPrescaler = new ArrayList<Path>();
+		if(!trigResFilters.isEmpty()){
+			if(trigResFilters.size()!=1){
+				System.err.println("warning, path "+outPath+" of stream "+stream+" has multiple smart prescalers, only transfering the prescales of the first one");
+
+			}
+			ModuleInstance trigResFilter = trigResFilters.get(0);
+			VStringParameter trigConditions = (VStringParameter) trigResFilter.parameter("triggerConditions");
+			for(String cond : trigConditions.values()){
+				SmartPrescaleTableRow condParsed = new SmartPrescaleTableRow(cond);
+				if(condParsed.pathName!=null){
+					pathsInSmartPrescaler.add(path(condParsed.pathName));
+					Iterator<PrimaryDataset> datasetIt = stream.datasetIterator();
+					while(datasetIt.hasNext()){
+						PrimaryDataset dataset = datasetIt.next();
+						dataset.addPathPrescale(condParsed.pathName,condParsed.prescale);
+					}
+				}
+			}
+			//now we need to remove any path in a dataset which was not the smart prescaler
+			Iterator<PrimaryDataset> datasetIt = stream.datasetIterator();
+			while(datasetIt.hasNext()){
+				PrimaryDataset dataset = datasetIt.next();
+				Iterator<Path> pathsInDatasetIt = dataset.pathIterator();
+				ArrayList<Path> pathsToRemove = new ArrayList<Path>();
+				while(pathsInDatasetIt.hasNext()){
+					Path path = pathsInDatasetIt.next();
+					if(!pathsInSmartPrescaler.contains(path)){
+						pathsToRemove.add(path);
+					}
+				}
+				for(Path path : pathsToRemove){
+					dataset.removePath(path);
+				}
+			}
+
+		}
+	}
 
 	/** generates all the output paths for streams which are eligible 
 	 * overwriting if necessary
