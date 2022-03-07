@@ -1,4 +1,11 @@
 2022-02-24 Sam Harper
+    * tag V03-02-03
+	* bug fix: redraw gui command now works (listener wasnt updated for name change)
+	* paths in a dataset filter can no longer be prescaled to 0 using the smart prescale dialog
+	   * this removes them from the dataset but does so in a way which doesnt alert the gui
+	* prescales and smart prescales are now transfered over when doing the convert to path based
+
+2022-02-24 Sam Harper
     * tag V03-02-02
 	* bug fix: can now deep import paths which will have an object change type (ie module goes to switch producer)
 
