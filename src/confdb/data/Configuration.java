@@ -1719,6 +1719,8 @@ public class Configuration implements IConfiguration {
 			if((outPath.isEndPath() || outPath.isFinalPath()) && outPath.hasOutputModule()){
 				int index = indexOfPath(outPath);
 				transferOverSmartPrescales(stream, outPath);
+				transferOverPrescales(stream, outPath);
+
 				removePath(outPath);
 				outPath = insertPath(index,stream.outputPathName());
 				outPath.setAsFinalPath();	
@@ -1777,9 +1779,55 @@ public class Configuration implements IConfiguration {
 					dataset.removePath(path);
 				}
 			}
-
 		}
 	}
+	/** transfers over the end paths prescales to the dataset path */	
+	private void transferOverPrescales(Stream stream,Path outPath){
+		//now we transfer over the endpath prescales
+		ServiceInstance pss = service("PrescaleService");
+		VPSetParameter psTable = pss !=null ? (VPSetParameter) pss.parameter("prescaleTable") : null;
+		if(psTable!=null){
+			VUInt32Parameter prescales = getPathPrescales(outPath.name());
+			if(prescales!=null){
+				Iterator<PrimaryDataset> datasetIt = stream.datasetIterator();
+				while(datasetIt.hasNext()){
+					PrimaryDataset dataset = datasetIt.next();
+					VUInt32Parameter datasetPathPrescales = getPathPrescales(dataset.datasetPathName());
+					if(datasetPathPrescales!=null){
+						datasetPathPrescales.setValue(prescales.valueAsString());
+					}else{
+						ArrayList<Parameter> params = new ArrayList<Parameter>();
+						StringParameter sPathName = new StringParameter("pathName", dataset.datasetPathName(), true);
+						VUInt32Parameter vPrescales = new VUInt32Parameter("prescales", prescales.valueAsString(), true);
+						params.add(sPathName);
+						params.add(vPrescales);
+						psTable.addParameterSet(new PSetParameter("", params, true));
+					}
+				}
+			}		
+		}
+
+	}
+	/**
+	 * little helper function to help with transfering over of the prescales get the path prescales 
+	 */
+	private VUInt32Parameter getPathPrescales(String pathName){
+		ServiceInstance pss = service("PrescaleService");
+		VPSetParameter psTable = pss !=null ? (VPSetParameter) pss.parameter("prescaleTable") : null;
+		if(psTable!=null){			
+			Iterator<PSetParameter> itPSet = psTable.psetIterator();
+			while (itPSet.hasNext()) {
+				PSetParameter pset = itPSet.next();
+				StringParameter pathNameParam = (StringParameter) pset.parameter("pathName");
+				String entryPathName = (String) pathNameParam.value();
+				if (pathName.equals(entryPathName)){
+					return (VUInt32Parameter) pset.parameter("prescales");
+				}
+			}
+		}
+		return null;
+	}
+
 
 	/** generates all the output paths for streams which are eligible 
 	 * overwriting if necessary
