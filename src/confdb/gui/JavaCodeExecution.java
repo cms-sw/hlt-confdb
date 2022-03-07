@@ -31,6 +31,8 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// removeSelectedPSets();
+		// customiseForCMSHLT2210();
 		// customiseFor36459();
 		// NoiseCleanedClusterShape();
 		// globalPSetUpdate35309("CkfBaseTrajectoryFilter");
@@ -131,6 +133,76 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void removeSelectedPSets(){
+
+          String[] psetNames = new String[] {
+            // fill this array with the list of PSets to be removed
+          };
+
+          ArrayList<PSetParameter> psetList = new ArrayList<PSetParameter>();
+
+          for (int psetName_i = 0; psetName_i < psetNames.length; psetName_i++) {
+
+            PSetParameter pset = null;
+            for (int i = 0; i < config.psetCount(); i++) {
+              PSetParameter pset0 = config.pset(i);
+              if(pset0.name().equals(psetNames[psetName_i])) {
+                pset = pset0;
+                break;
+              }
+            }
+
+            if(pset != null){
+              psetList.add(pset);
+            }
+            else {
+              System.out.println("Deprecated PSet not found (will be ignored): "+psetNames[psetName_i]);
+            }
+          }
+
+          for (int pset_i = 0; pset_i < psetList.size(); pset_i++) {
+            System.out.println("Removed PSet: "+psetList.get(pset_i).name());
+            config.removePSet(psetList.get(pset_i));
+          }
+
+          Integer numOfRemovedPSets = psetList.size();
+
+          if(numOfRemovedPSets > 0){
+            config.psets().setHasChanged();
+          }
+
+          System.out.println("Number of PSets removed: "+numOfRemovedPSets.toString());
+        }
+
+        private void customiseForCMSHLT2210(){
+
+          for (int i = 0; i < config.moduleCount(); i++) {
+            ModuleInstance iMod = config.module(i);
+            if (iMod.template().name().equals("CorrectedECALPFClusterProducer")) {
+              System.out.println("Found instance of \"CorrectedECALPFClusterProducer\": "+iMod.name());
+
+              PSetParameter pset0 = (PSetParameter) iMod.parameter("energyCorrector", "PSet");
+              if(pset0 != null){
+
+                PSetParameter pset1 = new PSetParameter("energyCorrector", "", true);
+                pset1.addParameter(new BoolParameter("applyCrackCorrections", false, true));
+                pset1.addParameter(new BoolParameter("srfAwareCorrection", true, true));
+                pset1.addParameter(new BoolParameter("applyMVACorrections", true, true));
+                pset1.addParameter(new DoubleParameter("maxPtForMVAEvaluation", 300., true));
+                pset1.addParameter(new InputTagParameter("recHitsEBLabel", "hltEcalRecHit", "EcalRecHitsEB", "", true));
+                pset1.addParameter(new InputTagParameter("recHitsEELabel", "hltEcalRecHit", "EcalRecHitsEE", "", true));
+                pset1.addParameter(new InputTagParameter("ebSrFlagLabel", "hltEcalDigis", "", "", true));
+                pset1.addParameter(new InputTagParameter("eeSrFlagLabel", "hltEcalDigis", "", "", true));
+
+                iMod.removeParameter(pset0);
+                iMod.addParameter(pset1);
+
+                System.out.println("Updated \"energyCorrector\" PSet of instance of \"CorrectedECALPFClusterProducer\": "+iMod.name());
+              }
+            }
+          }
+        }
 
         private void customiseFor36459(){
 
