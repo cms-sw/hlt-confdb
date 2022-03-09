@@ -1763,21 +1763,23 @@ public class Configuration implements IConfiguration {
 					}
 				}
 			}
-			//now we need to remove any path in a dataset which was not the smart prescaler
+			//now we need to prescale to zero any path in a dataset which was not the smart prescaler
+			//dataset smart prescales physically have a zero entry while non dataset smart prescales
+			//omitted 0 entries
+			//this is mainly to due to non dataset smart prescales having all paths in the stream
+			//in their prescale table but they dont write the zero ones out to the triggerConditions
+			//as it would be hard to read in python and its equavalent
+			//however dataset path smart prescalers define the dataset and thus the 0 entrysneed to remain
 			Iterator<PrimaryDataset> datasetIt = stream.datasetIterator();
 			while(datasetIt.hasNext()){
 				PrimaryDataset dataset = datasetIt.next();
-				Iterator<Path> pathsInDatasetIt = dataset.pathIterator();
-				ArrayList<Path> pathsToRemove = new ArrayList<Path>();
+				Iterator<Path> pathsInDatasetIt = dataset.pathIterator();				
 				while(pathsInDatasetIt.hasNext()){
 					Path path = pathsInDatasetIt.next();
 					if(!pathsInSmartPrescaler.contains(path)){
-						pathsToRemove.add(path);
+						dataset.addPathPrescale(path.name(), 0L);						
 					}
-				}
-				for(Path path : pathsToRemove){
-					dataset.removePath(path);
-				}
+				}				
 			}
 		}
 	}

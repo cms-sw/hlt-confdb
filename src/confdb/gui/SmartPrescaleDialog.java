@@ -190,7 +190,9 @@ public class SmartPrescaleDialog extends JDialog {
 				String condition = smartPrescaleTable.get(i).prescaleCondition(j);
 				if (!condition.equals("")) {
 					//this is where the / 0 is caught
-					if ((!smartPrescaleTable.get(i).simple(j)) || (smartPrescaleTable.get(i).prescale(j) != 0)) {
+					if ((!smartPrescaleTable.get(i).simple(j)) || (smartPrescaleTable.get(i).prescale(j) != 0) ||
+				        (smartPrescaleTable.get(i).prescale(j)==0 && smartPrescaleTable.get(i).dataset()!=null)
+					) {
 						parameterTriggerConditions.addValue(smartPrescaleTable.get(i).prescaleCondition(j));
 					}
 				}
@@ -351,14 +353,8 @@ class SmartPrescaleTableModel extends AbstractTableModel {
 	/** set the value of a table cell */
 	public void setValueAt(Object value, int row, int col) {
 		if (col == 1) {		
-			if((Long) value > 0 || smartPrescaleTable.dataset()==null){
-				smartPrescaleTable.modRowSetScale(row, (Long) value);
-				// fireTableStructureChanged();
-				fireTableDataChanged();
-			}else{
-				String msg = new String("Prescales set here for datasets must non zero postive numbers.\nA prescale of zero removes the path from the dataset, if you want to do this, please remove via the dataset menu");
-				JOptionPane.showMessageDialog(null, msg,"Invalid Prescale Value", JOptionPane.WARNING_MESSAGE);
-			}
+			smartPrescaleTable.modRowSetScale(row, (Long) value);	
+			fireTableDataChanged();
 			return;
 		}
 
