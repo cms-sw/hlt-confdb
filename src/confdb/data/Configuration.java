@@ -1718,6 +1718,9 @@ public class Configuration implements IConfiguration {
 			//old style output path, override
 			if((outPath.isEndPath() || outPath.isFinalPath()) && outPath.hasOutputModule()){
 				int index = indexOfPath(outPath);
+				transferOverSmartPrescales(stream, outPath);
+				transferOverPrescales(stream, outPath);
+
 				removePath(outPath);
 				outPath = insertPath(index,stream.outputPathName());
 				outPath.setAsFinalPath();	
@@ -1731,6 +1734,102 @@ public class Configuration implements IConfiguration {
 			return false;
 		}
 	}	
+
+	/**
+	 * this function is used when converting to dataset paths, it transfers over the 
+	 * any prescales in the streams end path to the datasets of that stream
+	 * it is imperfect and is only intended to get it roughly correct and for 
+	 * the person doing the conversion to manually clean it up afterwards
+	 * (basically it saves them clicking prescales 100 times...)
+	 */
+	private void transferOverSmartPrescales(Stream stream,Path outPath){
+		ArrayList<ModuleInstance> trigResFilters = outPath.moduleArray("TriggerResultsFilter");
+		ArrayList<Path> pathsInSmartPrescaler = new ArrayList<Path>();
+		if(!trigResFilters.isEmpty()){
+			if(trigResFilters.size()!=1){
+				System.err.println("warning, path "+outPath+" of stream "+stream+" has multiple smart prescalers, only transfering the prescales of the first one");
+
+			}
+			ModuleInstance trigResFilter = trigResFilters.get(0);
+			VStringParameter trigConditions = (VStringParameter) trigResFilter.parameter("triggerConditions");
+			for(String cond : trigConditions.values()){
+				SmartPrescaleTableRow condParsed = new SmartPrescaleTableRow(cond);
+				if(condParsed.pathName!=null){
+					pathsInSmartPrescaler.add(path(condParsed.pathName));
+					Iterator<PrimaryDataset> datasetIt = stream.datasetIterator();
+					while(datasetIt.hasNext()){
+						PrimaryDataset dataset = datasetIt.next();
+						dataset.addPathPrescale(condParsed.pathName,condParsed.prescale);
+					}
+				}
+			}
+			//now we need to prescale to zero any path in a dataset which was not the smart prescaler
+			//dataset smart prescales physically have a zero entry while non dataset smart prescales
+			//omitted 0 entries
+			//this is mainly to due to non dataset smart prescales having all paths in the stream
+			//in their prescale table but they dont write the zero ones out to the triggerConditions
+			//as it would be hard to read in python and its equavalent
+			//however dataset path smart prescalers define the dataset and thus the 0 entrysneed to remain
+			Iterator<PrimaryDataset> datasetIt = stream.datasetIterator();
+			while(datasetIt.hasNext()){
+				PrimaryDataset dataset = datasetIt.next();
+				Iterator<Path> pathsInDatasetIt = dataset.pathIterator();				
+				while(pathsInDatasetIt.hasNext()){
+					Path path = pathsInDatasetIt.next();
+					if(!pathsInSmartPrescaler.contains(path)){
+						dataset.addPathPrescale(path.name(), 0L);						
+					}
+				}				
+			}
+		}
+	}
+	/** transfers over the end paths prescales to the dataset path */	
+	private void transferOverPrescales(Stream stream,Path outPath){
+		//now we transfer over the endpath prescales
+		ServiceInstance pss = service("PrescaleService");
+		VPSetParameter psTable = pss !=null ? (VPSetParameter) pss.parameter("prescaleTable") : null;
+		if(psTable!=null){
+			VUInt32Parameter prescales = getPathPrescales(outPath.name());
+			if(prescales!=null){
+				Iterator<PrimaryDataset> datasetIt = stream.datasetIterator();
+				while(datasetIt.hasNext()){
+					PrimaryDataset dataset = datasetIt.next();
+					VUInt32Parameter datasetPathPrescales = getPathPrescales(dataset.datasetPathName());
+					if(datasetPathPrescales!=null){
+						datasetPathPrescales.setValue(prescales.valueAsString());
+					}else{
+						ArrayList<Parameter> params = new ArrayList<Parameter>();
+						StringParameter sPathName = new StringParameter("pathName", dataset.datasetPathName(), true);
+						VUInt32Parameter vPrescales = new VUInt32Parameter("prescales", prescales.valueAsString(), true);
+						params.add(sPathName);
+						params.add(vPrescales);
+						psTable.addParameterSet(new PSetParameter("", params, true));
+					}
+				}
+			}		
+		}
+
+	}
+	/**
+	 * little helper function to help with transfering over of the prescales get the path prescales 
+	 */
+	private VUInt32Parameter getPathPrescales(String pathName){
+		ServiceInstance pss = service("PrescaleService");
+		VPSetParameter psTable = pss !=null ? (VPSetParameter) pss.parameter("prescaleTable") : null;
+		if(psTable!=null){			
+			Iterator<PSetParameter> itPSet = psTable.psetIterator();
+			while (itPSet.hasNext()) {
+				PSetParameter pset = itPSet.next();
+				StringParameter pathNameParam = (StringParameter) pset.parameter("pathName");
+				String entryPathName = (String) pathNameParam.value();
+				if (pathName.equals(entryPathName)){
+					return (VUInt32Parameter) pset.parameter("prescales");
+				}
+			}
+		}
+		return null;
+	}
+
 
 	/** generates all the output paths for streams which are eligible 
 	 * overwriting if necessary

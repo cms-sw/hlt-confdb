@@ -43,7 +43,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdMLEditor         = "Edit MessageLogger";
     private static final String cmdJavaCode         = "Execute Java Code";
     private static final String cmdUPEditor         = "Add Untracked Parameter";
-    private static final String cmdResetGUI         = "Reset GUI";
+    private static final String cmdResetGUI         = "Redraw GUI";
 
 
     private static final String cmdTrack            = "Track InputTags";

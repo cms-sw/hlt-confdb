@@ -130,6 +130,9 @@ public class SmartPrescaleTable {
         return true;
     }
 
+    public PrimaryDataset dataset(){
+        return dataset;
+    }
 
     //
     // private member functions

@@ -189,7 +189,10 @@ public class SmartPrescaleDialog extends JDialog {
 			for (int j = 0; j < smartPrescaleTable.get(i).prescaleConditionCount(); j++) {
 				String condition = smartPrescaleTable.get(i).prescaleCondition(j);
 				if (!condition.equals("")) {
-					if ((!smartPrescaleTable.get(i).simple(j)) || (smartPrescaleTable.get(i).prescale(j) != 0)) {
+					//this is where the / 0 is caught
+					if ((!smartPrescaleTable.get(i).simple(j)) || (smartPrescaleTable.get(i).prescale(j) != 0) ||
+				        (smartPrescaleTable.get(i).prescale(j)==0 && smartPrescaleTable.get(i).dataset()!=null)
+					) {
 						parameterTriggerConditions.addValue(smartPrescaleTable.get(i).prescaleCondition(j));
 					}
 				}
@@ -349,9 +352,8 @@ class SmartPrescaleTableModel extends AbstractTableModel {
 
 	/** set the value of a table cell */
 	public void setValueAt(Object value, int row, int col) {
-		if (col == 1) {
-			smartPrescaleTable.modRowSetScale(row, (Long) value);
-			// fireTableStructureChanged();
+		if (col == 1) {		
+			smartPrescaleTable.modRowSetScale(row, (Long) value);	
 			fireTableDataChanged();
 			return;
 		}
