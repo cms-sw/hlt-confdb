@@ -243,13 +243,17 @@ public class SmartPrescaleTable {
 
         //to make things easier to find and also to be consistant with dataset path path filters
         //we will now sort the paths for the prescale table
-        ArrayList<Path> sortedPaths = new ArrayList<Path>();
-        Iterator < Path > itP = config.pathIterator();
-        while (itP.hasNext()) {
-            sortedPaths.add(itP.next());
+        ArrayList<Path> paths = null;
+        if(dataset()==null){
+            paths = new ArrayList<Path>();
+            Iterator < Path > itP = config.pathIterator();
+            while (itP.hasNext()) {
+                paths.add(itP.next());
+            }
+        }else{
+            paths = dataset().pathFilter().getPathList((Configuration) config);
         }
-        Collections.sort(sortedPaths);
-        for(Path path : sortedPaths){            
+        for(Path path : paths){            
             SmartPrescaleTableRow row = pathToRow.remove(path.name());
             if (row == null) {
                 if (checkHLTPathExists(path.name())) {
