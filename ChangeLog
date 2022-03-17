@@ -1,6 +1,7 @@
 2022-03-15 Sam Harper
     * tag V03-02-04
 	* bug fix: dataset paths were not properly associated when migrating
+	* QoL: paths in smartprescale tables are now ordered alphabetically
 
 2022-02-24 Sam Harper
     * tag V03-02-03

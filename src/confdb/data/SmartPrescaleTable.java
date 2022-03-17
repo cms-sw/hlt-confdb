@@ -3,6 +3,7 @@ package confdb.data;
 
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import java.util.StringTokenizer;
@@ -240,9 +241,15 @@ public class SmartPrescaleTable {
         if (module.squeeze()) n++;
         if (n > 0) module.setHasChanged();
 
+        //to make things easier to find and also to be consistant with dataset path path filters
+        //we will now sort the paths for the prescale table
+        ArrayList<Path> sortedPaths = new ArrayList<Path>();
         Iterator < Path > itP = config.pathIterator();
         while (itP.hasNext()) {
-            Path path = itP.next();
+            sortedPaths.add(itP.next());
+        }
+        Collections.sort(sortedPaths);
+        for(Path path : sortedPaths){            
             SmartPrescaleTableRow row = pathToRow.remove(path.name());
             if (row == null) {
                 if (checkHLTPathExists(path.name())) {
