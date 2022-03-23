@@ -722,7 +722,15 @@ public class PrimaryDataset extends DatabaseEntry
 
         public boolean addPath(Path path){            
             if(this.pathFilterParam!=null){
-                this.pathFilterParam.addValue(path.name());
+                int indexToAdd=0;
+                for(String entry : this.pathFilterParam.values()){
+                    if(path.name().compareTo(entry)<=0){
+                        break;
+                    }else{
+                        indexToAdd++;
+                    }
+                }
+                this.pathFilterParam.addValue(indexToAdd,path.name());
                 this.pathFilter.setHasChanged();
                 informDatasetsOfChange((PrimaryDataset d) -> d.addPathToPathList(path));
                 return true;

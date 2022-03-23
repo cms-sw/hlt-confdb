@@ -214,7 +214,6 @@ public class ReleaseMigrator {
 				while (itP.hasNext()) {
 					PrimaryDataset sourceDataset = itP.next();
 					PrimaryDataset targetDataset = targetStream.insertDataset(sourceDataset.name());
-
 					Iterator<Path> itPad = sourceDataset.pathIterator();
 					while (itPad.hasNext()) {
 						Path sourcePath = itPad.next();
@@ -280,6 +279,16 @@ public class ReleaseMigrator {
 				target.insertCommand(new OutputCommand(targetPath, targetReference));
 			}
 		}
+
+		//now we need to add in the dataset paths
+		Iterator<PrimaryDataset> datasetIt = targetConfig.datasetIterator();
+		while(datasetIt.hasNext()){
+			PrimaryDataset dataset = datasetIt.next();
+			Path datasetPath = targetConfig.path(dataset.datasetPathName());
+			if(datasetPath!=null){
+				dataset.setDatasetPath(datasetPath);
+			}
+		}		
 
 	}
 

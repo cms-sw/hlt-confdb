@@ -342,8 +342,12 @@ public class Path extends ReferenceContainer {
 						vStr.setValue(i, upd);
 					}
 				}
-				if (n > 0)
+				if (n > 0){
 					module.setHasChanged();
+					if(module.isDatasetPathFilter()){
+						vStr.sortValues();
+					}
+				}
 			}
 
 		}

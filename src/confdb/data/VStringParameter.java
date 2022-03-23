@@ -150,6 +150,20 @@ public class VStringParameter extends VectorParameter
 	return true;
     }
 
+	public boolean addValue(int index,String valueAsString)
+    {
+	if ((valueAsString.startsWith("'")&&valueAsString.endsWith("'"))||
+	    (valueAsString.startsWith("\"")&&valueAsString.endsWith("\"")))
+	    values.add(index,valueAsString.substring(1,valueAsString.length()-1));
+	else
+	    values.add(index,new String(valueAsString));
+	return true;
+    }
+
+	public void sortValues(){
+		Collections.sort(values);
+	}
+
     /** remove i-th value from vector type parameter */
     public Object removeValue(int i)
     {
