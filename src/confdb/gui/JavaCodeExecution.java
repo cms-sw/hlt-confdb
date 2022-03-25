@@ -33,6 +33,8 @@ public class JavaCodeExecution {
 		System.out.println("[JavaCodeExecution] start:");
 		runCodeL1TMenu2();
 		// removeSelectedPSets();
+		// replaceL1TriggerSeeds();
+		// customiseForCMSHLT2244();
 		// customiseForCMSHLT2210();
 		// customiseFor36459();
 		// NoiseCleanedClusterShape();
@@ -242,6 +244,72 @@ public class JavaCodeExecution {
           }
 
           System.out.println("Number of PSets removed: "+numOfRemovedPSets.toString());
+        }
+
+        // Function to rename/remove L1T seeds
+        //  - this function assumes that the L1T seeds are only used in the "L1SeedsLogicalExpression" parameter of "HLTL1TSeed" filters
+        //  - this function could also be used to remove L1T seeds:
+        //    - to remove a seed, use the string "FALSE" as its replacement in l1tSeedRenamingMap
+        //    - note: this function does not support using empty strings as replacement for a L1T seed to be removed
+        //  - this function does not guarantee that the resulting "L1SeedsLogicalExpression" parameter is a valid logical expression;
+        //    it will be valid as long as the original expression is valid, and the replacements hard-coded in l1tSeedRenamingMap are valid
+        private void replaceL1TriggerSeeds(){
+          // map of L1T seeds (key: old, value: new)
+          Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
+          //l1tSeedRenamingMap.put("L1_OldSeed", "L1_NewSeed"); // example
+          //l1tSeedRenamingMap.put("L1_DeprecatedSeed", "FALSE"); // example
+
+          // validate l1tSeedRenamingMap
+          for (String l1tSeedNameOld : l1tSeedRenamingMap.keySet()) {
+            String l1tSeedNameNew = l1tSeedRenamingMap.get(l1tSeedNameOld);
+            if (l1tSeedNameNew.trim().length() == 0) {
+              System.out.printf("\n[replaceL1TriggerSeeds] STOPPED:");
+              System.out.println(" invalid replacement for L1T seed \""+l1tSeedNameOld+"\": \""+l1tSeedNameNew+"\"");
+              System.out.println("[replaceL1TriggerSeeds]  --> No changes applied to the configuration.");
+              return;
+            }
+          }
+
+          Integer numChanges = 0;
+
+          for (int i = 0; i < config.moduleCount(); i++) {
+            ModuleInstance module = config.module(i);
+            if (module.template().name().equals("HLTL1TSeed")) {
+              StringParameter param_expr = (StringParameter) module.parameter("L1SeedsLogicalExpression");
+              if (param_expr != null) {
+
+                String l1tSeedStrOld = param_expr.valueAsString();
+                String l1tSeedStrNew = param_expr.valueAsString();
+
+                for (String l1tSeedNameOld : l1tSeedRenamingMap.keySet()) {
+                  String l1tSeedNameNew = l1tSeedRenamingMap.get(l1tSeedNameOld).trim();
+                  // replace L1T seed
+                  l1tSeedStrNew = l1tSeedStrNew.replaceAll("\\b"+l1tSeedNameOld+"\\b", l1tSeedNameNew);
+                  // remove spurious whitespaces (if any)
+                  while (l1tSeedStrNew.contains("  ")) l1tSeedStrNew = l1tSeedStrNew.replaceAll("  "," ");
+                  l1tSeedStrNew = l1tSeedStrNew.trim();
+                }
+
+                if (!l1tSeedStrNew.equals(l1tSeedStrOld)) {
+                  param_expr.setValue(l1tSeedStrNew);
+                  module.setHasChanged();
+
+                  System.out.printf("\n[replaceL1TriggerSeeds] CHANGE #"+numChanges.toString()+":");
+                  System.out.println(" value of \"L1SeedsLogicalExpression\" of \"HLTL1TSeed\" filter: module = "+module.name());
+                  System.out.println("[replaceL1TriggerSeeds]         old = "+l1tSeedStrOld);
+                  System.out.println("[replaceL1TriggerSeeds]         new = "+l1tSeedStrNew);
+                  ++numChanges;
+                }
+              }
+            }
+          }
+
+          System.out.println("\n[replaceL1TriggerSeeds] Number of updated modules: "+numChanges.toString());
+        }
+
+        // CMSHLT-2244: replace PFJetsMatchedToFilteredCaloJetsProducer with HLTPFJetsMatchedToFilteredCaloJetsProducer
+        private void customiseForCMSHLT2244() {
+          replaceAllInstances(2244, "PFJetsMatchedToFilteredCaloJetsProducer", "HLTPFJetsMatchedToFilteredCaloJetsProducer");
         }
 
         private void customiseForCMSHLT2210(){
@@ -1048,6 +1116,13 @@ public class JavaCodeExecution {
 
 		String label24660 = null;
 
+                if (special == 2244 && !(oldTemplateName.equals("PFJetsMatchedToFilteredCaloJetsProducer")
+                    && newTemplateName.equals("HLTPFJetsMatchedToFilteredCaloJetsProducer"))) {
+
+                  System.out.println("[replaceAllInstances(special=2244, oldTemplateName=\""+oldTemplateName+"\", newTemplateName=\""+newTemplateName+"\")] STOPPED: invalid function arguments, no changes applied to the configuration.");
+                  return;
+                }
+
 		for (int i = config.moduleCount() - 1; i >= 0; i--) {
 			oldModule = config.module(i);
 			if (oldModule.template().name().equals(oldTemplateName)) {
@@ -1090,7 +1165,7 @@ public class JavaCodeExecution {
 							newModule.updateParameter(q.name(), q.type(), label24660);
 					}
 				}
-				if (special == 24661) {
+				else if (special == 24661) {
 					Iterator<Parameter> itQ = newModule.parameterIterator();
 					while (itQ.hasNext()) {
 						Parameter q = itQ.next();
@@ -1098,7 +1173,7 @@ public class JavaCodeExecution {
 							newModule.updateParameter(q.name(), q.type(), "true");
 					}
 				}
-				if (special == 1) {
+				else if (special == 1) {
 					String label1 = oldModule.parameter("TrackProducer1", "string").valueAsString();
 					String label2 = oldModule.parameter("TrackProducer2", "string").valueAsString();
 					System.out.println("  " + label1 + " " + label2);
@@ -1109,11 +1184,25 @@ public class JavaCodeExecution {
 					newModule.parameter("TrackProducers", "VInputTag").setValue(vInputTag.valueAsString());
 					newModule.parameter("selectedTrackQuals", "VInputTag").setValue(vInputTag.valueAsString());
 				}
-				if (special == 2) {
+				else if (special == 2) {
 					PSetParameter pset = (PSetParameter) oldModule.parameter("Common", "PSet");
 					DoubleParameter maxChi2 = (DoubleParameter) pset.parameter("maxChi2");
 					System.out.println("  maxChi2 = " + maxChi2.valueAsString());
 					newModule.parameter("maxChi2", "double").setValue(maxChi2.valueAsString());
+				}
+                                else if (special == 2244) {
+
+                                  newModule.parameter("src", "InputTag").setValue(
+                                    oldModule.parameter("PFJetSrc", "InputTag").valueAsString());
+
+                                  newModule.parameter("triggerJetsFilter", "InputTag").setValue(
+                                    oldModule.parameter("CaloJetFilter", "InputTag").valueAsString());
+
+                                  newModule.parameter("triggerJetsType", "int32").setValue(
+                                    oldModule.parameter("TriggerType", "int32").valueAsString());
+
+                                  newModule.parameter("maxDeltaR", "double").setValue(
+                                    oldModule.parameter("DeltaR", "double").valueAsString());
 				}
 
 				// Get hold of oldModule's Refs etc.
@@ -1145,9 +1234,7 @@ public class JavaCodeExecution {
 				for (int j = 0; j < refCount; j++) {
 					config.insertModuleReference(parents[j], indices[j], newModule).setOperator(operators[j]);
 				}
-
 			}
-
 		}
 	}
 
