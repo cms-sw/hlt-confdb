@@ -31,6 +31,7 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		runCodeL1TMenu2();
 		// removeSelectedPSets();
 		// customiseForCMSHLT2210();
 		// customiseFor36459();
@@ -129,6 +130,74 @@ public class JavaCodeExecution {
 					}
 				} else {
 					System.err.println("Error: HLTPrescaler instance " + module.name() + " is in more than one path.");
+				}
+			}
+		}
+	}
+
+	private void runCodeL1TMenu2() {
+		// Update to a new L1T menu by 'translating' L1T algorithm names 'old' to 'new'
+		Map<String, String> map = new TreeMap<String, String>();
+
+		map.put("L1_DoubleMuOpen_er1p4_OS_dEta_Max1p6","L1_DoubleMu0er1p4_OQ_OS_dEta_Max1p6");
+		map.put("L1_DoubleMu4p5er2p0_SQ_OS_Mass7to18","L1_DoubleMu4p5er2p0_SQ_OS_Mass_7to18");
+		map.put("L1_TripleMu_2_1p5_0OQ_Mass_Max_15","L1_TripleMu_2_1p5_0OQ_Mass_Max15");
+		map.put("L1_TripleMu_2SQ_1p5SQ_0OQ_Mass_Max_15","L1_TripleMu_2SQ_1p5SQ_0OQ_Mass_Max15");
+		map.put("L1_MuShower_OneNominal","L1_SingleMuShower_Nominal");
+		map.put("L1_MuShower_OneTight","L1_SingleMuShower_Tight");
+		map.put("L1_DoubleMu3_OS_DoubleEG7p5Upsilon","L1_DoubleMu3_OS_er2p3_Mass_Max14_DoubleEG7p5_er2p1_Mass_Max20");
+		map.put("L1_DoubleMu5Upsilon_OS_DoubleEG3","L1_DoubleMu5_OS_er2p3_Mass_8to14_DoubleEG3er2p1_Mass_Max20");
+		map.put("L1_DoubleIsoTau26er2p1_Jet55_OvRm_dR0p5","L1_DoubleIsoTau26er2p1_Jet55_RmOvlp_dR0p5");
+		map.put("L1_QuadJet36er2p5_IsoTau52er2p1","L1_IsoTau52er2p1_QuadJet36er2p5");
+		map.put("L1_HTT280er_QuadJet_70_55_40_35_er2p4","L1_HTT280er_QuadJet_70_55_40_35_er2p5");
+		map.put("L1_HTT320er_QuadJet_70_55_40_40_er2p4","L1_HTT320er_QuadJet_70_55_40_40_er2p5");
+		map.put("L1_ETMHF90_SingleJet60er2p5_ETMHF90_DPHI_MIN2p094","L1_ETMHF90_SingleJet60er2p5_dPhi_Min2p1");
+		map.put("L1_ETMHF90_SingleJet60er2p5_ETMHF90_DPHI_MIN2p618","L1_ETMHF90_SingleJet60er2p5_dPhi_Min2p6");
+		map.put("L1_ETMHF90_SingleJet80er2p5_ETMHF90_DPHI_MIN2p094","L1_ETMHF90_SingleJet80er2p5_dPhi_Min2p1");
+		map.put("L1_ETMHF90_SingleJet80er2p5_ETMHF90_DPHI_MIN2p618","L1_ETMHF90_SingleJet80er2p5_dPhi_Min2p6");
+		map.put("L1_DoubleEG5er1p22_dR_0p9","L1_DoubleEG5_er1p2_dR_Max0p9");
+		map.put("L1_DoubleEG5p5er1p22_dR_0p8","L1_DoubleEG5p5_er1p2_dR_Max0p8");
+		map.put("L1_DoubleEG6er1p22_dR_0p8","L1_DoubleEG6_er1p2_dR_Max0p8");
+		map.put("L1_DoubleEG6p5er1p22_dR_0p8","L1_DoubleEG6p5_er1p2_dR_Max0p8");
+		map.put("L1_DoubleEG7er1p22_dR_0p8","L1_DoubleEG7_er1p2_dR_Max0p8");
+		map.put("L1_DoubleEG7p5er1p22_dR_0p7","L1_DoubleEG7p5_er1p2_dR_Max0p7");
+		map.put("L1_DoubleEG8er1p22_dR_0p7","L1_DoubleEG8_er1p2_dR_Max0p7");
+		map.put("L1_DoubleEG8p5er1p22_dR_0p7","L1_DoubleEG8p5_er1p2_dR_Max0p7");
+		map.put("L1_DoubleEG9er1p22_dR_0p7","L1_DoubleEG9_er1p2_dR_Max0p7");
+		map.put("L1_DoubleEG9p5er1p22_dR_0p6","L1_DoubleEG9p5_er1p2_dR_Max0p6");
+		map.put("L1_DoubleEG10er1p22_dR_0p6","L1_DoubleEG10_er1p2_dR_Max0p6");
+		map.put("L1_DoubleEG10p5er1p22_dR_0p6","L1_DoubleEG10p5_er1p2_dR_Max0p6");
+		map.put("L1_DoubleMu0_upt6ip123_upt4","L1_DoubleMu0_upt6_IP_Min1_upt4");
+		map.put("L1_DoubleMu18er2p1","L1_DoubleMu18er2p1_SQ");
+
+		int count = 0;
+		String oldSeeds = null;
+		String tmpSeeds = null;
+		String newSeeds = null;
+		ModuleInstance module = null;
+		for (int i = 0; i < config.moduleCount(); i++) {
+			module = config.module(i);
+			if (module.template().name().equals("HLTL1TSeed")) {
+				oldSeeds = module.parameter("L1SeedsLogicalExpression", "string").valueAsString();
+				oldSeeds = " " + oldSeeds.substring(1, oldSeeds.length() - 1) + " ";
+				tmpSeeds = new String(oldSeeds);
+				for (String key : map.keySet()) {
+					if (tmpSeeds.contains(" " + key + " ")) {
+						tmpSeeds = tmpSeeds.replace(" " + key + " ", "X" + key + "X");
+					}
+				}
+				newSeeds = new String(tmpSeeds);
+				for (String key : map.keySet()) {
+					if (newSeeds.contains("X" + key + "X")) {
+						newSeeds = newSeeds.replace("X" + key + "X", " " + map.get(key) + " ");
+					}
+				}
+				if (!(oldSeeds.equals(newSeeds))) {
+					System.out.println(count + ": " + module.name() + "|" + oldSeeds + "|" + newSeeds + "|");
+					module.updateParameter("L1SeedsLogicalExpression", "string",
+							newSeeds.substring(1, newSeeds.length() - 1));
+					module.setHasChanged();
+					count = count + 1;
 				}
 			}
 		}
