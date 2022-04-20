@@ -2,6 +2,8 @@ package confdb.converter.python;
 
 import java.util.Iterator;
 
+import org.omg.CORBA.DynAnyPackage.InvalidValue;
+
 import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
@@ -28,6 +30,7 @@ import confdb.data.EDAliasInstance;
 import confdb.data.OutputModule;
 import confdb.data.Parameter;
 import confdb.data.Path;
+import confdb.data.ReleaseVersionInfo;
 import confdb.data.Sequence;
 import confdb.data.Task;
 import confdb.data.SwitchProducer;
@@ -36,6 +39,13 @@ import confdb.data.ServiceInstance;
 public class PythonConfigurationWriter implements IConfigurationWriter {
 	protected ConverterEngine converterEngine = null;
 
+	/**
+	 * converts the configuration to python
+	 * note there are some thing not stored by the config which are added by this function
+	 * eg process.HLTConfigVersion, process.schedule, process.ProcessAcceleratorCUDA
+	 * these should all be listed in Configuration.reservedNames to ensure we dont accidently include
+	 * them in the config
+	 */
 	public String toString(IConfiguration conf, WriteProcess writeProcess) throws ConverterException {
 		String indent = "  ";
 		StringBuffer str = new StringBuffer(100000);
@@ -47,7 +57,11 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 
 		str.append("import FWCore.ParameterSet.Config as cms\n\n");
 		if(conf.switchProducerCount() > 0) {
+			ReleaseVersionInfo relVarInfo = new ReleaseVersionInfo(conf.releaseTag());
 		    str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
+			if(relVarInfo.cycle()>=12 && relVarInfo.major()>=3){
+				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\nprocess.ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n\n");
+			}
 		}
 
 

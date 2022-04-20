@@ -1,6 +1,9 @@
-2022-04-01 Sam Harper
-    * tag V03-02-05
+2022-04-19 Sam Harper
+    * tag V03-03-00
 	* added DAQ3 Val DB to the DB options
+	* converter now adds ProcessAcceleratorCUDA to configs with release template >=12_3
+	* python package updated to CMSSW_12_3_0
+	* following names are now reserved: ProcessAcceleratorCUDA, HLTConfigVersion, schedule
 
 2022-03-15 Sam Harper
     * tag V03-02-04

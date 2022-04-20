@@ -1,6 +1,8 @@
 package confdb.data;
 
+import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Collections;
 
@@ -68,6 +70,9 @@ public class Configuration implements IConfiguration {
 	/** list of blocks (always empty for Configuration!) */
 	private ArrayList<Block> blocks = new ArrayList<Block>();
 
+	public static List<String> reservedNames = Arrays.asList(
+		"ProcessAcceleratorCUDA","HLTConfigVersion","schedule"
+	);
 	//
 	// construction
 	//
@@ -421,9 +426,21 @@ public class Configuration implements IConfiguration {
 	}
 
 	/** check if a qualifier is unique */
-	public boolean isUniqueQualifier(String qualifier) {
+	public boolean isUniqueQualifier(String qualifier) {		
 		if (qualifier.length() == 0)
 			return false;
+		for (String s : reservedNames)
+			if(s.equals(qualifier))
+				return false;		
+		return nameNotInProcessObject(qualifier);
+	}
+	
+	/** check if a given name exists in the process object 
+	 * does not include reserved names, only currently existing ones
+	*/
+	public boolean nameNotInProcessObject(String qualifier) {
+		if (qualifier.length() == 0)
+			return true;
 		for (ESSourceInstance ess : essources)
 			if (ess.name().equals(qualifier))
 				return false;
@@ -456,6 +473,11 @@ public class Configuration implements IConfiguration {
 		while (itOM.hasNext())
 			if (itOM.next().name().equals(qualifier))
 				return false;
+		
+		Iterator<Parameter> globalPSetIt = psets.parameterIterator();
+		while(globalPSetIt.hasNext())			
+			if(globalPSetIt.next().name().equals(qualifier))
+				return false;
 
 		return true;
 	}
@@ -464,6 +486,9 @@ public class Configuration implements IConfiguration {
 	public boolean hasUniqueQualifier(Referencable referencable) {
 		if (referencable.name().length() == 0)
 			return false;
+		for (String s : reservedNames)
+			if(s.equals(referencable.name()))
+				return false;
 		for (ESSourceInstance ess : essources)
 			if (ess.name().equals(referencable.name()))
 				return false;
@@ -487,7 +512,7 @@ public class Configuration implements IConfiguration {
 				continue;
 			if (geda.name().equals(referencable.name()))
 				return false;
-		}
+		}		
 		for (SwitchProducer swp : switchproducers) {
 			if (swp == referencable)
 				continue;
@@ -520,6 +545,14 @@ public class Configuration implements IConfiguration {
 			if (t.name().equals(referencable.name()))
 				return false;
 		}
+
+		Iterator<Parameter> globalPSetIt = psets.parameterIterator();
+		while(globalPSetIt.hasNext()){			
+			if(globalPSetIt.next().name().equals(referencable.name())){
+				return false;
+			}
+		}
+
 		return true;
 	}
 
