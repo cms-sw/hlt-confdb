@@ -4,6 +4,9 @@
 	* converter now adds ProcessAcceleratorCUDA to configs with release template >=12_3
 	* python package updated to CMSSW_12_3_0
 	* following names are now reserved: ProcessAcceleratorCUDA, HLTConfigVersion, schedule
+	* global psets are now checked when considering name uniquenes and have name uniqueness enforced
+	  on creation
+	* smart renaming icon and menu entry now restored
 
 2022-03-15 Sam Harper
     * tag V03-02-04
