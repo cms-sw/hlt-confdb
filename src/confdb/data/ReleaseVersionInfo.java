@@ -17,6 +17,8 @@ public class ReleaseVersionInfo {
      * if the 5th entry is pre/patch version or the suffix without the additional
      * contraint that pre/patch format is pre<number> or patch<number>
      * 
+     * anything infront of CMSSW is ignored
+     * 
      */
     public ReleaseVersionInfo(String releaseTag) {
         if(!setValues(releaseTag)){
@@ -25,8 +27,17 @@ public class ReleaseVersionInfo {
     }
 
     private boolean setValues(String releaseTag){
-        String[] splitTag = releaseTag.split("_");
-        if(splitTag.length<=4) return false;
+        String releaseTagTrimmed = releaseTag;
+        if(!releaseTag.startsWith("CMSSW")){
+            int index = releaseTag.indexOf("CMSSW");
+            if(index!=-1){
+                releaseTagTrimmed = releaseTag.substring(index);
+            }
+        }
+
+        String[] splitTag = releaseTagTrimmed.split("_");
+        
+        if(splitTag.length<4) return false;
         if(!splitTag[0].equals("CMSSW")) return false;
 
         try {
@@ -37,13 +48,13 @@ public class ReleaseVersionInfo {
             }else{
                 minor = Integer.parseInt(splitTag[3]);
             }
-        } catch (NumberFormatException ex) {
-            return false;
+        } catch (NumberFormatException ex) {            
+            return false;            
         }
 
-        if(splitTag.length>4){
+        if(splitTag.length>4){            
             if(splitTag[4].startsWith("pre")){
-                try{
+                try{                    
                     prerel = Integer.parseInt(splitTag[4].substring(3));
                 } catch(NumberFormatException ex){
 
@@ -51,12 +62,14 @@ public class ReleaseVersionInfo {
             }
             if(splitTag[4].startsWith("patch")){
                 try{
-                    patch = Integer.parseInt(splitTag[4].substring(6));
+                    patch = Integer.parseInt(splitTag[4].substring(5));
                 } catch(NumberFormatException ex){
-
+                    
                 }
             }
         }
+        System.err.print("parsed "+releaseTag);
+        System.err.println("  "+cycle+" "+major+" "+minor+" pre "+prerel+" patch "+patch);
         return true;
 
     }
