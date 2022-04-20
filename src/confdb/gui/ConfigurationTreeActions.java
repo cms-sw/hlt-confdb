@@ -126,15 +126,20 @@ public class ConfigurationTreeActions {
 		Configuration config = (Configuration) model.getRoot();
 		TreePath treePath = tree.getSelectionPath();
 
-		config.insertPSet(pset);
+		if(config.isUniqueQualifier(pset.name())){
+			config.insertPSet(pset);
 
-		model.nodeInserted(model.psetsNode(), config.psetCount() - 1);
-		model.updateLevel1Nodes();
+			model.nodeInserted(model.psetsNode(), config.psetCount() - 1);
+			model.updateLevel1Nodes();
 
-		TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
-		tree.setSelectionPath(parentPath.pathByAddingChild(pset));
+			TreePath parentPath = (treePath.getPathCount() == 2) ? treePath : treePath.getParentPath();
+			tree.setSelectionPath(parentPath.pathByAddingChild(pset));
 
-		return true;
+			return true;
+		}else{
+			System.err.println("Global PSet name "+pset.name()+" is not unique, pset not added");
+			return false;
+		}
 	}
 
 	/** remove global pset */
