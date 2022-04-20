@@ -2,8 +2,6 @@ package confdb.converter.python;
 
 import java.util.Iterator;
 
-import org.omg.CORBA.DynAnyPackage.InvalidValue;
-
 import confdb.converter.ConverterEngine;
 import confdb.converter.ConverterException;
 import confdb.converter.IConfigurationWriter;
@@ -47,8 +45,10 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 	 * them in the config
 	 */
 	public String toString(IConfiguration conf, WriteProcess writeProcess) throws ConverterException {
-		String indent = "  ";
+		String indent = writeProcess == WriteProcess.YES ? "  " : "";
+		String object = writeProcess == WriteProcess.YES ? "process." : ""; 
 		StringBuffer str = new StringBuffer(100000);
+		StringBuffer strProcessLoads = new StringBuffer(100000);
 		// String fullName = conf.parentDir().name() + "/" + conf.name() + "/V" +
 		// conf.version() ;
 		String fullName = conf.toString();
@@ -56,24 +56,23 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 				+ converterEngine.getNewline());
 
 		str.append("import FWCore.ParameterSet.Config as cms\n\n");
+
 		
-
-		String object = "";
-		if (writeProcess == WriteProcess.YES) {
-			object = "process.";
-			str.append("process = cms.Process( \"" + conf.processName() + "\" )\n");
-		} else {
-			indent = "";
-		}
-
 		if(conf.switchProducerCount() > 0) {
 			ReleaseVersionInfo relVarInfo = new ReleaseVersionInfo(conf.releaseTag());
-			str.append("\nfrom HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
-			if(relVarInfo.cycle()>=12 && relVarInfo.major()>=3){
-				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\n"+object+"ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n");
+			str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n");
+			if( relVarInfo.cycle()>=13  ||
+				(relVarInfo.cycle()==12 && relVarInfo.major()>=3)){
+				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\n\n");
+				strProcessLoads.append(object+"ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n");
 			}
 		}
-	
+
+		if (writeProcess == WriteProcess.YES) {
+			str.append("process = cms.Process( \"" + conf.processName() + "\" )\n\n");
+		} 
+		str.append(strProcessLoads);		
+		
 
 		str.append("\n" + object + "HLTConfigVersion = cms.PSet(\n  tableName = cms.string('" + fullName + "')\n)\n\n");
 
