@@ -68,9 +68,9 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 
 		if(conf.switchProducerCount() > 0) {
 			ReleaseVersionInfo relVarInfo = new ReleaseVersionInfo(conf.releaseTag());
-			str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
+			str.append("\nfrom HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
 			if(relVarInfo.cycle()>=12 && relVarInfo.major()>=3){
-				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\n"+object+"ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n\n");
+				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\n"+object+"ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n");
 			}
 		}
 	
