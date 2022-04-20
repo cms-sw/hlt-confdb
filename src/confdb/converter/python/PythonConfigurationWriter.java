@@ -56,21 +56,24 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 				+ converterEngine.getNewline());
 
 		str.append("import FWCore.ParameterSet.Config as cms\n\n");
-		if(conf.switchProducerCount() > 0) {
-			ReleaseVersionInfo relVarInfo = new ReleaseVersionInfo(conf.releaseTag());
-		    str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
-			if(relVarInfo.cycle()>=12 && relVarInfo.major()>=3){
-				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\nprocess.ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n\n");
-			}
-		}
-
+		
 
 		String object = "";
 		if (writeProcess == WriteProcess.YES) {
 			object = "process.";
 			str.append("process = cms.Process( \"" + conf.processName() + "\" )\n");
-		} else
+		} else {
 			indent = "";
+		}
+
+		if(conf.switchProducerCount() > 0) {
+			ReleaseVersionInfo relVarInfo = new ReleaseVersionInfo(conf.releaseTag());
+			str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
+			if(relVarInfo.cycle()>=12 && relVarInfo.major()>=3){
+				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\n"+object+"ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n\n");
+			}
+		}
+	
 
 		str.append("\n" + object + "HLTConfigVersion = cms.PSet(\n  tableName = cms.string('" + fullName + "')\n)\n\n");
 
