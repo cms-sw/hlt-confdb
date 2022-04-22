@@ -7,6 +7,7 @@
 	* global psets are now checked when considering name uniquenes and have name uniqueness enforced
 	  on creation
 	* smart renaming icon and menu entry now restored
+	* now checks that the default column in the prescale service exists on menu save
 
 2022-03-15 Sam Harper
     * tag V03-02-04
