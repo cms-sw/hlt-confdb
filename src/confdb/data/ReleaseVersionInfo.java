@@ -117,7 +117,7 @@ public class ReleaseVersionInfo {
             if(prerel==-1 && this.prerel==null){
                 if(patch==-1 && this.patch==null) return true;
                 else return this.patch!=null && this.patch==patch;
-            } return this.prerel!=null && this.prerel==prerel;
+            } else return this.prerel!=null && this.prerel==prerel;
         }
         return false;
     }
