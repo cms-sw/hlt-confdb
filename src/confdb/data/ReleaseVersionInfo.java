@@ -98,7 +98,7 @@ public class ReleaseVersionInfo {
                 }else if(patch!=-1){
                     return this.patch!=null && this.patch>=patch;
                 }else{
-                    return true;
+                    return (this.patch != null || this.prerel == null);
                 }
             }
             else return false;
