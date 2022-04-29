@@ -282,6 +282,7 @@ public class MenuBar {
 		toolMenuSmartRenamingItem = new JMenuItem(toolMenuSmartRenaming, KeyEvent.VK_N);
 		toolMenuSmartRenamingItem.setActionCommand(toolMenuSmartRenaming);
 		toolMenuSmartRenamingItem.addActionListener(listener);
+		toolMenu.add(toolMenuSmartRenamingItem);
 		toolMenuConvertToTasksItem = new JMenuItem(toolMenuConvertToTasks);
 		toolMenuConvertToTasksItem.setActionCommand(toolMenuConvertToTasks);
 		toolMenuConvertToTasksItem.addActionListener(listener);

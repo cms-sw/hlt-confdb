@@ -28,7 +28,9 @@ class ConfigChecks {
         checkDatasetPathPrescales(config, frame) &&
         checkStreamOutputPaths(config, frame) &&
         checkFinalPathContent(config, frame) &&
-        checkForExtraFinalPaths(config, frame);
+        checkForExtraFinalPaths(config, frame) && 
+        checkForReservedNames(config, frame) &&
+        checkForInvalidDefaultPSCol(config, frame);
 	}
 
     public static boolean checkUnassignedPaths(Configuration config, JFrame frame){
@@ -408,4 +410,62 @@ class ConfigChecks {
 
     }
 
+    static boolean checkForReservedNames(Configuration config, JFrame frame){        
+        ArrayList<String> errors = new ArrayList<String>();
+        for(String name : Configuration.reservedNames){
+            if(!config.nameNotInProcessObject(name)){
+                errors.add("reserved name \""+name+"\" is present in the config");
+            }
+        }
+        if(!errors.isEmpty()){
+            String errStr = new String();
+            for(String error : errors ){
+                errStr+="\n"+error;
+            }         
+            String msg = new String("The following reserved names are present in the configuration\nThese will be overriden by the python converter so please rename them.\n");
+			msg+=errStr;			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(errors.size()+5,50));
+			JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);            
+            return false;
+        }
+        return true;
+    }
+
+    static boolean checkForInvalidDefaultPSCol(Configuration config, JFrame frame){
+
+        ServiceInstance psService = config.service("PrescaleService");
+		if (psService != null) {
+            VStringParameter colNames = (VStringParameter)psService.parameter("lvl1Labels","vstring");
+            StringParameter defaultLabel = (StringParameter)psService.parameter("lvl1DefaultLabel","string");
+            boolean defaultFound = false;
+            for(int colNr=0;colNr<colNames.vectorSize();colNr++){
+                if(defaultLabel.value().equals(colNames.value(colNr))){
+                    defaultFound=true;                    
+                    break;
+                }
+            }
+            if(!defaultFound){                      
+                String msg = new String("The default PS column \""+defaultLabel.value()+"\" does not exist.\nPlease set it to an available column.\n");
+                msg+="The available columns are:";
+                for(int colNr=0;colNr<colNames.vectorSize();colNr++){
+                    msg+="\n   "+colNames.value(colNr);
+                }
+                JTextArea textArea = new JTextArea(msg);
+                JScrollPane scrollPane = new JScrollPane(textArea);  
+                //textArea.setLineWrap(true);  
+                //textArea.setWrapStyleWord(true); 
+                textArea.setColumns(80);
+                textArea.setRows(Math.min(msg.split("\n").length+1,50));
+                JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);            
+                return false; 
+            }
+        }
+        return true;
+
+    }
 }
