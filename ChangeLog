@@ -1,6 +1,9 @@
 2022-05-19 Sam Harper
     * tag V03-04-00
-	* for configs with release template >=12_4_0_pre4 Task is now renamed ConcurentTask in python
+	* for configs with release template >=12_4_0_pre4 Task is now renamed ConditionalTask in python
+	* FWCore/ParameterSet updated to release CMSSW_12_4_0_pre4
+	* parser supports parsing both conditional and standard tasks (but parses them to the same 
+	  location their type is lost)
 
 2022-04-19 Sam Harper
     * tag V03-03-00
