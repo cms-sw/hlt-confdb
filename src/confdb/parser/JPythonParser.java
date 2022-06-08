@@ -1246,9 +1246,6 @@ public class JPythonParser
 	if(sequenceContent.__findattr__("_tasks")!=null){	 
 	    collection.extend(sequenceContent.__getattr__("_tasks"));
 	}
-    if(sequenceContent.__findattr__("_conditionaltasks")!=null){	 
-	    collection.extend(sequenceContent.__getattr__("_conditionaltasks"));
-	}
 
     if (pythonObjects.switchProducer.is(getType(sequenceContent))){
 	   System.out.println("ERROR should not be a SP here ");
