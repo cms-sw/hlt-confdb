@@ -13,7 +13,7 @@ public class PythonTaskWriter implements ITaskWriter {
 		
 		ReleaseVersionInfo relInfo = new ReleaseVersionInfo(task.config().releaseTag());
 		String taskType = null;
-		if(relInfo.geq(12,4,0,4)){
+		if(relInfo.geq(12,4,0) && !(relInfo.equals(12,5,0,1))){
 			taskType = new String("cms.ConditionalTask");
 		}else{
 			taskType = new String("cms.Task");
