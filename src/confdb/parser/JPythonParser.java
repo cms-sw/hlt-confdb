@@ -653,8 +653,14 @@ public class JPythonParser
     // Parse Sequences:
     private void parseTasksFromPython(PyObject pyprocess){
         PyDictionary tasks = (PyDictionary) pyprocess.__getattr__("_Process__tasks");
-        if (validPyObject(tasks))
+        if (validPyObject(tasks)){
             parseTasksMap(tasks);
+        }
+        PyDictionary condtasks = (PyDictionary) pyprocess.__getattr__("_Process__conditionaltasks");
+        if (validPyObject(condtasks)){
+            parseTasksMap(condtasks);
+        }
+
     }
     
     // Parse SwitchProducers:
@@ -1241,7 +1247,7 @@ public class JPythonParser
 	    collection.extend(sequenceContent.__getattr__("_tasks"));
 	}
 
-        if (pythonObjects.switchProducer.is(getType(sequenceContent))){
+    if (pythonObjects.switchProducer.is(getType(sequenceContent))){
 	   System.out.println("ERROR should not be a SP here ");
 	}	
 
@@ -1267,6 +1273,19 @@ public class JPythonParser
             {
                 // Parse sub-items of label task on demand:
                 PyDictionary tasks = (PyDictionary) process.__getattr__("_Process__tasks");
+                PyObject task = tasks.__getitem__(new PyString(label));
+                confdb.data.Task subTask = parseTask(task);
+
+                // If task reference does not exist in this container, add it!
+                Reference reference = parentContainer.entry(label);
+                if (reference == null)
+                    reference = configuration.insertTaskReference(parentContainer, parentContainer.entryCount(), subTask);
+            }
+            else if (pythonObjects.condtask.is(type))
+            // ConditionalTask
+            {
+                // Parse sub-items of label task on demand:
+                PyDictionary tasks = (PyDictionary) process.__getattr__("_Process__conditionaltasks");
                 PyObject task = tasks.__getitem__(new PyString(label));
                 confdb.data.Task subTask = parseTask(task);
 
@@ -1408,7 +1427,7 @@ public class JPythonParser
     }
     
     private void parseTasksMap(PyDictionary pydict) {
-        alert(msg.inf, " Tasks (" + pydict.size() + ")");
+        alert(msg.inf, " ConditionalTasks (" + pydict.size() + ")");
         PyList keys = (PyList) pydict.invoke("keys");
 
         for (Object key : keys) {
@@ -1428,7 +1447,7 @@ public class JPythonParser
         String label = getLabel(object);
         confdb.data.Task insertedTas = null;
 
-        if (confdbTypes.task.is(type)) {
+        if (confdbTypes.task.is(type) || confdbTypes.condTask.is(type)) {
             insertedTas = configuration.task(label);
 
             // create a new Task if needed
@@ -1638,6 +1657,7 @@ public class JPythonParser
     public enum confdbTypes {
         sequence("Sequence"),
         task("Task"), //not strickly a confdb type, see if this causes issues
+        condTask("ConditionalTask"), //not strickly a confdb type, see if this causes issues
         switchProducer("SwitchProducerCUDA"),
         path("Path"),
         endPath("EndPath"),
@@ -1728,8 +1748,9 @@ public class JPythonParser
         seqIgnore("_SequenceIgnore"),
         seqOpAids("_SequenceOpAids"),
         task("Task"),
+        condtask("ConditionalTask"),
         switchProducer("SwitchProducerCUDA"),
-	EDAlias("EDAlias"),
+	    EDAlias("EDAlias"),
         EDProducer("EDProducer"),
         EDFilter("EDFilter"),
         EDAnalyzer("EDAnalyzer"),
