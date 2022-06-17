@@ -31,9 +31,9 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+                // customiseForCMSHLT2353();
 		runCodeL1TMenu2();
 		// removeSelectedPSets();
-		// replaceL1TriggerSeeds();
 		// customiseForCMSHLT2244();
 		// customiseForCMSHLT2210();
 		// customiseFor36459();
@@ -136,6 +136,13 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void customiseForCMSHLT2353(){
+          Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
+          l1tSeedRenamingMap.put("L1_ETMHF100", "L1_ETMHF70 OR L1_ETMHF80 OR L1_ETMHF90 OR L1_ETMHF100");
+          l1tSeedRenamingMap.put("L1_ETMHF90_HTT60er", "L1_ETMHF70_HTT60er OR L1_ETMHF80_HTT60er OR L1_ETMHF90_HTT60er");
+          replaceL1TriggerSeeds(l1tSeedRenamingMap);
+        }
 
 	private void runCodeL1TMenu2() {
 		// Update to a new L1T menu by 'translating' L1T algorithm names 'old' to 'new'
@@ -253,11 +260,10 @@ public class JavaCodeExecution {
         //    - note: this function does not support using empty strings as replacement for a L1T seed to be removed
         //  - this function does not guarantee that the resulting "L1SeedsLogicalExpression" parameter is a valid logical expression;
         //    it will be valid as long as the original expression is valid, and the replacements hard-coded in l1tSeedRenamingMap are valid
-        private void replaceL1TriggerSeeds(){
-          // map of L1T seeds (key: old, value: new)
-          Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
-          //l1tSeedRenamingMap.put("L1_OldSeed", "L1_NewSeed"); // example
-          //l1tSeedRenamingMap.put("L1_DeprecatedSeed", "FALSE"); // example
+        private void replaceL1TriggerSeeds(Map<String, String> l1tSeedRenamingMap){
+          // l1tSeedRenamingMap: map of L1T seeds (key: old, value: new)
+          //  - example: l1tSeedRenamingMap.put("L1_OldSeed", "L1_NewSeed");
+          //  - example: l1tSeedRenamingMap.put("L1_DeprecatedSeed", "FALSE");
 
           // validate l1tSeedRenamingMap
           for (String l1tSeedNameOld : l1tSeedRenamingMap.keySet()) {
