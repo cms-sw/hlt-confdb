@@ -1,3 +1,7 @@
+2022-06-23 Andrea Bocci
+    * tag V03-04-01
+	* adapts config look up to use OMS tables, now enabling config look up by run number again
+
 2022-05-19 Sam Harper
     * tag V03-04-00
 	* for configs with release template >=12_4_0 (except for 12_5_0_pre1) Task is now renamed
