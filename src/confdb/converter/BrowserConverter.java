@@ -37,15 +37,15 @@ public class BrowserConverter extends OfflineConverter
         super( format, dbType, dbUrl, dbUser, dbPwrd );
     }
 
-    public int getKeyFromRunSummary( int runnumber ) throws SQLException
+    public String getKeyFromRunSummary( int runnumber ) throws SQLException
     {
         if ( psSelectHltKeyFromRunSummary == null )
-            psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT HLTKEY FROM WBM_RUNSUMMARY WHERE RUNNUMBER=?" );
+            psSelectHltKeyFromRunSummary = getDatabase().getDbConnector().getConnection().prepareStatement( "SELECT VALUE FROM CMS_OMS.TRIGGER_KEYS WHERE NAME='HLT_KEY' AND RUN_NUMBER=?" );
         psSelectHltKeyFromRunSummary.setInt( 1, runnumber );
         ResultSet rs = psSelectHltKeyFromRunSummary.executeQuery();
-        int key = -1;
+        String key = null;
         if ( rs.next() )
-            key = rs.getInt(1);
+            key = rs.getString(1);
         return key;
     }
 
@@ -390,7 +390,8 @@ public class BrowserConverter extends OfflineConverter
             int id = 0;
             if (! runNumber.isEmpty()) {
                 int run = Integer.parseInt(runNumber);
-                id  = converter.getKeyFromRunSummary(run);
+                configName = converter.getKeyFromRunSummary(run);
+                id = converter.getDatabase().getConfigId(configName);
             }
             else if (! configId.isEmpty()) {
                 id = Integer.parseInt(configId);
