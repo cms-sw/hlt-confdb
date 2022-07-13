@@ -31,8 +31,9 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// customiseForCMSHLT2390();
                 // customiseForCMSHLT2353();
-		runCodeL1TMenu2();
+		// runCodeL1TMenu2();
 		// removeSelectedPSets();
 		// customiseForCMSHLT2244();
 		// customiseForCMSHLT2210();
@@ -137,6 +138,33 @@ public class JavaCodeExecution {
 		}
 	}
 
+        private void customiseForCMSHLT2390(){
+	    movePathsBetweenDatasets("SingleMuon","Muon");
+	    movePathsBetweenDatasets("DoubleMuon","Muon");
+	    movePathsBetweenDatasets("JetHT","JetMET");
+	    movePathsBetweenDatasets("MET","JetMET");	    
+	}
+
+        private void movePathsBetweenDatasets(String oldDataset, String newDataset){
+	    // Move paths from oldDataset to newDataset
+	    PrimaryDataset oldPD = config.dataset(oldDataset);
+	    if (oldPD == null) {
+		System.out.println("Old dataset "+oldDataset+" does not exist - abort!");
+		return;
+	    }
+	    PrimaryDataset newPD = config.dataset(newDataset);
+	    if (newPD == null) {
+		System.out.println("New dataset "+newDataset+" does not exist - abort!");
+		return;
+	    }
+	    Iterator<Path> itP = oldPD.orderedPathIterator();
+	    while (itP.hasNext()){
+		Path path = itP.next();
+		oldPD.removePath(path);
+		newPD.insertPath(path);
+	    }	    
+	}
+    
         private void customiseForCMSHLT2353(){
           Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
           l1tSeedRenamingMap.put("L1_ETMHF100", "L1_ETMHF70 OR L1_ETMHF80 OR L1_ETMHF90 OR L1_ETMHF100");
