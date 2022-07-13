@@ -4,6 +4,8 @@ import javax.swing.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.stream.Collectors;
+import java.util.Map;
 
 import confdb.data.*;
 /** 
@@ -30,7 +32,8 @@ class ConfigChecks {
         checkFinalPathContent(config, frame) &&
         checkForExtraFinalPaths(config, frame) && 
         checkForReservedNames(config, frame) &&
-        checkForInvalidDefaultPSCol(config, frame);
+        checkForInvalidDefaultPSCol(config, frame) && 
+        checkForDupPaths(config, frame);
 	}
 
     public static boolean checkUnassignedPaths(Configuration config, JFrame frame){
@@ -468,4 +471,40 @@ class ConfigChecks {
         return true;
 
     }
+    
+    static boolean checkForDupPaths(Configuration config, JFrame frame){
+      ArrayList<String> pathNames = new ArrayList<String>();
+      for(int pathNr=0;pathNr<config.pathCount();pathNr++){
+        pathNames.add(config.path(pathNr).name());
+      }
+      Map<String, Long> counts = pathNames.stream().collect(Collectors.groupingBy(p -> Path.rmVersion(p),Collectors.counting()));
+       
+      ArrayList<String> errors = new ArrayList<String>();
+      Iterator<Map.Entry<String,Long>> pathIt = counts.entrySet().iterator();
+      while(pathIt.hasNext()){
+        Map.Entry<String,Long> pathEntry = pathIt.next();
+        if(pathEntry.getValue()>1){
+          errors.add(pathEntry.getKey()+" : "+pathEntry.getValue()+" versions");
+        }
+
+      }
+      if(!errors.isEmpty()){
+        String errStr = new String();
+        for(String error : errors ){
+            errStr+="\n"+error;
+        }         
+        String msg = new String("There are multiple versions of path(s) present in the menu\n\neg HLT_Ele32_WPTight_v3 and HLT_Ele32_WPTight_v4 would be multiple versions of the same path\n\nPlease remove the duplicate versions of the following paths\n");
+        msg+=errStr;			
+        JTextArea textArea = new JTextArea(msg);
+        JScrollPane scrollPane = new JScrollPane(textArea);  
+        //textArea.setLineWrap(true);  
+        //textArea.setWrapStyleWord(true); 
+        textArea.setColumns(80);
+        textArea.setRows(Math.min(errors.size()+7,50));
+        JOptionPane.showMessageDialog(frame, scrollPane, "Invalid Config", JOptionPane.ERROR_MESSAGE);            
+        return false;
+    }
+    return true;
+
+  }
 }
