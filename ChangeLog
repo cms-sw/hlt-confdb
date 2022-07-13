@@ -1,3 +1,7 @@
+2022-07-13 Sam Harper
+    * tag V03-04-02
+	* config check introduced which means two versions of the same path now prevents the menu from saving
+
 2022-06-23 Andrea Bocci
     * tag V03-04-01
 	* adapts config look up to use OMS tables, now enabling config look up by run number again
