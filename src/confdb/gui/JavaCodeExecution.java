@@ -31,8 +31,10 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// customiseForCMSHLT2417();
+		// customiseForCMSHLT2261();
 		// customiseForCMSHLT2390();
-                // customiseForCMSHLT2353();
+		// customiseForCMSHLT2353();
 		// runCodeL1TMenu2();
 		// removeSelectedPSets();
 		// customiseForCMSHLT2244();
@@ -138,6 +140,94 @@ public class JavaCodeExecution {
 		}
 	}
 
+        private void customiseForCMSHLT2417(){
+          Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
+          l1tSeedRenamingMap.put(
+            "L1_Mu3er1p5_Jet100er2p5_ETMHF40 OR L1_Mu3er1p5_Jet100er2p5_ETMHF50",
+            "L1_Mu3er1p5_Jet100er2p5_ETMHF30 OR L1_Mu3er1p5_Jet100er2p5_ETMHF40 OR L1_Mu3er1p5_Jet100er2p5_ETMHF50");
+
+          l1tSeedRenamingMap.put(
+            "L1_DoubleMu3_SQ_ETMHF50_HTT60er OR L1_DoubleMu3_SQ_ETMHF50_Jet60er2p5_OR_DoubleJet40er2p5 OR L1_DoubleMu3_SQ_ETMHF50_Jet60er2p5 OR L1_DoubleMu3_SQ_ETMHF60_Jet60er2p5",
+            "L1_DoubleMu3_SQ_ETMHF30_HTT60er OR L1_DoubleMu3_SQ_ETMHF40_HTT60er OR L1_DoubleMu3_SQ_ETMHF50_HTT60er OR L1_DoubleMu3_SQ_ETMHF30_Jet60er2p5_OR_DoubleJet40er2p5 OR L1_DoubleMu3_SQ_ETMHF40_Jet60er2p5_OR_DoubleJet40er2p5 OR L1_DoubleMu3_SQ_ETMHF50_Jet60er2p5_OR_DoubleJet40er2p5 OR L1_DoubleMu3_SQ_ETMHF50_Jet60er2p5 OR L1_DoubleMu3_SQ_ETMHF60_Jet60er2p5");
+
+          l1tSeedRenamingMap.put(
+            "L1_ETMHF90_SingleJet60er2p5_dPhi_Min2p1",
+            "L1_ETMHF80_SingleJet55er2p5_dPhi_Min2p1 OR L1_ETMHF90_SingleJet60er2p5_dPhi_Min2p1");
+
+          replaceL1TriggerSeeds(l1tSeedRenamingMap);
+        }
+
+        // Customisation used to implement part of the request in CMSHLT-2261:
+        //  - requires existence of PDs named "ReservedDoubleMuonLowMass" and "ParkingDoubleMuonLowMass"
+        //  - adds all Paths of "ReservedDoubleMuonLowMass" to "ParkingDoubleMuonLowMass",
+        //    plus two more Paths named "HLT_DoubleMu4_3_LowMass_v1" and "HLT_DoubleMu4_LowMass_Displaced_v1" (if they exist)
+        //  - smart-PSs of Paths in "ReservedDoubleMuonLowMass" are also propagated to "ParkingDoubleMuonLowMass"
+        private void customiseForCMSHLT2261(){
+
+          PrimaryDataset pd0 = config.dataset("ReservedDoubleMuonLowMass");
+          if(pd0 == null){
+            System.out.println("[customiseForCMSHLT2261] STOPPED -> PrimaryDataset \"ReservedDoubleMuonLowMass\" does not exist (no action taken)");
+            return;
+          }
+
+          ArrayList<String> pNames = new ArrayList<String>();
+          pNames.add("HLT_DoubleMu4_3_LowMass_v1");
+          pNames.add("HLT_DoubleMu4_LowMass_Displaced_v1");
+
+          Map<String, Long> pathSmartPrescaleMap = new TreeMap<String, Long>();
+
+          Iterator<Path> itP = pd0.pathIterator();
+          while (itP.hasNext()) {
+            Path p0 = itP.next();
+            if(p0 != null) {
+              pNames.add(p0.name());
+              pathSmartPrescaleMap.put(p0.name(), pd0.getPathPrescale(p0.name()));
+            }
+          }
+
+          addPathsToPrimaryDataset("ParkingDoubleMuonLowMass", pNames, pathSmartPrescaleMap);
+        }
+
+        // Function to add Paths "pathNames" to PrimaryDataset "datasetName"
+        // "pathSmartPrescaleMap" is a Map holding the smart-PS values of pathNames
+        private void addPathsToPrimaryDataset(String datasetName, ArrayList<String> pathNames, Map<String, Long> pathSmartPrescaleMap){
+
+          PrimaryDataset aPD = config.dataset(datasetName);
+          if(aPD == null){
+            System.out.println("[addPathsToPrimaryDataset] STOPPED -> PrimaryDataset \""+datasetName+"\" does not exist (no action taken)");
+            return;
+          }
+
+          Integer pathsCount = 0;
+          for (String pathName : pathNames) {
+            Path aPath = config.path(pathName);
+            if(aPath == null){
+              System.out.println("[addPathsToPrimaryDataset] Path \""+pathName+"\" does not exist (will be ignored)");
+              continue;
+            }
+
+            boolean pathInserted = aPD.insertPath(aPath);
+            if(pathInserted){
+              String logmsg = "Added to PrimaryDataset \""+datasetName+"\": Path=\""+pathName+"\"";
+              if(pathSmartPrescaleMap.containsKey(pathName)){
+                Long prescale = pathSmartPrescaleMap.get(pathName);
+                if(prescale != 1){
+                  aPD.addPathPrescale(pathName, prescale);
+                  logmsg += " (PS = "+prescale.toString()+")";
+                }
+              }
+
+              System.out.println("[addPathsToPrimaryDataset] "+logmsg);
+              ++pathsCount;
+            }
+            else {
+              System.out.println("[addPathsToPrimaryDataset] Failed to add Path=\""+pathName+"\" to PrimaryDataset \""+datasetName+"\"");
+            }
+          }
+
+          System.out.println("[addPathsToPrimaryDataset] "+pathsCount.toString()+" Path(s) added to PrimaryDataset \""+datasetName+"\"");
+        }
+
         private void customiseForCMSHLT2390(){
 	    movePathsBetweenDatasets("SingleMuon","Muon");
 	    movePathsBetweenDatasets("DoubleMuon","Muon");
@@ -164,7 +254,7 @@ public class JavaCodeExecution {
 		newPD.insertPath(path);
 	    }	    
 	}
-    
+
         private void customiseForCMSHLT2353(){
           Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
           l1tSeedRenamingMap.put("L1_ETMHF100", "L1_ETMHF70 OR L1_ETMHF80 OR L1_ETMHF90 OR L1_ETMHF100");

@@ -518,15 +518,25 @@ public class PrimaryDataset extends DatabaseEntry
         return contentsAndIndex;
     }
 
+    public Long getPathPrescale(String pathName)
+    {
+        Long prescale = Long.valueOf(1);
+        if(datasetPath != null){
+            prescale = pathFilter.getPathPrescale(pathName);
+        }
+        else {
+            System.out.println("PrimaryDataset::getPathPrescale(\""+pathName+"\") -- WARNING: datasetPath is null, returning 1.");
+        }
+        return prescale;
+    }
+
     public void addPathPrescale(String pathName,Long prescale)
     {
         if(datasetPath!=null){
             pathFilter.addPathPrescale(pathName, prescale);
         }
-
     }
 
-    
     private void addPathFilter(Configuration cfg,PathFilter existingPathFilter) {
         
         //the path filter must be always before the hlt prescaler which means index 1 as only 3 things are allowed on
@@ -774,6 +784,31 @@ public class PrimaryDataset extends DatabaseEntry
             }else{
                 return false;
             }
+        }
+
+        public Long getPathPrescale(String pathName){
+            Long prescale = Long.valueOf(-1);
+            for(String pFilterPar : this.pathFilterParam.values()){
+                String[] pFilterParSplit = pFilterPar.split(" / ");
+                String pName = pFilterParSplit[0];
+                if(pathName.equals(pName)){
+                    Long pPrescale = Long.valueOf(1);
+                    if(pFilterParSplit.length > 1){
+                        pPrescale = Long.valueOf(pFilterParSplit[1]).longValue();
+                    }
+                    if(prescale >= 0){
+                      System.out.println("PathFilter::getPathPrescale(\""+pathName+"\") -- ERROR: Found duplicate Path in PrimaryDataset");
+                    }
+                    prescale = pPrescale;
+                }
+            }
+
+            if(prescale < 0){
+                System.out.println("PathFilter::getPathPrescale(\""+pathName+"\") -- ERROR: Path not found -> Returning Prescale of 0");
+                prescale = Long.valueOf(0);
+            }
+
+            return prescale;
         }
 
         /**
