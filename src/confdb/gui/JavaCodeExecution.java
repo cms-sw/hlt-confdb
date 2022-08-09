@@ -31,6 +31,7 @@ public class JavaCodeExecution {
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// customiseForCMSHLT2312();
 		// customiseForCMSHLT2417();
 		// customiseForCMSHLT2261();
 		// customiseForCMSHLT2390();
@@ -139,6 +140,43 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void customiseForCMSHLT2312(){
+
+          Map<String, String> moduleRenamingMap = new TreeMap<String, String>();
+          moduleRenamingMap.put("kIsoFiltered0p08", "kIsoFiltered");
+          moduleRenamingMap.put("kIsoFiltered0p4", "kIsoVVLFiltered");
+          moduleRenamingMap.put("VVLFiltered0p4", "VVLFiltered");
+          moduleRenamingMap.put("IsoRhoFilteredHB0p16HE0p20", "IsoRhoFiltered");
+          moduleRenamingMap.put("IsoRhoFilteredEB0p14EE0p10", "IsoRhoFiltered");
+
+          Integer numChanges = 0;
+          for (int i = 0; i < config.moduleCount(); i++) {
+            ModuleInstance module = config.module(i);
+            String oldName = module.name();
+
+            for (String modSubLabelOld : moduleRenamingMap.keySet()) {
+              String modSubLabelNew = moduleRenamingMap.get(modSubLabelOld);
+
+              if(oldName.contains(modSubLabelOld)){
+                String newName = oldName.replaceAll(modSubLabelOld, modSubLabelNew);
+                System.out.printf("\n[customiseForCMSHLT2312] CHANGE #"+numChanges.toString()+":");
+                System.out.println(" (Old Name => New Name) \""+oldName+"\" => \""+newName+"\"");
+                try {
+                  module.setNameAndPropagate(newName);
+                  module.setHasChanged();
+                  oldName = newName;
+                  ++numChanges;
+                }
+                catch (DataException e) {
+                  System.err.println("[customiseForCMSHLT2312] "+e.getMessage());
+                }
+              }
+            }
+          }
+
+          System.out.println("\n[customiseForCMSHLT2312] Number of renamings applied: "+numChanges.toString());
+        }
 
         private void customiseForCMSHLT2417(){
           Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
