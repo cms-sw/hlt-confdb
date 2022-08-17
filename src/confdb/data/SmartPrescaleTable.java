@@ -105,7 +105,7 @@ public class SmartPrescaleTable {
                 }
             } else {
                 path = config.path(strPath);
-                if ((path != null) && (!path.isStdPath())) path = null;
+                if ((path != null) && !(path.isStdPath() || path.isDatasetPath())) path = null;
             }
         }
         return (path != null);
