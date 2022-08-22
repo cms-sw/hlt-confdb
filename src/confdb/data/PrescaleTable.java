@@ -292,14 +292,20 @@ public class PrescaleTable
 	Iterator<Path> itP = config.pathIterator();
 	while (itP.hasNext()) {
 	    Path path = itP.next();
+
+            // if path is of type FinalPath, do not display it in the PrescaleTable,
+            // as FinalPaths cannot contain EDFilters (thus, cannot contain Prescale modules)
+            if(path.isFinalPath()) continue;
+
 	    PrescaleTableRow row = pathToRow.remove(path.name());
 	    if (row==null)
 		rows.add(new PrescaleTableRow(path.name(),prescaleCount()));
 	    else
 		rows.add(row);
-		if(path.isDatasetPath()){
-			datasetPathToRowIndex.put(path.name(),rows.size()-1);
-		}
+
+	    if(path.isDatasetPath()){
+		datasetPathToRowIndex.put(path.name(),rows.size()-1);
+	    }
 	}
 
 	//so this all rather depends on the dataset paths being correctly named
