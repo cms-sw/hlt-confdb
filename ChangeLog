@@ -1,7 +1,12 @@
+2022-08-22 Marino Missiroli
+    * tag V03-04-04
+	* avoid displaying FinalPaths in the Prescales table (FinalPaths cannot be prescaled)
+	* fix to Smart-PS table to handle TriggerResultFilters selecting on DatasetPaths
+
 2022-08-02 Sam Harper
     * tag V03-04-03
 	* adding tunnel setting for ORCOFF database
-	
+
 2022-07-13 Sam Harper
     * tag V03-04-02
 	* config check introduced which means two versions of the same path now prevents the menu from saving
