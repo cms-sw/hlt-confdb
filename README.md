@@ -43,7 +43,10 @@ The minor version is for all other changes.
   1. log into `lxplus` as `confdb` (ping trigger management for password)
   1. go to directory with this repo cloned there (currently `~/private/hlt-confdb`)
   1. move to the branch you wish to deploy and ensure you have the latest version
-  1. run `./deploy` script. this will automatically deploy to the correct location using the branch name, stripping `confdb` from the start of the name to get the name to deploy to
+  1. deploy by executing `./deploy.sh`. this will automatically deploy to the correct location using the branch name, stripping `confdb` from the start of the name to get the name to deploy to
 
-After deployment, make sure that changes in the `confdbv3` branch are also propagated to the `confdbv3-beta` and `confdbv3-test` branches if necessary.
+After deployment, make sure that changes in the `confdbv3` branch are also propagated to the `confdbv3-beta` and `confdbv3-test` branches
+(unless there are reasons not to, e.g. developments in progress).
 The two development branches should always be a superset of the stable branch.
+To deploy new versions of the non-production branches, update them appropriately
+and re-run the deployment script `./deploy.sh` from the relevant branch (so, once per branch).
