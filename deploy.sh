@@ -1,6 +1,6 @@
 #! /bin/bash -e
 
-#we get the branch from 
+# we get the branch from
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 VERSION=`git rev-parse --abbrev-ref HEAD | sed s/confdb//g`
 GIT_HASH=`git rev-parse HEAD`
@@ -22,8 +22,7 @@ fi
 BASE=$HOME/www/$VERSION
 URL=https://confdb.web.cern.ch/confdb/$VERSION/gui/
 
-
-# buld everything from scratch
+# build everything from scratch
 ant clean
 ant all
 
