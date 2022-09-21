@@ -19,18 +19,25 @@ import confdb.data.*;
 
 public class JavaCodeExecution {
 	private Configuration config = null;
+	private Configuration importConfig = null;
 
-	public JavaCodeExecution(Configuration config) {
+	public JavaCodeExecution(Configuration config, Configuration importConfig) {
 		this.config = config;
+		this.importConfig = importConfig;
 	}
 
 	public Configuration config() {
 		return this.config;
 	}
 
+	public Configuration importConfig() {
+		return this.importConfig;
+	}
+
 	public void execute() {
 		System.out.println(" ");
 		System.out.println("[JavaCodeExecution] start:");
+		// customiseForCMSHLT2471();
 		// customiseForCMSHLT2312();
 		// customiseForCMSHLT2417();
 		// customiseForCMSHLT2261();
@@ -140,6 +147,69 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void customiseForCMSHLT2471(){
+
+          ArrayList<String> pathRegexs = new ArrayList<String>();
+          pathRegexs.add("HLT_HIUPC_.*");
+
+          removePathsFromConfig(pathRegexs);
+
+          ArrayList<String> pathNames = new ArrayList<String>();
+          int indexOfFinalPath = config.indexOfPath(config.path("HLTriggerFinalPath"));
+          Integer numChanges = 0;
+          Iterator<Path> itP = importConfig.pathIterator();
+          while (itP.hasNext()) {
+            Path p0 = itP.next();
+            if(p0 != null) {
+              for (String pathRegex : pathRegexs) {
+                if (p0.name().matches(pathRegex)) {
+                  System.out.printf("\n[customiseForCMSHLT2471] #"+numChanges.toString()+" Path Added: "+p0.name());
+                  config.insertPath(indexOfFinalPath, p0.name());
+                  pathNames.add(p0.name());
+                  ++indexOfFinalPath;
+                  ++numChanges;
+                }
+              }
+            }
+          }
+
+          System.out.println("\n[customiseForCMSHLT2471] Number of Paths Added: "+numChanges.toString());
+
+          Map<String, Long> pathSmartPrescaleMap = new TreeMap<String, Long>();
+          addPathsToPrimaryDataset("HIForward", pathNames, pathSmartPrescaleMap);
+        }
+
+        private void removePathsFromConfig(ArrayList<String> pathRegexes){
+          ArrayList<Path> pathsToRm = new ArrayList<Path>();
+          Iterator<Path> itP = config.pathIterator();
+          while (itP.hasNext()) {
+            Path p0 = itP.next();
+            if(p0 != null) {
+              boolean removePath = false;
+              for (String pathRegex : pathRegexes) {
+                if (p0.name().matches(pathRegex)) {
+                  removePath = true;
+                  break;
+                }
+              }
+              if (removePath) {
+                pathsToRm.add(p0);
+              }
+            }
+          }
+
+          Integer numChanges = 0;
+          for (Path aPath : pathsToRm) {
+            System.out.printf("\n[removePathsFromConfig] #"+numChanges.toString()+" Path Removed: "+aPath.name());
+            config.removePath(aPath);
+            ++numChanges;
+          }
+
+          config.setHasChanged(numChanges > 0);
+
+          System.out.println("\n[removePathsFromConfig] Number of Paths removed: "+numChanges.toString());
+        }
 
         private void customiseForCMSHLT2312(){
 
