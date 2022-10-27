@@ -204,7 +204,6 @@ public class SmartPrescaleTable {
             StringTokenizer pathTokens = new StringTokenizer(strCondition, "/ ");
             while (pathTokens.hasMoreTokens()) {
                 String strPath = pathTokens.nextToken().trim();
-                if (strPath.length() < 5) continue;
                 int g = -10000;
                 try {
                     g = Integer.parseInt(strPath);
@@ -213,6 +212,14 @@ public class SmartPrescaleTable {
                 }
                 if ((g < 0) &&
                     !strPath.equals("FALSE") &&
+                    !strPath.equals("TRUE") &&
+                    !strPath.equals("(") &&
+                    !strPath.equals(")") &&
+                    !strPath.equals("NOT") &&
+                    !strPath.equals("AND") &&
+                    !strPath.equals("OR") &&
+                    !strPath.equals("XOR") &&
+                    !strPath.equals("MASKING") &&
                     !(strPath.indexOf("*") >= 0) // quick hack to allow wildcards
                     &&
                     !checkL1TCondExists(strPath) &&
