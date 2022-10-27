@@ -113,7 +113,7 @@ public class SmartPrescaleTable {
 
     /**check l1 **/
     public boolean checkL1TCondExists(String strCond) {
-        return ((hasAccessToL1TResults) && strCond.substring(0, 2).equals("L1"));
+        return ((hasAccessToL1TResults) && strCond.substring(0, 3).equals("L1_"));
     }
 
     /**provide list of associated streams */
