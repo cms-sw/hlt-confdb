@@ -1243,7 +1243,7 @@ public class ConfDbGUI {
 
 	/** execute Java Code to manipulate Config */
 	public void openJavaCodeExecution() {
-		JavaCodeExecution execute = new JavaCodeExecution(currentConfig);
+		JavaCodeExecution execute = new JavaCodeExecution(currentConfig, importConfig);
 		execute.execute();
 
 	}
