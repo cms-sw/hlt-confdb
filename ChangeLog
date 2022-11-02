@@ -1,3 +1,7 @@
+2022-11-02 Marino Missiroli
+    * tag V03-04-05
+	* fix to Smart-PS table to improve replacement of non-existing Paths (allowing special keywords like "MASKING")
+
 2022-08-22 Marino Missiroli
     * tag V03-04-04
 	* avoid displaying FinalPaths in the Prescales table (FinalPaths cannot be prescaled)
@@ -20,7 +24,7 @@
 	* for configs with release template >=12_4_0 (except for 12_5_0_pre1) Task is now renamed
 	  ConditionalTask in python
 	* FWCore/ParameterSet updated to release CMSSW_12_4_0_pre4
-	* parser supports parsing both conditional and standard tasks (but parses them to the same 
+	* parser supports parsing both conditional and standard tasks (but parses them to the same
 	  location their type is lost)
 
 2022-04-19 Sam Harper
@@ -133,7 +137,6 @@
 	* users now can only write to the /user directory in Run3 and Dev databases
 	* updates Oracle driver to version 21c
 
-	
 2021-08-06 Philipp Brummer
     * tag V02-08-03
     * bug fix: change HtmlSwitchProducerWriter class name to match expected spelling (HTML to Html)
