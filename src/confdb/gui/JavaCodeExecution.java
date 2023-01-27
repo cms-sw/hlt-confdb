@@ -35,8 +35,8 @@ public class JavaCodeExecution {
 	}
 
 	public void execute() {
-		System.out.println(" ");
-		System.out.println("[JavaCodeExecution] start:");
+		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSSW_13_0_0_pre3();
 		// customiseForCMSHLT2471();
 		// customiseForCMSHLT2312();
 		// customiseForCMSHLT2417();
@@ -62,8 +62,7 @@ public class JavaCodeExecution {
 		// runCode3211();
 		// runCode2466();
 		// runCode2286();
-		System.out.println(" ");
-		System.out.println("[JavaCodeExecution] ended!");
+		System.out.println("\n[JavaCodeExecution] ended!");
 	}
 
 	private void runChecker() {
@@ -147,6 +146,116 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void customiseForCMSSW_13_0_0_pre3(){
+          // ensure that customisations for template "CMSSW_13_0_0_pre2" are in place
+          customiseForCMSSW_13_0_0_pre2();
+
+          // customisations specific to TSG combined table based on template "CMSSW_13_0_0_pre3"
+          customiseFor40264();
+          customiseFor40443();
+        }
+
+        private void customiseForCMSSW_13_0_0_pre2(){
+          // customisation specific to TSG combined table based on template "CMSSW_13_0_0_pre2"
+          customiseFor38761();
+
+          // customisation specific to TSG combined table based on template "CMSSW_13_0_0_pre2"
+          // (set empty strings in module "siPixelQualityESProducer")
+          try {
+            ESModuleInstance es_mod = config.esmodule("siPixelQualityESProducer");
+            ((StringParameter) es_mod.parameter("appendToDataLabel")).setValue("''");
+            VPSetParameter vpset = (VPSetParameter) es_mod.parameter("ListOfRecordToMerge");
+            for (int pset_i = 0; pset_i < vpset.parameterSetCount(); pset_i++) {
+              ((StringParameter) vpset.parameterSet(pset_i).parameter("tag")).setValue("''");
+            }
+            es_mod.hasChanged();
+            System.out.println("\n[customiseForCMSSW_13_0_0_pre2] Editing of ESProducer \"siPixelQualityESProducer\" done");
+          } catch (Exception e) {
+            System.out.println("\n[customiseForCMSSW_13_0_0_pre2] Editing of ESProducer \"siPixelQualityESProducer\" FAILED: "+e.getMessage());
+          }
+        }
+
+        private void customiseFor38761(){
+          // specific to the TSG combined table of CMSSW_12_6_X after migration to template "CMSSW_13_0_0_pre2"
+          String log_label = "[customiseFor38761]";
+          try {
+            String swip_name = "hltSiPixelRecHitsSoA";
+            String swipBranch_name = "cpu";
+            String vpset_name = "hltSiPixelRecHitsFromLegacy";
+            String type_newValue = "pixelTopologyPhase1TrackingRecHit2DCPUT";
+
+            SwitchProducer switchProd = config.switchProducer(swip_name);
+            EDAliasReference edAliasRef = (EDAliasReference) switchProd.entry(swip_name+"."+swipBranch_name);
+            EDAliasInstance edAliasInst = (EDAliasInstance) edAliasRef.parent();
+            VPSetParameter vpset = (VPSetParameter) edAliasInst.parameter(vpset_name);
+            PSetParameter pset = vpset.parameterSet(0);
+            pset.setParameterValue(0, type_newValue);
+            edAliasInst.hasChanged();
+            switchProd.hasChanged();
+            String logMsg = swip_name+"."+swipBranch_name+"."+vpset_name+"[0].type = '"+type_newValue+"'";
+            System.out.println("\n"+log_label+" Renaming done: "+logMsg);
+          } catch (Exception e) {
+            System.out.println("\n"+log_label+" Renaming FAILED: "+e.getMessage());
+          }
+
+          // renaming of 11 tracking-related EDProducers from "X" to "XPhase1"
+          System.out.println("");
+          ArrayList<String> edModTypes = new ArrayList<String>();
+          edModTypes.add("CAHitNtupletCUDA");
+          edModTypes.add("PixelTrackDumpCUDA");
+          edModTypes.add("PixelTrackProducerFromSoA");
+          edModTypes.add("PixelTrackSoAFromCUDA");
+          edModTypes.add("PixelVertexProducerCUDA");
+          edModTypes.add("SeedProducerFromSoA");
+          edModTypes.add("SiPixelDigisClustersFromSoA");
+          edModTypes.add("SiPixelRecHitCUDA");
+          edModTypes.add("SiPixelRecHitFromCUDA");
+          edModTypes.add("SiPixelRecHitSoAFromCUDA");
+          edModTypes.add("SiPixelRecHitSoAFromLegacy");
+          for (String edModType : edModTypes) {
+            replaceAllInstances(-1, edModType, edModType+"Phase1");
+          }
+
+          // renaming of 1 tracking-related ESProducer from "X" to "XPhase1"
+          System.out.println("");
+          ArrayList<String> esModTypes = new ArrayList<String>();
+          esModTypes.add("PixelCPEFastESProducer");
+          for (String esModType : esModTypes) {
+            renameTypeOfESModule(esModType, esModType+"Phase1");
+          }
+        }
+
+        private void customiseFor40264(){
+          // renaming of 2 pixel-dqm plugins
+          System.out.println("");
+          replaceAllInstances(-1, "SiPixelPhase1MonitorVertexSoA", "SiPixelMonitorVertexSoA");
+          replaceAllInstances(-1, "SiPixelPhase1CompareVertexSoA", "SiPixelCompareVertexSoA");
+        }
+
+        private void customiseFor40443(){
+          // specific to the TSG combined table of CMSSW_12_6_X after migration to template "CMSSW_13_0_0_pre3"
+          String log_label = "[customiseFor40443]";
+          try {
+            String swip_name = "hltSiPixelRecHitsSoA";
+            String swipBranch_name = "cpu";
+            String vpset_name = "hltSiPixelRecHitsFromLegacy";
+            String type_newValue = "pixelTopologyPhase1TrackingRecHitSoAHost";
+
+            SwitchProducer switchProd = config.switchProducer(swip_name);
+            EDAliasReference edAliasRef = (EDAliasReference) switchProd.entry(swip_name+"."+swipBranch_name);
+            EDAliasInstance edAliasInst = (EDAliasInstance) edAliasRef.parent();
+            VPSetParameter vpset = (VPSetParameter) edAliasInst.parameter(vpset_name);
+            PSetParameter pset = vpset.parameterSet(0);
+            pset.setParameterValue(0, type_newValue);
+            edAliasInst.hasChanged();
+            switchProd.hasChanged();
+            String logMsg = swip_name+"."+swipBranch_name+"."+vpset_name+"[0].type = '"+type_newValue+"'";
+            System.out.println("\n"+log_label+" Renaming done: "+logMsg);
+          } catch (Exception e) {
+            System.out.println("\n"+log_label+" Renaming FAILED: "+e.getMessage());
+          }
+        }
 
         private void customiseForCMSHLT2471(){
 
@@ -1469,6 +1578,55 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+	private void renameTypeOfESModule(String oldTemplateName, String newTemplateName) {
+
+          HashSet<String> esModNames = new HashSet<String>();
+          for (int i = 0; i < config.esmoduleCount(); ++i) {
+            esModNames.add(config.esmodule(i).name());
+          }
+
+          for (String oldModuleName : esModNames) {
+            ESModuleInstance oldModule = config.esmodule(oldModuleName);
+            if (! oldModule.template().name().equals(oldTemplateName)) {
+              continue;
+            }
+
+            System.out.println("\n[renameTypeOfESModule] Redefining ESModule \""+oldModuleName+"\"");
+            System.out.println("[renameTypeOfESModule]   Old Type = \""+oldTemplateName+"\"");
+            System.out.println("[renameTypeOfESModule]   New Type = \""+newTemplateName+"\"\n");
+
+            String newModuleName = oldModuleName + "NEWTYPE";
+            while (config.esmodule(newModuleName) != null) {
+              newModuleName += "NEWTYPE";
+            }
+
+            ESModuleInstance newModule = config.insertESModule(0, newTemplateName, newModuleName);
+
+            // Copy over all parameters from old to new as far as possible
+            Iterator<Parameter> itP = oldModule.parameterIterator();
+            while (itP.hasNext()) {
+              Parameter p = itP.next();
+              Parameter q = newModule.parameter(p.name(), p.type());
+              if (q == null) {
+                System.out.println("[renameTypeOfESModule]     Parameter NOT FOUND : " + p.name());
+              } else {
+                System.out.println("[renameTypeOfESModule]     Parameter updated   : " + p.name());
+                newModule.updateParameter(p.name(), p.type(), p.valueAsString());
+              }
+            }
+
+            try {
+              config.removeESModule(oldModule);
+              newModule.setName(oldModuleName);
+            } catch (DataException e) {
+              System.out.println("[renameTypeOfESModule] FAILED redefinition of ESModule \""+oldModuleName+"\"");
+              System.err.println(e.getMessage());
+            }
+          }
+
+          config.sortESModules();
+        }
 
 	private void runCode2286() {
 		// Example code to migrate the HLT config for PR #2286
