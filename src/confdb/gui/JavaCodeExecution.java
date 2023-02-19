@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT2641();
 		// customiseForCMSSW_13_0_0_pre3();
 		// customiseForCMSHLT2471();
 		// customiseForCMSHLT2312();
@@ -44,7 +45,6 @@ public class JavaCodeExecution {
 		// customiseForCMSHLT2390();
 		// customiseForCMSHLT2353();
 		// runCodeL1TMenu2();
-		// removeSelectedPSets();
 		// customiseForCMSHLT2244();
 		// customiseForCMSHLT2210();
 		// customiseFor36459();
@@ -146,6 +146,57 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void customiseForCMSHLT2641(){
+          ArrayList<String> psetNames = new ArrayList<String>();
+          psetNames.add("HLTPSetDetachedQuadStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetDetachedQuadStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetDetachedStepTrajectoryBuilder");
+          psetNames.add("HLTPSetDetachedStepTrajectoryFilter");
+          psetNames.add("HLTPSetDetachedStepTrajectoryFilterBase");
+          psetNames.add("HLTPSetDetachedTripletStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetDetachedTripletStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetHighPtTripletStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetHighPtTripletStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetInitialStepTrajectoryBuilder");
+          psetNames.add("HLTPSetInitialStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetInitialStepTrajectoryBuilderPreSplittingPPOnAA");
+          psetNames.add("HLTPSetInitialStepTrajectoryFilter");
+          psetNames.add("HLTPSetInitialStepTrajectoryFilterBasePreSplittingPPOnAA");
+          psetNames.add("HLTPSetInitialStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetInitialStepTrajectoryFilterPreSplittingPPOnAA");
+          psetNames.add("HLTPSetJetCoreStepTrajectoryBuilder");
+          psetNames.add("HLTPSetJetCoreStepTrajectoryFilter");
+          psetNames.add("HLTPSetLowPtQuadStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetLowPtQuadStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetLowPtStepTrajectoryBuilder");
+          psetNames.add("HLTPSetLowPtStepTrajectoryFilter");
+          psetNames.add("HLTPSetLowPtTripletStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetLowPtTripletStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetMixedStepTrajectoryBuilder");
+          psetNames.add("HLTPSetMixedStepTrajectoryFilter");
+          psetNames.add("HLTPSetMixedTripletStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetMixedTripletStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetPixelLessStepTrajectoryBuilder");
+          psetNames.add("HLTPSetPixelLessStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetPixelLessStepTrajectoryFilter");
+          psetNames.add("HLTPSetPixelLessStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetPixelPairStepTrajectoryBuilder");
+          psetNames.add("HLTPSetPixelPairStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetPixelPairStepTrajectoryFilter");
+          psetNames.add("HLTPSetPixelPairStepTrajectoryFilterInOut");
+          psetNames.add("HLTPSetPixelPairStepTrajectoryFilterInOutPPOnAA");
+          psetNames.add("HLTPSetPixelPairStepTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetPvClusterComparer");
+          psetNames.add("HLTPSetTobTecStepInOutTrajectoryFilter");
+          psetNames.add("HLTPSetTobTecStepInOutTrajectoryFilterPPOnAA");
+          psetNames.add("HLTPSetTobTecStepTrajectoryBuilder");
+          psetNames.add("HLTPSetTobTecStepTrajectoryBuilderPPOnAA");
+          psetNames.add("HLTPSetTobTecStepTrajectoryFilter");
+          psetNames.add("HLTPSetTobTecStepTrajectoryFilterPPOnAA");
+
+          removeGlobalPSets(psetNames, "customiseForCMSHLT2641");
+        }
 
         private void customiseForCMSSW_13_0_0_pre3(){
           // ensure that customisations for template "CMSSW_13_0_0_pre2" are in place
@@ -547,20 +598,16 @@ public class JavaCodeExecution {
 		}
 	}
 
-        private void removeSelectedPSets(){
-
-          String[] psetNames = new String[] {
-            // fill this array with the list of PSets to be removed
-          };
+        private void removeGlobalPSets(ArrayList<String> psetNames, String logLabel){
+          // psetNames: names of PSets to be removed (no wildcards, no regex)
+          // logLabel: string prepended to log messages
 
           ArrayList<PSetParameter> psetList = new ArrayList<PSetParameter>();
-
-          for (int psetName_i = 0; psetName_i < psetNames.length; psetName_i++) {
-
+          for (String psetName : psetNames) {
             PSetParameter pset = null;
             for (int i = 0; i < config.psetCount(); i++) {
               PSetParameter pset0 = config.pset(i);
-              if(pset0.name().equals(psetNames[psetName_i])) {
+              if(pset0.name().equals(psetName)) {
                 pset = pset0;
                 break;
               }
@@ -570,13 +617,13 @@ public class JavaCodeExecution {
               psetList.add(pset);
             }
             else {
-              System.out.println("Deprecated PSet not found (will be ignored): "+psetNames[psetName_i]);
+              System.out.println("["+logLabel+"] Deprecated PSet not found (will be ignored): "+psetName);
             }
           }
 
-          for (int pset_i = 0; pset_i < psetList.size(); pset_i++) {
-            System.out.println("Removed PSet: "+psetList.get(pset_i).name());
-            config.removePSet(psetList.get(pset_i));
+          for (PSetParameter pset : psetList) {
+            System.out.println("["+logLabel+"] Removed PSet: "+pset.name());
+            config.removePSet(pset);
           }
 
           Integer numOfRemovedPSets = psetList.size();
@@ -585,7 +632,7 @@ public class JavaCodeExecution {
             config.psets().setHasChanged();
           }
 
-          System.out.println("Number of PSets removed: "+numOfRemovedPSets.toString());
+          System.out.println("["+logLabel+"] Number of PSets removed: "+numOfRemovedPSets.toString());
         }
 
         // Function to rename/remove L1T seeds
