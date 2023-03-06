@@ -51,9 +51,9 @@ public class OutputModule extends ParameterContainer implements Referencable {
 		
 		BoolParameter useCompresion = new BoolParameter("use_compression", true, false);
 		
-		StringParameter compressionAlgorithm = new StringParameter("compression_algorithm", "ZLIB", false);
+		StringParameter compressionAlgorithm = new StringParameter("compression_algorithm", "ZSTD", false);
 		
-		Int32Parameter compressionLevel = new Int32Parameter("compression_level", 1, false);
+		Int32Parameter compressionLevel = new Int32Parameter("compression_level", 3, false);
 		
 		Int32Parameter lumiSectionInterval = new Int32Parameter("lumiSection_interval", 0, false);
 
