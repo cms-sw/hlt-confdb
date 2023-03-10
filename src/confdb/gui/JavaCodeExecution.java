@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT2651();
 		// customiseForCMSHLT2641();
 		// customiseForCMSSW_13_0_0_pre3();
 		// customiseForCMSHLT2471();
@@ -146,6 +147,27 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        private void customiseForCMSHLT2651(){
+
+          Integer numChanges = 0;
+
+          for (int idx = 0; idx < config.outputCount(); ++idx) {
+            OutputModule module = config.output(idx);
+            module.parameter("compression_level", "int32").setValue( "3" );
+            module.parameter("compression_algorithm", "string").setValue( "ZSTD" );
+            module.setHasChanged();
+
+            String istr = String.format("%02d", idx);
+            String levl = module.parameter("compression_level", "int32").valueAsString();
+            String algo = module.parameter("compression_algorithm", "string").valueAsString();
+            System.out.printf("\n[customiseForCMSHLT2651] OutputModule updated: ["+istr+"] ["+levl+"] ["+algo+"] "+module.name());
+
+            ++numChanges;
+          }
+
+          System.out.println("\n\n[customiseForCMSHLT2651] Number of updated OutputModules: "+numChanges.toString());
+        }
 
         private void customiseForCMSHLT2641(){
           ArrayList<String> psetNames = new ArrayList<String>();
