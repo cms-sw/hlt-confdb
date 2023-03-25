@@ -39,41 +39,52 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 
 	/**
 	 * converts the configuration to python
-	 * note there are some thing not stored by the config which are added by this function
+	 * note there are some things not stored by the config which are added by this function
 	 * eg process.HLTConfigVersion, process.schedule, process.ProcessAcceleratorCUDA
 	 * these should all be listed in Configuration.reservedNames to ensure we dont accidently include
 	 * them in the config
 	 */
 	public String toString(IConfiguration conf, WriteProcess writeProcess) throws ConverterException {
 		String indent = writeProcess == WriteProcess.YES ? "  " : "";
-		String object = writeProcess == WriteProcess.YES ? "process." : ""; 
+		String object = writeProcess == WriteProcess.YES ? "process." : "";
 		StringBuffer str = new StringBuffer(100000);
 		StringBuffer strProcessLoads = new StringBuffer(100000);
-		// String fullName = conf.parentDir().name() + "/" + conf.name() + "/V" +
-		// conf.version() ;
 		String fullName = conf.toString();
-		str.append("# " + fullName + " (" + conf.releaseTag() + ")" + converterEngine.getNewline()
-				+ converterEngine.getNewline());
+
+		str.append("# " + fullName + " (" + conf.releaseTag() + ")" + converterEngine.getNewline() + converterEngine.getNewline());
 
 		str.append("import FWCore.ParameterSet.Config as cms\n\n");
 
-		
-		if(conf.switchProducerCount() > 0) {
-			ReleaseVersionInfo relVarInfo = new ReleaseVersionInfo(conf.releaseTag());
-			str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n");
-			if( relVarInfo.geq(12,3,0,6)) {				
-				str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\n\n");
-				strProcessLoads.append(object+"ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n");
-			}
+                boolean confHasAlpakaModules = configHasAlpakaModules(conf);
+
+		if (confHasAlpakaModules || conf.switchProducerCount() > 0) {
+                    if(conf.switchProducerCount() > 0) {
+                        str.append("from HeterogeneousCore.CUDACore.SwitchProducerCUDA import SwitchProducerCUDA\n\n");
+                    }
+                    ReleaseVersionInfo relVarInfo = new ReleaseVersionInfo(conf.releaseTag());
+                    if (relVarInfo.geq(14,0,0,1)) {
+                        String str_acceleratorsCff = "Configuration.StandardSequences.Accelerators_cff";
+                        String str_acceleratorsCff_cmd = writeProcess == WriteProcess.YES ? "process.load(\""+str_acceleratorsCff+"\")" : "from "+str_acceleratorsCff+" import *";
+                        strProcessLoads.append(str_acceleratorsCff_cmd+"\n\n");
+                    }
+                    else if (confHasAlpakaModules) {
+                        str.append("# ERROR -- ConfDB determined that this HLT configuration uses Alpaka modules.\n");
+                        str.append("#          This is supported only for HLT configurations based on the release template of CMSSW_14_0_0_pre1 or higher.\n\n");
+                        return str.toString();
+                    }
+                    else if (relVarInfo.geq(12,3,0,6) && conf.switchProducerCount() > 0) {
+                        str.append("from HeterogeneousCore.CUDACore.ProcessAcceleratorCUDA import ProcessAcceleratorCUDA\n\n");
+                        strProcessLoads.append(object+"ProcessAcceleratorCUDA = ProcessAcceleratorCUDA()\n\n");
+                    }
 		}
 
 		if (writeProcess == WriteProcess.YES) {
 			str.append("process = cms.Process( \"" + conf.processName() + "\" )\n\n");
-		} 
-		str.append(strProcessLoads);		
-		
+		}
 
-		str.append("\n" + object + "HLTConfigVersion = cms.PSet(\n  tableName = cms.string('" + fullName + "')\n)\n\n");
+		str.append(strProcessLoads);
+
+		str.append(object + "HLTConfigVersion = cms.PSet(\n  tableName = cms.string(\"" + fullName + "\")\n)\n\n");
 
 		if (conf.psetCount() > 0) {
 			IParameterWriter parameterWriter = converterEngine.getParameterWriter();
@@ -245,5 +256,41 @@ public class PythonConfigurationWriter implements IConfigurationWriter {
 	public void setConverterEngine(ConverterEngine converterEngine) {
 		this.converterEngine = converterEngine;
 	}
+
+        /** does the configuration have Alpaka modules */
+        public boolean configHasAlpakaModules(IConfiguration conf) {
+            // Check all the ES and ED modules of the configuration,
+            // and determine if at least one of them requires the use of Alpaka.
+            // For further information, see
+            // https://github.com/cms-sw/cmssw/blob/CMSSW_14_0_0_pre1/HeterogeneousCore/AlpakaCore/README.md
+
+            // ED modules
+            for (int idx = 0; idx < conf.moduleCount(); ++idx) {
+                ModuleInstance module = conf.module(idx);
+                String moduleType = module.template().name();
+                // Alpaka modules which do not specify their backend in the name of the plugin type
+                // (they may, or may not, specify their backend using their "alpaka" parameter)
+                if (moduleType.matches("^(.*)@alpaka$"))
+                    return true;
+                // Alpaka modules which specify their backend in the name of the plugin type
+                if (moduleType.matches("^alpaka_(.*)::(.*)$"))
+                    return true;
+            }
+
+            // ES modules (currently, same criteria as ED modules)
+            for (int idx = 0; idx < conf.esmoduleCount(); ++idx) {
+                ESModuleInstance esmodule = conf.esmodule(idx);
+                String esmoduleType = esmodule.template().name();
+                // Alpaka modules which do not specify their backend in the name of the plugin type
+                // (they may, or may not, specify their backend using their "alpaka" parameter)
+                if (esmoduleType.matches("^(.*)@alpaka$"))
+                    return true;
+                // Alpaka modules which specify their backend in the name of the plugin type
+                if (esmoduleType.matches("^alpaka_(.*)::(.*)$"))
+                    return true;
+            }
+
+            return false;
+        }
 
 }

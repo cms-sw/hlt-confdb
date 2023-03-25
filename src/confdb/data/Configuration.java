@@ -71,8 +71,13 @@ public class Configuration implements IConfiguration {
 	private ArrayList<Block> blocks = new ArrayList<Block>();
 
 	public static List<String> reservedNames = Arrays.asList(
-		"ProcessAcceleratorCUDA","HLTConfigVersion","schedule"
+            "HLTConfigVersion",
+            "schedule",
+            "ProcessAcceleratorCUDA",
+            "ProcessAcceleratorROCm",
+            "ProcessAcceleratorAlpaka"
 	);
+
 	//
 	// construction
 	//

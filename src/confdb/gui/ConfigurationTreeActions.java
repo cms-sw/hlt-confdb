@@ -282,7 +282,7 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 
-		if (templateName.indexOf(':') >= 0) {
+		if (templateName.indexOf(":") >= 0) {
 			String[] s = templateName.split(":");
 			Template template = config.release().essourceTemplate(s[1]);
 			Instance original = null;
@@ -326,7 +326,7 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 
-		if (templateName.indexOf(':') > 0) {
+		if (templateName.indexOf(":") > 0) {
 			String[] s = templateName.split(":");
 			Template template = config.release().esmoduleTemplate(s[1]);
 			Instance original = null;
@@ -2011,8 +2011,7 @@ public class ConfigurationTreeActions {
 		index = 0;
 		while (ESMit.hasNext()) {
 			ESModuleInstance esmodule = ESMit.next();
-			ESModuleInstance NewModule = configurationCopy.insertESModule(index, esmodule.template().name(),
-					esmodule.name());
+			ESModuleInstance NewModule = configurationCopy.insertESModule(index, esmodule.template().name(), esmodule.name());
 			index++;
 			Iterator<Parameter> itP = esmodule.parameterIterator();
 			while (itP.hasNext()) {
@@ -3068,7 +3067,17 @@ public class ConfigurationTreeActions {
 				return false;
 			reference = config.insertOutputModuleReference(parent, index, referencedOutput);
 		} else if (type.equalsIgnoreCase("Module")) {
-			String[] s = name.split(":");
+			// The "unlikely string" hack.
+			//  Here, the variable "name" can presumably take values of the form
+			//  "pluginType", "pluginType:moduleLabel", or "copy:pluginType:moduleLabel".
+			//  Unfortunately, this convention does not take into account the fact that
+			//  pluginType itself can contain the substring "::" (e.g. plugin types with namespace specification,
+			//  or Alpaka plugins with explicit backend selection).
+			//  The hack below consists in replacing "::" in "name" with
+			//  a very unlikely string without colons, before "name" is split by ":".
+			//  After that, the replacement of "::" with this unlikely string is undone in "templateName".
+			String unlikelyStr = "@#@#@#AnUnlikelyString@#@#@#";
+			String[] s = name.replaceAll("::", unlikelyStr).split(":");
 			String templateName = "";
 			String instanceName = "";
 			boolean copy = false;
@@ -3083,7 +3092,9 @@ public class ConfigurationTreeActions {
 				templateName = s[1];
 				instanceName = s[2];
 			}
-			
+
+			templateName = templateName.replaceAll(unlikelyStr, "::");
+
 			ModuleTemplate template = config.release().moduleTemplate(templateName);
 
 			if (!copy) {

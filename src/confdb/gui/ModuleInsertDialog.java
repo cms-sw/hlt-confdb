@@ -200,26 +200,20 @@ public class ModuleInsertDialog extends JDialog {
         ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
         Configuration config = (Configuration) model.getRoot(); 
         SoftwareRelease release = config.release();
-		Iterator<ModuleInstance> it = config.moduleIterator();        
-            
+        Iterator<ModuleInstance> it = config.moduleIterator();
         jComboBoxModule.removeAllItems();
         ArrayList<String> items = new ArrayList<String>();
-		while (it.hasNext()) {
-			ModuleInstance t = it.next();
-            if(prefixType) {
-                if(t.template()!=null){
-                    //jComboBoxModule.addItem(t.template().name()+":"+t.name());
-                    items.add(t.template().name()+":"+t.name());
-                }else{
-                  //  jComboBoxModule.addItem("NULL:"+t.name());
-                    items.add("NULL:"+t.name());
-                    
+        while (it.hasNext()) {
+            ModuleInstance t = it.next();
+            if (prefixType) {
+                if (t.template() != null) {
+                    items.add(t.template().name() + ":" + t.name());
+                } else {
+                    items.add("NULL:" + t.name());
                 }
-            }else{
-                //jComboBoxModule.addItem(t.name());  
-                items.add(t.name());  
+            } else {
+                items.add(t.name());
             }
-			
         }
         Collections.sort(items);
         for(int idx=0;idx<items.size();idx++){

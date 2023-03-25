@@ -65,22 +65,20 @@ public class Instance extends ParameterContainer implements Comparable<Instance>
         /** we allow EDAliases and Modules to have a . in their name due to 
          *  SP sub modules needing them (and no good way to limit just to SP 
          *  SP sub modules, issue is with parsing), otherwise not */
-        if( this instanceof ModuleInstance ||
+        if (this instanceof ModuleInstance ||
             this instanceof EDAliasInstance) {            
             name = name.replaceAll("[^\\w.]", "");
-        }else{
+        } else {
             name = name.replaceAll("\\W", "");
         }
         if (template != null) {
-	if (template().hasInstance(name)
-	    ||(config!=null&&!config.isUniqueQualifier(name)))
-	    throw new DataException("Instance.setName() ERROR: " +
-				    "name '"+name+"' is not unique!");
+            if (template().hasInstance(name) || (config != null && !config.isUniqueQualifier(name)))
+                throw new DataException("Instance.setName() ERROR: name '"+name+"' is not unique !");
         }
 	this.name = name;
 	setHasChanged();
     }
-    
+
     /** get the configuration */
     public IConfiguration config() { return config; }
     
