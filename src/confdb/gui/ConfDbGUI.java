@@ -13,7 +13,7 @@ import javax.swing.plaf.basic.*;
 import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
-import sun.security.pkcs11.Secmod.Module;
+/* import sun.security.pkcs11.Secmod.Module; */
 
 import java.awt.*;
 import java.awt.event.*;
