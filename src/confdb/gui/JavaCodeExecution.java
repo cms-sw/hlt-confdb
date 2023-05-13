@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT2800();
 		// customiseForCMSHLT2651();
 		// customiseForCMSHLT2641();
 		// customiseForCMSSW_13_0_0_pre3();
@@ -147,6 +148,33 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // customisation to reset to 1 the smart-PS of every Path assigned to the OnlineMonitor PD
+        // (the customisation does this by first removing all the relevant Paths from that PD, then adding them back)
+        private void customiseForCMSHLT2800(){
+
+          String pdName = "OnlineMonitor";
+
+          PrimaryDataset pd0 = config.dataset(pdName);
+          if(pd0 == null){
+            System.out.println("[customiseForCMSHLT2800] STOPPED -> PrimaryDataset \""+pdName+"\" does not exist (no action taken)");
+            return;
+          }
+
+          ArrayList<String> pathNames = new ArrayList<String>();
+          Iterator<Path> itP = pd0.pathIterator();
+          while (itP.hasNext()) {
+            Path p0 = itP.next();
+            if(p0 != null) {
+              pathNames.add(p0.name());
+            }
+          }
+
+          removePathsFromPrimaryDataset(pdName, pathNames);
+
+          Map<String, Long> pathSmartPrescaleMap = new TreeMap<String, Long>();
+          addPathsToPrimaryDataset(pdName, pathNames, pathSmartPrescaleMap);
+        }
 
         private void customiseForCMSHLT2651(){
 
@@ -483,7 +511,7 @@ public class JavaCodeExecution {
         private void addPathsToPrimaryDataset(String datasetName, ArrayList<String> pathNames, Map<String, Long> pathSmartPrescaleMap){
 
           PrimaryDataset aPD = config.dataset(datasetName);
-          if(aPD == null){
+          if (aPD == null) {
             System.out.println("[addPathsToPrimaryDataset] STOPPED -> PrimaryDataset \""+datasetName+"\" does not exist (no action taken)");
             return;
           }
@@ -491,17 +519,17 @@ public class JavaCodeExecution {
           Integer pathsCount = 0;
           for (String pathName : pathNames) {
             Path aPath = config.path(pathName);
-            if(aPath == null){
+            if (aPath == null) {
               System.out.println("[addPathsToPrimaryDataset] Path \""+pathName+"\" does not exist (will be ignored)");
               continue;
             }
 
             boolean pathInserted = aPD.insertPath(aPath);
-            if(pathInserted){
+            if (pathInserted) {
               String logmsg = "Added to PrimaryDataset \""+datasetName+"\": Path=\""+pathName+"\"";
               if(pathSmartPrescaleMap.containsKey(pathName)){
                 Long prescale = pathSmartPrescaleMap.get(pathName);
-                if(prescale != 1){
+                if (prescale != 1) {
                   aPD.addPathPrescale(pathName, prescale);
                   logmsg += " (PS = "+prescale.toString()+")";
                 }
@@ -516,6 +544,37 @@ public class JavaCodeExecution {
           }
 
           System.out.println("[addPathsToPrimaryDataset] "+pathsCount.toString()+" Path(s) added to PrimaryDataset \""+datasetName+"\"");
+        }
+
+        // Function to remove Paths "pathNames" from PrimaryDataset "datasetName"
+        private void removePathsFromPrimaryDataset(String datasetName, ArrayList<String> pathNames){
+
+          PrimaryDataset aPD = config.dataset(datasetName);
+          if (aPD == null) {
+            System.out.println("[removePathsFromPrimaryDataset] STOPPED -> PrimaryDataset \""+datasetName+"\" does not exist (no action taken)");
+            return;
+          }
+
+          Integer pathsCount = 0;
+          for (String pathName : pathNames) {
+            Path aPath = config.path(pathName);
+            if (aPath == null) {
+              System.out.println("[removePathsFromPrimaryDataset] Path \""+pathName+"\" does not exist (will be ignored)");
+              continue;
+            }
+
+            boolean pathRemoved = aPD.removePath(aPath);
+            if (pathRemoved) {
+              String logmsg = "Removed from PrimaryDataset \""+datasetName+"\": Path=\""+pathName+"\"";
+              System.out.println("[removePathsFromPrimaryDataset] "+logmsg);
+              ++pathsCount;
+            }
+            else {
+              System.out.println("[removePathsFromPrimaryDataset] Failed to remove Path=\""+pathName+"\" from PrimaryDataset \""+datasetName+"\"");
+            }
+          }
+
+          System.out.println("[removePathsFromPrimaryDataset] "+pathsCount.toString()+" Path(s) removed from PrimaryDataset \""+datasetName+"\"");
         }
 
         private void customiseForCMSHLT2390(){
