@@ -5787,9 +5787,12 @@ class CommandTableCellRenderer extends DefaultTableCellRenderer {
 				return this;
 
 			setBackground(Color.RED);
-			ModuleInstance instance = config.module(label);
-			if (instance == null)
+			Referencable instance = (Referencable) config.module(label);
+			if (instance == null) {
+			    instance = (Referencable) config.switchProducer(label);
+			    if (instance == null)
 				return this;
+			}
 
 			setBackground(Color.ORANGE);
 			Path[] paths = instance.parentPaths();
