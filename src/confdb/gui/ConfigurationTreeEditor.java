@@ -131,12 +131,27 @@ class ConfigurationTreeEditor extends DefaultTreeCellEditor {
 				System.err.println(e.getMessage());
 			}
 		} else if (toBeEdited instanceof EventContent) {
-			EventContent content = (EventContent) toBeEdited;
-			content.setName(name);
-			treeModel.nodeChanged(content);
-			Iterator<EventContent> itC = config.contentIterator();
-			while (itC.hasNext())
-				treeModel.nodeChanged(itC.next());
+			try {
+			    EventContent content = (EventContent) toBeEdited;
+			    content.setName(name);
+			    treeModel.nodeChanged(content);
+
+			    // copy Configuration.contents (EventContents) to a separate array "ec_array",
+			    // and use the latter when calling ConfigurationTreeModel::nodeChanged,
+			    // (the nodeChanged method can in principle modify the order of Configuration.contents,
+			    // because it implicitly calls methods like Configuration.indexOfContent(ec),
+			    // which apply sorting to Configuration.contents)
+			    // Ref: https://github.com/cms-sw/hlt-confdb/pull/69
+			    ArrayList<EventContent> ec_array = new ArrayList<EventContent>();
+			    for (int idx = 0; idx < config.contentCount(); ++idx) {
+				ec_array.add(config.content(idx));
+			    }
+			    for (int idx = 0; idx < ec_array.size(); ++idx) {
+				treeModel.nodeChanged(ec_array.get(idx));
+			    }
+			} catch (Exception e) {
+			    System.err.println(e.getMessage());
+			}
 		} else if (toBeEdited instanceof Stream) {
 			Stream stream = (Stream) toBeEdited;
 			if(config.stream(name)!=null){				
