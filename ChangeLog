@@ -1,3 +1,8 @@
+2023-07-03 Marino Missiroli
+    * tag V03-04-07
+	* recognise SwitchProducers when coloring EventContent statements
+	* avoid exception when renaming EventContents
+
 2023-03-14 Marino Missiroli
     * tag V03-04-06
 	* changed default compression settings in the constructor of the OutputModule class (new default: "ZSTD, level=3")
