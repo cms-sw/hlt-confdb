@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT2863();
 		// customiseForCMSHLT2888();
 		// customiseForCMSHLT2800();
 		// customiseForCMSHLT2651();
@@ -149,6 +150,11 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // CMSHLT-2863: replace HLT(Calo|PF)JetTagWithMatching with HLT(Calo|PF)JetTag
+        private void customiseForCMSHLT2863() {
+          replaceAllInstances(2863, "HLTPFJetTagWithMatching", "HLTPFJetTag");
+        }
 
         // CMSHLT-2888: replace SiPixelRawToClusterCUDA with SiPixelRawToClusterCUDAPhase1 (see https://github.com/cms-sw/cmssw/pull/41632)
         private void customiseForCMSHLT2888(){
@@ -1594,10 +1600,13 @@ public class JavaCodeExecution {
 
 		String label24660 = null;
 
-                if (special == 2244 && !(oldTemplateName.equals("PFJetsMatchedToFilteredCaloJetsProducer")
-                    && newTemplateName.equals("HLTPFJetsMatchedToFilteredCaloJetsProducer"))) {
-
+                if (special == 2244 && !(oldTemplateName.equals("PFJetsMatchedToFilteredCaloJetsProducer") && newTemplateName.equals("HLTPFJetsMatchedToFilteredCaloJetsProducer"))) {
                   System.out.println("[replaceAllInstances(special=2244, oldTemplateName=\""+oldTemplateName+"\", newTemplateName=\""+newTemplateName+"\")] STOPPED: invalid function arguments, no changes applied to the configuration.");
+                  return;
+                }
+
+                if (special == 2863 && !(oldTemplateName.equals("HLTCaloJetTagWithMatching") && newTemplateName.equals("HLTCaloJetTag")) && !(oldTemplateName.equals("HLTPFJetTagWithMatching") && newTemplateName.equals("HLTPFJetTag"))) {
+                  System.out.println("[replaceAllInstances(special=2863, oldTemplateName=\""+oldTemplateName+"\", newTemplateName=\""+newTemplateName+"\")] STOPPED: invalid function arguments, no changes applied to the configuration.");
                   return;
                 }
 
@@ -1681,6 +1690,19 @@ public class JavaCodeExecution {
 
                                   newModule.parameter("maxDeltaR", "double").setValue(
                                     oldModule.parameter("DeltaR", "double").valueAsString());
+				}
+                                else if (special == 2863) {
+
+                                  newModule.parameter("saveTags", "bool").setValue(oldModule.parameter("saveTags", "bool").valueAsString());
+                                  newModule.parameter("Jets", "InputTag").setValue(oldModule.parameter("Jets", "InputTag").valueAsString());
+                                  newModule.parameter("JetTags", "InputTag").setValue(oldModule.parameter("JetTags", "InputTag").valueAsString());
+                                  newModule.parameter("MinTag", "double").setValue(oldModule.parameter("MinTag", "double").valueAsString());
+                                  newModule.parameter("MaxTag", "double").setValue(oldModule.parameter("MaxTag", "double").valueAsString());
+                                  newModule.parameter("MinJets", "int32").setValue(oldModule.parameter("MinJets", "int32").valueAsString());
+                                  newModule.parameter("TriggerType", "int32").setValue(oldModule.parameter("TriggerType", "int32").valueAsString());
+
+                                  newModule.parameter("MaxJetDeltaR", "double").setValue(oldModule.parameter("deltaR", "double").valueAsString());
+                                  newModule.parameter("MatchJetsByDeltaR", "bool").setValue("true");
 				}
 
 				// Get hold of oldModule's Refs etc.
