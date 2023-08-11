@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT2888();
 		// customiseForCMSHLT2800();
 		// customiseForCMSHLT2651();
 		// customiseForCMSHLT2641();
@@ -148,6 +149,14 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // CMSHLT-2888: replace SiPixelRawToClusterCUDA with SiPixelRawToClusterCUDAPhase1 (see https://github.com/cms-sw/cmssw/pull/41632)
+        private void customiseForCMSHLT2888(){
+          // specific to the TSG combined table of CMSSW_12_6_X after migration to template "CMSSW_13_0_0_pre2"
+          String log_label = "[customiseForCMSHLT2888]";
+          System.out.println("");
+          replaceAllInstances(-1, "SiPixelRawToClusterCUDA", "SiPixelRawToClusterCUDAPhase1");
+        }
 
         // customisation to reset to 1 the smart-PS of every Path assigned to the OnlineMonitor PD
         // (the customisation does this by first removing all the relevant Paths from that PD, then adding them back)
