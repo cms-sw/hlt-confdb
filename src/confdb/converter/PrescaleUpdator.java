@@ -1,14 +1,12 @@
 package confdb.converter;
 
 import java.util.HashMap;
-import java.util.Iterator;
+
 
 import confdb.data.*;
-import confdb.db.DatabaseException;
+
 import confdb.db.ConfDB;
 import confdb.gui.*;
-import confdb.converter.IConfigurationWriter.WriteProcess;
-import confdb.converter.summary.data.PrescaleTable;
 
 
 /**
@@ -18,37 +16,10 @@ import confdb.converter.summary.data.PrescaleTable;
  *
  * updates the configuration of the prescales via the command line
  */
-public class PrescaleUpdator extends ConverterBase
-{
-    //
-    // construction
-    //
-
+public class PrescaleUpdator {
     /** constructor based on format, no database connection */
-    public PrescaleUpdator(String format)
-	throws ConverterException
-    {
-	super(format);
-    }
-    
-    /** constructor based on explicit connection information */
-    public PrescaleUpdator(String format,
-			    String dbType,String dbUrl,
-			    String dbUser,String dbPwrd)
-	throws ConverterException
-    {
-	super(format,dbType,dbUrl,dbUser,dbPwrd);
-    }
-
-    /** destructor  */
-	protected void finalize() throws Throwable
-	{
-	super.finalize();
-	disconnect();
-	}
-			
-    
-
+    public PrescaleUpdator(){}
+	
     //
     // main method, for testing
     //
