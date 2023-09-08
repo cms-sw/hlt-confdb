@@ -99,6 +99,12 @@ public class ConverterBase
 		}
     }
 
+		public IConfiguration getConfiguration( String name) throws ConverterException, DatabaseException
+		{
+
+			return getConfiguration(getDatabase().getConfigId(name));
+		}
+
     
     /** add a pset to the passed configuration containing all streams */
     protected void addPSetForStreams(IConfiguration config)
