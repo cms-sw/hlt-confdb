@@ -64,7 +64,7 @@ public class PrescaleDialog extends JDialog {
 
 		jTable.setModel(tableModel);
 		jTable.setDefaultRenderer(Integer.class, new PrescaleTableCellRenderer());
-		jTextFieldFile.setText("/home/sharper/hionps.csv");
+		jTextFieldFile.setText("");
 		jTextFieldHLT.setText(config.toString());
 
 		cmbModule = (DefaultComboBoxModel) jComboBoxModule.getModel();
@@ -130,7 +130,7 @@ public class PrescaleDialog extends JDialog {
 	}
 
 	private void updatePrescaleServiceFromFile(String fileName) {
-		tableModel.updatePrescaleTableFromFile(fileName);
+		tableModel.updatePrescaleTableFromFile(fileName,jCheckBoxOverrideTbl.isSelected());
 		tableModel.updatePrescaleService(config);
 	}
 
@@ -380,7 +380,7 @@ class PrescaleTableModel extends AbstractTableModel {
 		prescaleSvc.setHasChanged();
 	}
 
-	public void updatePrescaleTableFromFile(String fileName) {
+	public void updatePrescaleTableFromFile(String fileName,boolean overrideTbl) {
 		if (fileName.equals("")) {
 			return;
 		}
@@ -416,13 +416,16 @@ class PrescaleTableModel extends AbstractTableModel {
 				System.out.println("No prescale columns found in file - aborting!");
 				return;
 			}
-			while(prescaleTable.prescaleCount() > 0){
-				prescaleTable.removePrescaleColumn(1);
-			}
-			for (int i = 0; i < columnNames.size(); i++) {
+			if(overrideTbl){
+				System.out.println("Overriding PrescaleTable with Columns from the file");
+				while(prescaleTable.prescaleCount() > 0){
+					prescaleTable.removePrescaleColumn(1);
+				}
+				for (int i = 0; i < columnNames.size(); i++) {
 					String label = columnNames.get(i);
 					prescaleTable.addPrescaleColumn(i, label, 1);
 					System.out.println(" i/Label: "+i+"/"+label);
+				}
 			}
 			
 			// Indices to map found columnNames into PrescaleTable columnNames
