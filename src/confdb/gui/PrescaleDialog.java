@@ -39,6 +39,7 @@ public class PrescaleDialog extends JDialog {
 	private JComboBox jComboBoxModule = new javax.swing.JComboBox();
 	private JButton jButtonOK = new javax.swing.JButton();
 	private JButton jButtonApply = new javax.swing.JButton();
+	private JCheckBox jCheckBoxOverrideTbl = new javax.swing.JCheckBox();
 	private JButton jButtonCancel = new javax.swing.JButton();
 	private JTable jTable = new javax.swing.JTable();
 	private DefaultComboBoxModel cmbModule;
@@ -63,7 +64,7 @@ public class PrescaleDialog extends JDialog {
 
 		jTable.setModel(tableModel);
 		jTable.setDefaultRenderer(Integer.class, new PrescaleTableCellRenderer());
-		jTextFieldFile.setText("");
+		jTextFieldFile.setText("/home/sharper/hionps.csv");
 		jTextFieldHLT.setText(config.toString());
 
 		cmbModule = (DefaultComboBoxModel) jComboBoxModule.getModel();
@@ -228,11 +229,14 @@ public class PrescaleDialog extends JDialog {
 		JLabel jLabel1 = new javax.swing.JLabel();
 		JLabel jLabel2 = new javax.swing.JLabel();
 		JLabel jLabel3 = new javax.swing.JLabel();
+		JLabel jLabel4 = new javax.swing.JLabel();
+
 		JScrollPane jScrollPane = new javax.swing.JScrollPane();
 
 		jLabel1.setText("HLT:");
 		jLabel2.setText("Default:");
 		jLabel3.setText("File:");
+		jLabel4.setText("Override PSTbl:");
 
 		jTextFieldFile.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 
@@ -260,9 +264,13 @@ public class PrescaleDialog extends JDialog {
 								.addGap(18).addComponent(jLabel2)
 								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(
 										jComboBoxModule, javax.swing.GroupLayout.DEFAULT_SIZE, 298, Short.MAX_VALUE))
-						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+						.addGroup(
 								layout.createSequentialGroup().addComponent(jLabel3).addGap(18).addComponent(
-										jTextFieldFile, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE))
+										jTextFieldFile, javax.swing.GroupLayout.DEFAULT_SIZE, 1000, Short.MAX_VALUE)
+										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+										.addComponent(jLabel4).addGap(18)
+										.addComponent(
+											jCheckBoxOverrideTbl, javax.swing.GroupLayout.DEFAULT_SIZE, 299, Short.MAX_VALUE))
 						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
 								layout.createSequentialGroup().addComponent(jButtonCancel)
 										.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -290,7 +298,12 @@ public class PrescaleDialog extends JDialog {
 						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 								.addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE,
 										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(jTextFieldFile))
+								.addComponent(jTextFieldFile,javax.swing.GroupLayout.PREFERRED_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(jCheckBoxOverrideTbl,javax.swing.GroupLayout.PREFERRED_SIZE,
+										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
 						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 								.addComponent(jButtonOK).addComponent(jButtonApply).addComponent(jButtonCancel))
 						.addContainerGap()));
@@ -403,12 +416,21 @@ class PrescaleTableModel extends AbstractTableModel {
 				System.out.println("No prescale columns found in file - aborting!");
 				return;
 			}
-
+			while(prescaleTable.prescaleCount() > 0){
+				prescaleTable.removePrescaleColumn(1);
+			}
+			for (int i = 0; i < columnNames.size(); i++) {
+					String label = columnNames.get(i);
+					prescaleTable.addPrescaleColumn(i, label, 1);
+					System.out.println(" i/Label: "+i+"/"+label);
+			}
+			
 			// Indices to map found columnNames into PrescaleTable columnNames
 			for (int i = 0; i < columnNames.size(); i++) {
+				
 				indices.add((long) (prescaleTable.prescaleCount() + 1));
 				String label = columnNames.get(i);
-				// System.out.println(" i/Label: "+i+"/"+label);
+				
 				for (int j = 0; j < prescaleTable.prescaleCount(); j++) {
 					String Label = new String(prescaleTable.prescaleColumnName(j));
 					// System.out.println(" j/Label: "+j+"/"+Label);
