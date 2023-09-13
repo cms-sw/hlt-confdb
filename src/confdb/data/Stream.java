@@ -359,6 +359,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
         datasets.add(result);
 	Collections.sort(datasets);
         setHasChanged();
+        hasDatasetListChanged = true;
         return result;
     }
 
@@ -385,6 +386,7 @@ public class Stream extends DatabaseEntry implements Comparable<Stream>
 	if (index<0) return false;  
 	datasets.remove(index).setParentStream(null);
 	setHasChanged();
+	hasDatasetListChanged = true;
 	return true;
 
     }
