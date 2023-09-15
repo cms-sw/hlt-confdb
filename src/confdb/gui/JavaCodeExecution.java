@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT2913();
 		// customiseForCMSHLT2863();
 		// customiseForCMSHLT2888();
 		// customiseForCMSHLT2800();
@@ -150,6 +151,33 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // CMSHLT-2913: splitting of Datasets and streams for 2023 HIon menu
+        private void customiseForCMSHLT2913() {
+          addSplitStreams("[customiseForCMSHLT2913]", "hltEventContentAForHIRawPrime", "PhysicsHIPhysicsRawPrime", 1, 31);
+          addSplitStreams("[customiseForCMSHLT2913]", "hltEventContentAForHI", "PhysicsHIForward", 1, 2);
+          addSplitStreams("[customiseForCMSHLT2913]", "hltEventContentAForHI", "PhysicsHIMinimumBias", 1, 3);
+        }
+
+        // addSplitStreams:
+        //   add to the configuration N streams with EventContent "eventContentName",
+        //   with each stream named "streamNameX" where X goes from streamIndexMin to streamIndexMax (both included)
+        private void addSplitStreams(String logMsg, String eventContentName, String streamName, int streamIndexMin, int streamIndexMax) {
+          EventContent ec = config.content(eventContentName);
+          if (ec != null) {
+            System.out.println(logMsg+" Adding streams for EventContent \""+eventContentName+"\"");
+            for (int idx = streamIndexMin; idx <= streamIndexMax; ++idx) {
+              String streamName_i = streamName + Integer.toString(idx);
+              Stream stream_i = ec.insertStream(streamName_i);
+              if (stream_i != null) {
+                System.out.println(logMsg+"    Stream added: \""+streamName_i+"\"");
+              }
+              else {
+                System.out.println(logMsg+"    Failed to add Stream: \""+streamName_i+"\"");
+              }
+            }
+          }
+        }
 
         // CMSHLT-2863: replace HLT(Calo|PF)JetTagWithMatching with HLT(Calo|PF)JetTag
         private void customiseForCMSHLT2863() {
