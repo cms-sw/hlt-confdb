@@ -1,4 +1,3 @@
-CalibTracker/SiPixelESProducers         SiPixelQualityESProducer_cfi.py
 CalibCalorimetry/HcalPlugins            HcalTimeSlew_cff.py
 RecoMuon/L2MuonSeedGenerator            L2OfflineMuonSeeds_cfi.py
 RecoMuon/GlobalTrackingTools            MuonTrackingRegionBuilderHLT_cfi.py
@@ -58,7 +57,6 @@ RecoMuon/MuonIdentification		muons_cfi.py
 RecoMET/METProducers                    CaloMET_cfi.py
 RecoMET/METProducers                    genMetCalo_cfi.py
 RecoMET/METProducers			TCMET_cfi.py
-RecoMET/METProducers			PFMET_cfi.py
 RecoEcal/EgammaClusterProducers         correctedIslandBarrelSuperClusters_cfi.py
 RecoEcal/EgammaClusterProducers         correctedFixedMatrixSuperClustersWithPreshower_cfi.py
 RecoEcal/EgammaClusterProducers         correctedDynamicHybridSuperClusters_cfi.py
@@ -75,12 +73,6 @@ Geometry/CaloEventSetup			CaloGeometryBuilder_cfi.py
 Geometry/EcalAlgo			EcalBarrelGeometry_cfi.py
 CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
 CommonTools/RecoAlgos			etMinCaloJetSelector_cfi.py
-JetMETCorrections/Modules		hltLXXXCorrectionESProducer_cfi.py
-JetMETCorrections/Modules		hltL1FastjetCorrectionESProducer_cfi.py
-JetMETCorrections/Modules		hltJetCorrectionESChain_cfi.py
-JetMETCorrections/Configuration		DefaultJEC_cff.py
-JetMETCorrections/Configuration         JetCorrectionServices_cff.py
 JetMETCorrections/Configuration         CorrectedJetProducers_cff.py
-JetMETCorrections/Configuration         JetCorrectionProducers_cff.py
 GeometryReaders/XMLIdealGeometryESSource  cmsGeometryDB_cff.py
 Geometry/VeryForwardGeometry            geometryRPFromDB_cfi.py
