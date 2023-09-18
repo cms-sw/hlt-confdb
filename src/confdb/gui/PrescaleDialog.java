@@ -92,6 +92,7 @@ public class PrescaleDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				updatePrescaleService();
 				updatePrescaleServiceFromFile(fileName());
+				clearPrescaleFileSettings();
 			}
 		});
 		jButtonOK.addActionListener(new ActionListener() {
@@ -120,6 +121,10 @@ public class PrescaleDialog extends JDialog {
 		return jTextFieldFile.getText();
 	}
 
+	public void clearPrescaleFileSettings(){
+		jTextFieldFile.setText("");
+		jCheckBoxOverrideTbl.setSelected(false);
+	}
 	//
 	// private member functions
 	//
@@ -236,7 +241,7 @@ public class PrescaleDialog extends JDialog {
 		jLabel1.setText("HLT:");
 		jLabel2.setText("Default:");
 		jLabel3.setText("File:");
-		jLabel4.setText("Override PSTbl:");
+		jLabel4.setText("Override Prescale Table:");
 
 		jTextFieldFile.setBorder(BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.LOWERED));
 

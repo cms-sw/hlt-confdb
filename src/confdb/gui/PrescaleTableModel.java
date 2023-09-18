@@ -125,6 +125,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 					prescaleTable.addPrescaleColumn(i, label, 1);
 					System.out.println(" i/Label: "+i+"/"+label);
 				}
+				fireTableStructureChanged();
 			}
 			
 			// Indices to map found columnNames into PrescaleTable columnNames
@@ -192,7 +193,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 			PrescaleTableRow row = prescaleFile.get(i);
 			// check if path is in PrescaleTable and if so, update to full name
 			String pathName = row.pathName;
-			System.out.println("Searching PrescaleTable for path matching with: " + pathName);
+			//System.out.println("Searching PrescaleTable for path matching with: " + pathName);
 			int found = 0;
 			int index = 0;
 			for (int j = 0; j < prescaleTable.pathCount(); ++j) {
@@ -200,7 +201,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 					found += 1;
 					index = j;
 					fullName = new String(prescaleTable.pathName(j));
-					System.out.println("  Found match with: " + fullName);
+					//System.out.println("  Found match with: " + fullName);
 				}
 			}
 			if (found == 0) {
@@ -211,7 +212,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 						"  More than one matching path found in PrescaleTable - skipping (requested update of) path: "
 								+ pathName);
 			} else {
-				System.out.println("  Updating prescales of path: " + fullName);
+				//System.out.println("  Updating prescales of path: " + fullName);
 				for (int j = 0; j < row.prescales.size(); j++) {
 					int k = (int) ((long) indices.get(j));
 					Long prescale = row.prescales.get(j);
