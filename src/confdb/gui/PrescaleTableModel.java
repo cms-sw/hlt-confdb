@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.io.*;
 import java.util.Scanner;
 
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.table.*;
 
 import confdb.data.*;
@@ -79,9 +82,9 @@ public class PrescaleTableModel extends AbstractTableModel {
 		prescaleSvc.setHasChanged();
 	}
 
-	public void updatePrescaleTableFromFile(String fileName,boolean overrideTbl) {
+	public boolean updatePrescaleTableFromFile(String fileName,boolean overrideTbl) {
 		if (fileName.equals("")) {
-			return;
+			return false;
 		}
 		System.out.println("Updating PrescaleTable from file: " + fileName);
 
@@ -92,6 +95,8 @@ public class PrescaleTableModel extends AbstractTableModel {
 		indices.clear();
 		ArrayList<PrescaleTableRow> prescaleFile = new ArrayList<PrescaleTableRow>();
 		prescaleFile.clear();
+
+		ArrayList<String> skippedPaths = new ArrayList<String>();
 
 		// Read Input File
 		System.out.println("Reading Input File containing Prescale Table!");
@@ -112,8 +117,8 @@ public class PrescaleTableModel extends AbstractTableModel {
 			System.out.println(
 					"Header / # of prescale columns found in file: " + defaultName + " / " + columnNames.size());
 			if (columnNames.size() == 0) {
-				System.out.println("No prescale columns found in file - aborting!");
-				return;
+				System.out.println("No prescale columns found in file - aborting!");				
+				return false;
 			}
 			if(overrideTbl){
 				System.out.println("Overriding PrescaleTable with Columns from the file");
@@ -145,9 +150,9 @@ public class PrescaleTableModel extends AbstractTableModel {
 						+ indices.get(i));
 				if (indices.get(i) == prescaleTable.prescaleCount() + 1) {
 					System.out.println(
-							"Column name in file not found in PrescaleService config (add there first) - aborting! Label="
-									+ label);
-					return;
+							"Column name in file not found in PrescaleService config (add there first or use override) - aborting! Label="
+									+ label);					
+					return false;
 				}
 			}
 
@@ -173,17 +178,18 @@ public class PrescaleTableModel extends AbstractTableModel {
 					prescaleFile.add(row);
 				} else {
 					System.out.println("Error in input file line (# of columns) - skipping path: " + pathName);
+					skippedPaths.add("Error in input file line (# of columns) - skipping path: " + pathName);
 				}
 			}
 			System.out.println("# of valid path rows found in file: " + prescaleFile.size());
 			if (prescaleFile.size() == 0) {
-				System.out.println("No valid path rows found in file - aborting!");
-				return;
+				System.out.println("No valid path rows found in file - aborting!");				
+				return false;
 			}
 		} catch (IOException e) {
 			System.out.println("IOException: " + e.getMessage());
-			System.out.println("Aborting!");
-			return;
+			System.out.println("Aborting!");			
+			return false;
 		}
 
 		// Update PrescaleTable with PrescaleFile
@@ -207,10 +213,12 @@ public class PrescaleTableModel extends AbstractTableModel {
 			if (found == 0) {
 				System.out.println(
 						"  No matching path found in PrescaleTable - skipping (requested update of) path: " + pathName);
+				skippedPaths.add(pathName+" is not known, possible typo?");
 			} else if (found > 1) {
 				System.out.println(
 						"  More than one matching path found in PrescaleTable - skipping (requested update of) path: "
 								+ pathName);
+				skippedPaths.add(pathName+" has multiple entries in input file");
 			} else {
 				//System.out.println("  Updating prescales of path: " + fullName);
 				for (int j = 0; j < row.prescales.size(); j++) {
@@ -220,7 +228,20 @@ public class PrescaleTableModel extends AbstractTableModel {
 				}
 				fireTableDataChanged();
 			}
+		}	
+		//eh, probably not great and probably should be moved to the calling PrescaleDialog
+		if (!skippedPaths.isEmpty()) {
+			String msg = "The input prescale file had the following errors and must be fixed before uploading can occur\nPlease note when dealing with path names, we ignore version numbers";
+			for(String error : skippedPaths){
+				msg += "\n"+error;
+			}
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			textArea.setColumns(80);
+			JOptionPane.showMessageDialog(null,scrollPane, "Invalid Prescale File", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
+		return true;
 	}
 
 	/** add an additional column (-> lvl1Label) */

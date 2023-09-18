@@ -135,8 +135,16 @@ public class PrescaleDialog extends JDialog {
 	}
 
 	private void updatePrescaleServiceFromFile(String fileName) {
-		tableModel.updatePrescaleTableFromFile(fileName,jCheckBoxOverrideTbl.isSelected());
-		tableModel.updatePrescaleService(config);
+		if(tableModel.updatePrescaleTableFromFile(fileName,jCheckBoxOverrideTbl.isSelected())){
+			tableModel.updatePrescaleService(config);
+		}else{
+			//clear the update and reset the it back to the config value
+			System.err.println("reset");
+			setVisible(false);
+			//tableModel.initialize(config);
+
+		}
+		
 	}
 
 	/** adjust the width of each table column */
