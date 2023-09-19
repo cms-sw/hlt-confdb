@@ -38,6 +38,8 @@ public class UserPermissionsManager {
 		//this.admins.add("sharper");
 		// Marino Missiroli
 		this.admins.add("missirol");
+		// Marco Musich
+		this.admins.add("musich");
         // Mateusz Zarucki
         this.admins.add("mzarucki");
         this.restrictedDBUserNames.add("cms_hlt_v3_w");
