@@ -125,8 +125,9 @@ public class PrescaleTableModel extends AbstractTableModel {
 				}
 			}
 			if(!unnamedColumns.isEmpty()){
-				String msg = "Error, follwowing columns are unnamed: "+unnamedColumns+"\nPlease fix before uploading\nUsually this means the first line of the file is incorrect and is not the column names, please make sure the first line of the file are the column names";
+				String msg = "Error, the following columns are unnamed: "+unnamedColumns+"\n\nPlease fix before uploading\n\nUsually this means the first line of the file is incorrect and is not the column names, please make sure the first line of the file are the column names";
 				JOptionPane.showMessageDialog(null,msg, "Invalid Prescale File", JOptionPane.ERROR_MESSAGE);
+				return false;
 			}
 			System.out.println(
 					"Header / # of prescale columns found in file: " + defaultName + " / " + columnNames.size());
