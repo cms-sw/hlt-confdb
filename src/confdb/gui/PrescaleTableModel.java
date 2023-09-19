@@ -114,6 +114,20 @@ public class PrescaleTableModel extends AbstractTableModel {
 					columnNames.add(lineScanner.next().trim());
 				}
 			}
+			String unnamedColumns = new String();
+			for(int colNr=0;colNr<columnNames.size();colNr++){
+				if(columnNames.get(colNr).isEmpty()){
+					if(unnamedColumns.isEmpty()){
+						unnamedColumns+=colNr;
+					}else{
+						unnamedColumns+=","+colNr;
+					}
+				}
+			}
+			if(!unnamedColumns.isEmpty()){
+				String msg = "Error, follwowing columns are unnamed: "+unnamedColumns+"\nPlease fix before uploading\nUsually this means the first line of the file is incorrect and is not the column names, please make sure the first line of the file are the column names";
+				JOptionPane.showMessageDialog(null,msg, "Invalid Prescale File", JOptionPane.ERROR_MESSAGE);
+			}
 			System.out.println(
 					"Header / # of prescale columns found in file: " + defaultName + " / " + columnNames.size());
 			if (columnNames.size() == 0) {
@@ -130,7 +144,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 					prescaleTable.addPrescaleColumn(i, label, 1);
 					System.out.println(" i/Label: "+i+"/"+label);
 				}
-				fireTableStructureChanged();
+				fireTableStructureChanged();				
 			}
 			
 			// Indices to map found columnNames into PrescaleTable columnNames
@@ -169,7 +183,13 @@ public class PrescaleTableModel extends AbstractTableModel {
 					pathName = pathName.replaceAll("_v[0-9]+$", "");
 				}
 				while (lineScanner.hasNext()) {
-					prescales.add(Long.valueOf(lineScanner.next().trim()));
+					try{
+						prescales.add(Long.valueOf(lineScanner.next().trim()));
+					}catch(NumberFormatException e){
+						System.out.println("Error in input file line (prescale value) - skipping path: " + pathName);
+						skippedPaths.add(pathName+" has a non-integer prescale value, please fix before uploading");
+						break;
+					}
 				}
 				System.out
 						.println("Line read with " + prescales.size() + " prescale values for path '" + pathName + "'");
@@ -178,7 +198,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 					prescaleFile.add(row);
 				} else {
 					System.out.println("Error in input file line (# of columns) - skipping path: " + pathName);
-					skippedPaths.add("Error in input file line (# of columns) - skipping path: " + pathName);
+					skippedPaths.add(pathName+" has "+prescales.size()+" columns but expected "+columnNames.size()+", please fix before uploading");
 				}
 			}
 			System.out.println("# of valid path rows found in file: " + prescaleFile.size());
@@ -188,7 +208,8 @@ public class PrescaleTableModel extends AbstractTableModel {
 			}
 		} catch (IOException e) {
 			System.out.println("IOException: " + e.getMessage());
-			System.out.println("Aborting!");			
+			System.out.println("Aborting!");		
+			JOptionPane.showMessageDialog(null,"ISException: "+e.getMessage(), "Invalid Prescale File", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 
@@ -213,12 +234,12 @@ public class PrescaleTableModel extends AbstractTableModel {
 			if (found == 0) {
 				System.out.println(
 						"  No matching path found in PrescaleTable - skipping (requested update of) path: " + pathName);
-				skippedPaths.add(pathName+" is not known, possible typo?");
+				skippedPaths.add(pathName+" is not known to this menu, possible typo?, please fix it or remove it");
 			} else if (found > 1) {
 				System.out.println(
 						"  More than one matching path found in PrescaleTable - skipping (requested update of) path: "
 								+ pathName);
-				skippedPaths.add(pathName+" has multiple entries in input file");
+				skippedPaths.add(pathName+" has multiple entries in input file, please remove the extra ones");
 			} else {
 				//System.out.println("  Updating prescales of path: " + fullName);
 				for (int j = 0; j < row.prescales.size(); j++) {
@@ -231,13 +252,14 @@ public class PrescaleTableModel extends AbstractTableModel {
 		}	
 		//eh, probably not great and probably should be moved to the calling PrescaleDialog
 		if (!skippedPaths.isEmpty()) {
-			String msg = "The input prescale file had the following errors and must be fixed before uploading can occur\nPlease note when dealing with path names, we ignore version numbers";
+			String msg = "The input prescale file had the following errors and must be fixed before uploading can occur\n\nPlease note when dealing with path names, we ignore version numbers\nRemember that file must start with the column names,that line is the first line of the file\n";
 			for(String error : skippedPaths){
 				msg += "\n"+error;
 			}
 			JTextArea textArea = new JTextArea(msg);
 			JScrollPane scrollPane = new JScrollPane(textArea);  
 			textArea.setColumns(80);
+			textArea.setRows(Math.min(skippedPaths.size()+5,50));
 			JOptionPane.showMessageDialog(null,scrollPane, "Invalid Prescale File", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
