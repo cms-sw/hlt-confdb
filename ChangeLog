@@ -1,3 +1,10 @@
+2023-09-19 Sam Harper, Martin Grunewald, Marino Missiroli
+    * tag V03-04-08
+	*  improved the updating of prescale tables (now can completely override) from .csv files and made it slightly more robust
+	*  added addSplitStreams function for use in customistation code
+	*  a fix for empty streams not being removed when making subtables
+
+
 2023-07-03 Marino Missiroli
     * tag V03-04-07
 	* recognise SwitchProducers when coloring EventContent statements
