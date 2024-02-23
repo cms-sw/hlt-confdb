@@ -36,6 +36,8 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT2981();
+		// customiseForCMSHLT2980();
 		// customiseForCMSHLT2913();
 		// customiseForCMSHLT2863();
 		// customiseForCMSHLT2888();
@@ -152,6 +154,129 @@ public class JavaCodeExecution {
 		}
 	}
 
+    
+        // CMSHLT-2981: Removal of deprecated GRun Paths (=> combined table
+        private void customiseForCMSHLT2981() {
+	    
+          ArrayList<String> pathRegexs = new ArrayList<String>();
+	  
+          pathRegexs.add("DST_Run3_DoubleMu3_PFScoutingPixelTracking_v.*");
+	  pathRegexs.add("DST_Run3_EG16_EG12_PFScoutingPixelTracking_v.*");
+	  pathRegexs.add("HLT_AK8PFJetFwd15_v.*");
+	  pathRegexs.add("HLT_AK8PFJetFwd25_v.*");
+	  pathRegexs.add("HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_OneProng_M5to80_v.*");
+	  pathRegexs.add("HLT_Dimuon0_LowMass_L1_0er1p5R_v.*");
+	  pathRegexs.add("HLT_Dimuon0_LowMass_L1_4R_v.*");
+	  pathRegexs.add("HLT_AK8DiPFJet250_250_MassSD30_v.*");
+	  pathRegexs.add("HLT_AK8DiPFJet260_260_MassSD30_v.*");
+	  pathRegexs.add("HLT_AK8PFJet400_MassSD30_v.*");
+	  pathRegexs.add("HLT_HT200_L1SingleLLPJet_DisplacedDijet35_Inclusive1PtrkShortSig5_v.*");
+	  pathRegexs.add("HLT_PFHT400_SixPFJet32_DoublePFBTagDeepJet_2p94_v.*");
+	  pathRegexs.add("HLT_PFHT450_SixPFJet36_PFBTagDeepJet_1p59_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet105_40_Mjj1000_Detajj3p5_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet105_40_Mjj1000_Detajj3p5_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet110_40_Mjj1000_Detajj3p5_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet110_40_Mjj1000_Detajj3p5_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet125_45_Mjj1000_Detajj3p5_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet125_45_Mjj1000_Detajj3p5_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet125_45_Mjj720_Detajj3p0_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet125_45_Mjj720_Detajj3p0_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_Ele12_eta2p1_WPTight_Gsf_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_Ele17_eta2p1_WPTight_Gsf_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_Photon12_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_Photon17_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet50_Mjj500_Detajj2p5_Ele22_eta2p1_WPTight_Gsf_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet50_Mjj500_Detajj2p5_Photon22_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet70_40_Mjj600_Detajj2p5_DiPFJet60_JetMatchingFiveJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet70_40_Mjj600_Detajj2p5_DiPFJet60_JetMatchingQuadJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet70_40_Mjj600_Detajj2p5_DiPFJet60_JetMatchingSixJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet75_40_Mjj500_Detajj2p5_PFMET85_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet75_40_Mjj500_Detajj2p5_PFMET85_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet75_45_Mjj600_Detajj2p5_DiPFJet60_JetMatchingFiveJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet75_45_Mjj600_Detajj2p5_DiPFJet60_JetMatchingQuadJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet75_45_Mjj600_Detajj2p5_DiPFJet60_JetMatchingSixJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet80_45_Mjj500_Detajj2p5_PFMET85_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet80_45_Mjj500_Detajj2p5_PFMET85_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet90_40_Mjj600_Detajj2p5_Mu3_TrkIsoVVL_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet90_40_Mjj600_Detajj2p5_Mu3_TrkIsoVVL_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet95_45_Mjj600_Detajj2p5_Mu3_TrkIsoVVL_TriplePFJet_v.*");
+	  pathRegexs.add("HLT_VBF_DiPFJet95_45_Mjj600_Detajj2p5_Mu3_TrkIsoVVL_v.*");
+
+	  removePathsFromConfig(pathRegexs);
+	  
+	}
+    
+        // CMSHLT-2980: remove unused paths from combined table
+        private void customiseForCMSHLT2980() {
+	    
+          ArrayList<String> pathRegexs = new ArrayList<String>();
+	  
+          pathRegexs.add("HLT_AK8PFJet400_SoftDropMass40_v.*");
+	  pathRegexs.add("HLT_Dimuon0_Upsilon_L1_4p5NoOS_v.*");
+	  pathRegexs.add("HLT_Dimuon0_Upsilon_L1_5M_v.*");
+	  pathRegexs.add("HLT_Dimuon0_Upsilon_L1_5_v.*");
+	  pathRegexs.add("HLT_Dimuon0_Upsilon_Muon_L1_TM0_v.*");
+	  pathRegexs.add("HLT_Dimuon10_PsiPrime_Barrel_Seagulls_v.*");
+	  pathRegexs.add("HLT_Dimuon20_Jpsi_Barrel_Seagulls_v.*");
+	  pathRegexs.add("HLT_DoubleMediumChargedIsoPFTauHPS40_Trk1_eta2p1_v.*");
+	  pathRegexs.add("HLT_DoubleTightChargedIsoPFTauHPS35_Trk1_eta2p1_v.*");
+	  pathRegexs.add("HLT_Ele15_IsoVVVL_PFHT450_CaloBTagDeepCSV_4p5_v.*");
+	  pathRegexs.add("HLT_Ele15_WPLoose_Gsf_v.*");
+	  pathRegexs.add("HLT_Ele20_WPLoose_Gsf_v.*");
+	  pathRegexs.add("HLT_Ele24_eta2p1_WPTight_Gsf_TightChargedIsoPFTauHPS30_eta2p1_CrossL1_v.*");
+	  pathRegexs.add("HLT_Ele27_WPTight_Gsf_v.*");
+	  pathRegexs.add("HLT_Ele28_WPTight_Gsf_v.*");
+	  pathRegexs.add("HLT_HT200_L1SingleLLPJet_DisplacedDijet30_Inclusive1PtrkShortSig5_v.*");
+	  pathRegexs.add("HLT_HT430_DisplacedDijet30_Inclusive1PtrkShortSig5_v.*");
+	  pathRegexs.add("HLT_HT430_DisplacedDijet35_Inclusive1PtrkShortSig5_v.*");
+	  pathRegexs.add("HLT_IsoMu20_eta2p1_TightChargedIsoPFTauHPS27_eta2p1_CrossL1_v.*");
+	  pathRegexs.add("HLT_IsoMu20_eta2p1_TightChargedIsoPFTauHPS27_eta2p1_TightID_CrossL1_v.*");
+	  pathRegexs.add("HLT_L1NotBptxOR_v.*");
+	  pathRegexs.add("HLT_L1SingleMu18_v.*");
+	  pathRegexs.add("HLT_L1SingleMu25_v.*");
+	  pathRegexs.add("HLT_L1UnpairedBunchBptxMinus_v.*");
+	  pathRegexs.add("HLT_L1UnpairedBunchBptxPlus_v.*");
+	  pathRegexs.add("HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_v.*");
+	  pathRegexs.add("HLT_Mu12_IP6_v.*");
+	  pathRegexs.add("HLT_Mu15_IsoVVVL_PFHT450_CaloBTagDeepCSV_4p5_v.*");
+	  pathRegexs.add("HLT_Mu20_TkMu0_Phi_v.*");
+	  pathRegexs.add("HLT_Mu25_TkMu0_Onia_v.*");
+	  pathRegexs.add("HLT_Mu3er1p5_PFJet100er2p5_PFMET70_PFMHT70_IDTight_v.*");
+	  pathRegexs.add("HLT_Mu3er1p5_PFJet100er2p5_PFMETNoMu70_PFMHTNoMu70_IDTight_v.*");
+	  pathRegexs.add("HLT_Mu6HT240_DisplacedDijet30_Inclusive0PtrkShortSig5_v.*");
+	  pathRegexs.add("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_CaloDiJet30_CaloBtagDeepCSV_1p5_v.*");
+	  pathRegexs.add("HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_PFDiJet30_PFBtagDeepCSV_1p5_v.*");
+	  pathRegexs.add("HLT_PFHT330PT30_QuadPFJet_75_60_45_40_TriplePFBTagDeepCSV_4p5_v.*");
+	  pathRegexs.add("HLT_PFHT400_FivePFJet_100_100_60_30_30_DoublePFBTagDeepCSV_4p5_v.*");
+	  pathRegexs.add("HLT_PFHT400_FivePFJet_120_120_60_30_30_DoublePFBTagDeepCSV_4p5_v.*");
+	  pathRegexs.add("HLT_PFHT400_SixPFJet32_DoublePFBTagDeepCSV_2p94_v.*");
+	  pathRegexs.add("HLT_PFHT450_SixPFJet36_PFBTagDeepCSV_1p59_v.*");
+	  pathRegexs.add("HLT_PFJetFwd15_v.*");
+	  pathRegexs.add("HLT_PFJetFwd25_v.*");
+	  pathRegexs.add("HLT_PFMET100_PFMHT100_IDTight_PFHT60_v.*");
+	  pathRegexs.add("HLT_PFMET110_PFJet100_v.*");
+	  pathRegexs.add("HLT_PFMET110_PFMHT110_IDTight_v.*");
+	  pathRegexs.add("HLT_PFMETNoMu100_PFMHTNoMu100_IDTight_PFHT60_v.*");
+	  pathRegexs.add("HLT_PFMETNoMu110_PFMHTNoMu110_IDTight_v.*");
+	  pathRegexs.add("HLT_PFMETTypeOne100_PFMHT100_IDTight_PFHT60_v.*");
+	  pathRegexs.add("HLT_PFMETTypeOne110_PFMHT110_IDTight_v.*");
+	  pathRegexs.add("HLT_PFMETTypeOne120_PFMHT120_IDTight_PFHT60_v.*");
+	  pathRegexs.add("HLT_PFMETTypeOne120_PFMHT120_IDTight_v.*");
+	  pathRegexs.add("HLT_PFMETTypeOne130_PFMHT130_IDTight_v.*");
+	  pathRegexs.add("HLT_Photon20_v.*");
+	  pathRegexs.add("HLT_QuadPFJet103_88_75_15_DoublePFBTagDeepCSV_1p3_7p7_VBF1_v.*");
+	  pathRegexs.add("HLT_QuadPFJet103_88_75_15_PFBTagDeepCSV_1p3_VBF2_v.*");
+	  pathRegexs.add("HLT_QuadPFJet105_88_76_15_DoublePFBTagDeepCSV_1p3_7p7_VBF1_v.*");
+	  pathRegexs.add("HLT_QuadPFJet105_88_76_15_PFBTagDeepCSV_1p3_VBF2_v.*");
+	  pathRegexs.add("HLT_QuadPFJet111_90_80_15_DoublePFBTagDeepCSV_1p3_7p7_VBF1_v.*");
+	  pathRegexs.add("HLT_QuadPFJet111_90_80_15_PFBTagDeepCSV_1p3_VBF2_v.*");
+	  pathRegexs.add("HLT_VBF_DoubleTightChargedIsoPFTauHPS20_Trk1_eta2p1_v.*");
+
+	  removePathsFromConfig(pathRegexs);
+
+	}
+    
         // CMSHLT-2913: splitting of Datasets and streams for 2023 HIon menu
         private void customiseForCMSHLT2913() {
           addSplitStreams("[customiseForCMSHLT2913]", "hltEventContentAForHIRawPrime", "PhysicsHIPhysicsRawPrime", 1, 31);
