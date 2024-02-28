@@ -1,3 +1,7 @@
+2024-02-28 Marino Missiroli, Marco Musich
+    * tag V03-05-00
+        * Add support for Alpaka modules in HLT configs of CMSSW_14_0_0_pre1 or higher
+
 2023-09-19 Sam Harper, Martin Grunewald, Marino Missiroli
     * tag V03-04-08
 	*  improved the updating of prescale tables (now can completely override) from .csv files and made it slightly more robust
