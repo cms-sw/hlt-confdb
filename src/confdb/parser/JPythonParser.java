@@ -1656,8 +1656,8 @@ public class JPythonParser
 
     public enum confdbTypes {
         sequence("Sequence"),
-        task("Task"), //not strickly a confdb type, see if this causes issues
-        condTask("ConditionalTask"), //not strickly a confdb type, see if this causes issues
+        task("Task"), //not strictly a confdb type, see if this causes issues
+        condTask("ConditionalTask"), //not strictly a confdb type, see if this causes issues
         switchProducer("SwitchProducerCUDA"),
         path("Path"),
         endPath("EndPath"),
@@ -1750,7 +1750,7 @@ public class JPythonParser
         task("Task"),
         condtask("ConditionalTask"),
         switchProducer("SwitchProducerCUDA"),
-	    EDAlias("EDAlias"),
+        EDAlias("EDAlias"),
         EDProducer("EDProducer"),
         EDFilter("EDFilter"),
         EDAnalyzer("EDAnalyzer"),
