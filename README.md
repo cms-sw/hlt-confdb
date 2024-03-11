@@ -40,7 +40,7 @@ The minor version is for all other changes.
   1. then change the version number in [src/conf/confdb.version](src/conf/confdb.version)
   1. make the PR with this changes and merge it (and any other changes you wish to make for this release)
   1. create a [release](https://github.com/Sam-Harper/hlt-confdb/releases/new) with title of the version (eg V03-01-00). Tag it with this version as well, using "create new tag: VXX-YY-ZZ on publish"
-  1. log into `lxplus` as `confdb` (ping trigger management for password)
+  1. log into `lxplus8` (on `lxplus9` and above the right version of `java` is not available) as `confdb` (ping trigger management for password)
   1. go to directory with this repo cloned there (currently `~/private/hlt-confdb`)
   1. move to the branch you wish to deploy and ensure you have the latest version
   1. deploy by executing `./deploy.sh`. this will automatically deploy to the correct location using the branch name, stripping `confdb` from the start of the name to get the name to deploy to
