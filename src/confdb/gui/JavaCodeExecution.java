@@ -38,6 +38,7 @@ public class JavaCodeExecution {
 		System.out.println("\n[JavaCodeExecution] start:");
 		// printModuleLabels();
 		// addPSet_optionsAccelerators();
+		// alignPathVersionNumbers();
 		// customiseForCMSHLT2981();
 		// customiseForCMSHLT2980();
 		// customiseForCMSHLT2913();
@@ -184,6 +185,56 @@ public class JavaCodeExecution {
               config.psets().setHasChanged();
             }
           }
+        }
+
+        // This function renames the Paths in the configuration changing their version numbers
+        // in order to match the version numbers of the Paths in "importConfig"
+        // (the configuration opened in parallel using the "Import" functionality of the GUI).
+        // This can be useful when one wants to built a configuration to be compared to
+        // an older, or newer, one whose Paths have different version numbers.
+        // The Diff functionality of the legacy GUI (i.e. this one) does not ignore Path-version numbers,
+        // so a meaningful Diff can only be done after the Path-version numbers are the same in two given configurations.
+        // The web-based version of ConfDB provides a better Diff tool, capable of ignoring Path-version numbers.
+        // See https://hlt-config-editor-confdbv3.app.cern.ch/diff
+        private void alignPathVersionNumbers(){
+
+          if (importConfig == null) {
+            return;
+          }
+
+          Map<String, String> pathNameMap = new TreeMap<String, String>();
+
+          Iterator<Path> itP = config.pathIterator();
+          while (itP.hasNext()) {
+            Path p0 = itP.next();
+            if(p0 != null && p0.name().matches(".*_v[0-9]+$")) {
+              String pathNameUnv = p0.name().substring(0, p0.name().lastIndexOf("_"));
+              Iterator<Path> itP1 = importConfig.pathIterator();
+              while (itP1.hasNext()) {
+                Path p1 = itP1.next();
+                if(p1 != null && p1.name().matches(pathNameUnv+"_v[0-9]+$")) {
+                  if (pathNameMap.containsKey(p0.name())) {
+                    System.out.printf("\n[alignPathVersionNumbers] No Paths Renamed: multiple matches for Path "+p0.name());
+                    return;
+                  }
+                  pathNameMap.put(p0.name(), p1.name());
+                }
+              }
+            }
+          }
+
+          Integer numChanges = 0;
+          for (String pathNameOld : pathNameMap.keySet()) {
+            String pathNameNew = pathNameMap.get(pathNameOld);
+            try {
+              config.path(pathNameOld).setNameAndPropagate(pathNameNew);
+              System.out.printf("\n[alignPathVersionNumbers] Path Renamed: "+pathNameOld+" -> "+pathNameNew);
+              ++numChanges;
+            } catch (DataException e) {
+              System.err.println(e.getMessage());
+            }
+          }
+          System.out.println("\n[alignPathVersionNumbers] Number of Paths Renamed: "+numChanges.toString());
         }
 
         // CMSHLT-2981: Removal of deprecated GRun Paths (=> combined table
