@@ -50,3 +50,37 @@ After deployment, make sure that changes in the `confdbv3` branch are also propa
 The two development branches should always be a superset of the stable branch.
 To deploy new versions of the non-production branches, update them appropriately
 and re-run the deployment script `./deploy.sh` from the relevant branch (so, once per branch).
+
+## online operations: request deployment of new confdb converter at P5
+
+When the python converter of `ConfDB` is updated, this is considered a "major update"
+(the `X` or `Y` in version number `X.Y.Z` need to be increased),
+and it warrants the release of a new ConfDB version.
+
+The converter used online (P5) should not differ from the one used offline.
+This means that the updated converter should be provided
+to the DAQ group, requesting to deploy it at P5.
+The steps below describe how to prepare this request.
+
+ 0. Make sure the `v3` instance of `ConfDB` is up-to-date, meaning it includes, or corresponds to, the "major update" to be propagated to DAQ.
+
+ 1. Log into `lxplus` with the `confdb` account.
+
+ 2. Go to directory where this repo is cloned (currently `~/private/hlt-confdb`).
+
+ 3. Run the script
+    ```bash
+    ./deployDAQ.py --update-hilton
+    ```
+    This creates the converter to be passed to DAQ, and used by FOG (commonly referred to by FOG as the "DAQ converter"),
+    copying it from the current version of the converter in the `v3` instance.
+    To verify that the update has worked correctly, one can check the content of the following directory.
+    ```bash
+    /afs/cern.ch/user/c/confdb/www/daq
+    ```
+    If the option `--update-hilton` is not specified, the script only creates a copy of the `v3` converter in the `daq/` directory,
+    but it does not update the version of the converter used by FOG for testing on Hilton machines.
+
+ 4. Open a JIRA ticket in the CMSHLT project to request the update of the converter used online by DAQ.
+    In this ticket, include FOG and DAQ as Components.
+    An example of such requests can be found in [CMSHLT-2347](https://its.cern.ch/jira/browse/CMSHLT-2347).
