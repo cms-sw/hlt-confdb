@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// addPSet_optionsAccelerators();
 		// customiseForCMSHLT2981();
 		// customiseForCMSHLT2980();
 		// customiseForCMSHLT2913();
@@ -154,7 +155,24 @@ public class JavaCodeExecution {
 		}
 	}
 
-    
+        // Add global PSet named options with its accelerators parameter in order to steer GPU offloading
+        // See CMSHLT-3126
+        void addPSet_optionsAccelerators() {
+          PSetParameter pset = config.pset("options");
+          if (pset == null) {
+            pset = new PSetParameter("options", "", false);
+            pset.addParameter(new VStringParameter("accelerators", "*", false));
+            config.insertPSet(pset);
+          }
+          else {
+            Parameter acc = pset.parameter("accelerators");
+            if (acc == null) {
+              pset.addParameter(new VStringParameter("accelerators", "*", false));
+              config.psets().setHasChanged();
+            }
+          }
+        }
+
         // CMSHLT-2981: Removal of deprecated GRun Paths (=> combined table
         private void customiseForCMSHLT2981() {
 	    
