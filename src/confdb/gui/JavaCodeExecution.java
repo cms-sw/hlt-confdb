@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// printModuleLabels();
 		// addPSet_optionsAccelerators();
 		// customiseForCMSHLT2981();
 		// customiseForCMSHLT2980();
@@ -154,6 +155,18 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // Print label of every "Module" in the configuration
+        // (EDProducers, EDFilters, EDAnalyzer and possibly SwitchProducer branches)
+        // See CMSHLT-3131
+        void printModuleLabels() {
+          Integer numOfModules = config.moduleCount();
+          for (int i = 0; i < numOfModules; i++) {
+            ModuleInstance module = config.module(i);
+            System.out.println(module.name());
+          }
+          System.out.println("\nTotal Number of Modules: " + numOfModules.toString());
+        }
 
         // Add global PSet named options with its accelerators parameter in order to steer GPU offloading
         // See CMSHLT-3126
