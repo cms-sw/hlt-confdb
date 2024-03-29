@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT3132();
 		// printModuleLabels();
 		// addPSet_optionsAccelerators();
 		// alignPathVersionNumbers();
@@ -156,6 +157,111 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // CMSHLT-3132: Rename Alpaka modules incl. "CPUOnly -> SerialSync"
+        private void customiseForCMSHLT3132() {
+
+          Map<String, String> renamingMap = new TreeMap<String, String>();
+          renamingMap.put("Portable", "");
+          renamingMap.put("SerialSync", "SerialSync");
+          renamingMap.put("CPUOnly", "SerialSync");
+          renamingMap.put("CPUSerial", "SerialSync");
+
+          // Modules
+          Integer numChangesMod = 0;
+          for (int i = 0; i < config.moduleCount(); i++) {
+            ModuleInstance module = config.module(i);
+            String oldName = module.name();
+
+            for (String modSubLabelOld : renamingMap.keySet()) {
+              String modSubLabelNew = renamingMap.get(modSubLabelOld);
+
+              if(oldName.contains(modSubLabelOld)){
+                String newName = oldName.replaceAll(modSubLabelOld, "") + modSubLabelNew;
+                if (oldName.equals(newName)) {
+                  continue;
+                }
+
+                System.out.printf("[customiseForCMSHLT3132] CHANGE #"+numChangesMod.toString()+":");
+                System.out.println(" (Old Name => New Name) \""+oldName+"\" => \""+newName+"\"");
+                try {
+                  module.setNameAndPropagate(newName);
+                  module.setHasChanged();
+                  oldName = newName;
+                  ++numChangesMod;
+                }
+                catch (DataException e) {
+                  System.err.println("[customiseForCMSHLT3132] "+e.getMessage());
+                }
+              }
+            }
+          }
+
+          // Sequences
+          Integer numChangesSeq = 0;
+          for (int i = 0; i < config.sequenceCount(); i++) {
+            Sequence sequence = config.sequence(i);
+            String oldName = sequence.name();
+
+            for (String seqSubLabelOld : renamingMap.keySet()) {
+              String seqSubLabelNew = renamingMap.get(seqSubLabelOld);
+
+              if(oldName.contains(seqSubLabelOld)){
+                String newName = oldName.replaceAll(seqSubLabelOld, "") + seqSubLabelNew;
+                if (oldName.equals(newName)) {
+                  continue;
+                }
+
+                System.out.printf("[customiseForCMSHLT3132] CHANGE #"+numChangesSeq.toString()+":");
+                System.out.println(" (Old Name => New Name) \""+oldName+"\" => \""+newName+"\"");
+                try {
+                  sequence.setName(newName);
+                  sequence.setHasChanged();
+                  oldName = newName;
+                  ++numChangesSeq;
+                }
+                catch (DataException e) {
+                  System.err.println("[customiseForCMSHLT3132] "+e.getMessage());
+                }
+              }
+            }
+          }
+
+          // Tasks
+          Integer numChangesTask = 0;
+          for (int i = 0; i < config.taskCount(); i++) {
+            Task task = config.task(i);
+            String oldName = task.name();
+
+            for (String taskSubLabelOld : renamingMap.keySet()) {
+              String taskSubLabelNew = renamingMap.get(taskSubLabelOld);
+
+              if(oldName.contains(taskSubLabelOld)){
+                String newName = oldName.replaceAll(taskSubLabelOld, "") + taskSubLabelNew;
+                if (oldName.equals(newName)) {
+                  continue;
+                }
+
+                System.out.printf("[customiseForCMSHLT3132] CHANGE #"+numChangesTask.toString()+":");
+                System.out.println(" (Old Name => New Name) \""+oldName+"\" => \""+newName+"\"");
+                try {
+                  task.setName(newName);
+                  task.setHasChanged();
+                  oldName = newName;
+                  ++numChangesTask;
+                }
+                catch (DataException e) {
+                  System.err.println("[customiseForCMSHLT3132] "+e.getMessage());
+                }
+              }
+            }
+          }
+
+          // Summary
+          System.out.println("\n[customiseForCMSHLT3132] Renamed Modules: "+numChangesMod.toString());
+          System.out.println("[customiseForCMSHLT3132] Renamed Sequences: "+numChangesSeq.toString());
+          System.out.println("[customiseForCMSHLT3132] Renamed (Conditional)Tasks: "+numChangesTask.toString());
+        }
 
         // Print label of every "Module" in the configuration
         // (EDProducers, EDFilters, EDAnalyzer and possibly SwitchProducer branches)
