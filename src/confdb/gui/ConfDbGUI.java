@@ -2167,6 +2167,7 @@ public class ConfDbGUI {
 			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, config);
 			releaseMigrator.migrate();
 			setCurrentConfig(config);
+            jTextFieldProcess.setText(otherDBConfig.configInfo().processName());
 			try {
 				otherDatabase.disconnect();
 			} catch (DatabaseException e) {
