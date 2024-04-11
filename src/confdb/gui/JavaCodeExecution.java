@@ -182,6 +182,10 @@ public class JavaCodeExecution {
                   continue;
                 }
 
+                if (module.template().name().equals("HLTPrescaler")) {
+                  continue;
+                }
+
                 System.out.printf("[customiseForCMSHLT3132] CHANGE #"+numChangesMod.toString()+":");
                 System.out.println(" (Old Name => New Name) \""+oldName+"\" => \""+newName+"\"");
                 try {
