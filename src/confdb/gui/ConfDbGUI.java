@@ -272,12 +272,20 @@ public class ConfDbGUI {
 
 		frame.setContentPane(jPanelContentPane);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        //only works if enter is pressed
 		jTextFieldProcess.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				jButtonProcessActionPerformed(e);
 			}
 		});
+        jTextFieldProcess.addFocusListener(new FocusListener() {
+            public void focusGained(FocusEvent e) {
+             
+            }
+            public void focusLost(FocusEvent e) {
+                updateProcessName();
+            }
+        });
 		jButtonRelease.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				jButtonReleaseActionPerformed(e);
@@ -2167,6 +2175,7 @@ public class ConfDbGUI {
 			ReleaseMigrator releaseMigrator = new ReleaseMigrator(otherDBConfig, config);
 			releaseMigrator.migrate();
 			setCurrentConfig(config);
+            jTextFieldProcess.setText(otherDBConfig.configInfo().processName());
 			try {
 				otherDatabase.disconnect();
 			} catch (DatabaseException e) {
@@ -3623,12 +3632,19 @@ public class ConfDbGUI {
 	//
 
 	private void jButtonProcessActionPerformed(ActionEvent e) {
-		String processName = jTextFieldProcess.getText();
-		if (processName.length() == 0 || processName.indexOf('_') >= 0)
-			jTextFieldProcess.setText(currentConfig.processName());
-		else
-			currentConfig.setHasChanged(true);
+		updateProcessName();
 	}
+
+    private void updateProcessName(){
+        String processName = jTextFieldProcess.getText();
+        if (!processName.equals(currentConfig.processName())) {
+            
+            if (processName.length() == 0 || processName.indexOf('_') >= 0)
+                    jTextFieldProcess.setText(currentConfig.processName());
+            else
+                currentConfig.setHasChanged(true);
+        }
+    }
 
 	private void jButtonReleaseActionPerformed(ActionEvent e) {
 		if (currentConfig.isEmpty())
