@@ -78,7 +78,7 @@ public class SplitDatasetDialog extends JDialog {
 	//
 	private void jTextFieldTextFileNumberToSplitUpdate(DocumentEvent e) {
         int nrToSplit = getNrToSplit();
-        if(nrToSplit>0 && nrToSplit<=32){
+        if(nrToSplit>0 && nrToSplit<=64){
 			jButtonOK.setEnabled(true);
         }else{
 			jButtonOK.setEnabled(false);
@@ -94,7 +94,7 @@ public class SplitDatasetDialog extends JDialog {
 		jButtonOK = new javax.swing.JButton();
 		jButtonCancel = new javax.swing.JButton();
 
-		jLabelNrInstanceText.setText("Number of Dataset Instances (must be in range 1 to 32 inclusive)");
+		jLabelNrInstanceText.setText("Number of Dataset Instances (must be in range 1 to 64 inclusive)");
 		
 		jTextFieldNumberToSplit.getDocument().addDocumentListener(new DocumentListener() {
 			public void insertUpdate(DocumentEvent e) {
