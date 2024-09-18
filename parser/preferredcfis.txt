@@ -71,6 +71,7 @@ TrackingTools/TrajectoryCleaning	TrajectoryCleanerBySharedHits_cfi.py
 TrackingTools/TrackAssociator		DetIdAssociatorESProducer_cff.py
 Geometry/CaloEventSetup			CaloGeometryBuilder_cfi.py
 Geometry/EcalAlgo			EcalBarrelGeometry_cfi.py
+CommonTools/CandAlgos			hltCandPtrSelector_cfi.py
 CommonTools/RecoAlgos			LargestEtCaloJetSelector_cfi.py
 CommonTools/RecoAlgos			etMinCaloJetSelector_cfi.py
 JetMETCorrections/Configuration         CorrectedJetProducers_cff.py
