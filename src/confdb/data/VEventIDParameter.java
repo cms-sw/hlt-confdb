@@ -169,8 +169,8 @@ class EventID
 	String[] strValues = valueAsString.split(":");
 	if (strValues.length==2) {
 	    try {
-		this.runNumber = new Integer(strValues[0]);
-		this.evtNumber = new Integer(strValues[1]);
+		this.runNumber = new Integer(strValues[0].trim());
+		this.evtNumber = new Integer(strValues[1].trim());
 	    }
 	    catch (NumberFormatException e) {
 		throw new DataException("EventID ctor failed: " + e.getMessage());
