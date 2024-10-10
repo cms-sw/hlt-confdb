@@ -1,12 +1,18 @@
+2024-10-10 Sam Harper, Martin Grunewald, Marco Musich
+    * tag V03-06-00
+        * Parsing for 141X updated cfipython variant
+        * change max number of split PDs from 32 to 64
+        * Add hltCandPtrSelector
+        * removing whitespace in VEventID parsing
+
 2024-04-17 Sam Harper
     * tag V03-05-02
     * process name now copies across when "open from different db"
     * process name field updates when focus is lost and not only when enter is pressed
-     
 
 2024-03-11 Marino Missiroli, Marco Musich
     * tag V03-05-01
-        * Hack to make "Output Module Inserter" support plugin-type names with : 
+        * Hack to make "Output Module Inserter" support plugin-type names with :
 
 2024-02-28 Marino Missiroli, Marco Musich
     * tag V03-05-00
