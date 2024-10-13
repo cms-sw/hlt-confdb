@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT3326();
 		// customiseForCMSHLT3132();
 		// printModuleLabels();
 		// addPSet_optionsAccelerators();
@@ -157,6 +158,11 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // CMSHLT-3326: Addition of TestHLTPhysics* streams for DAQ transfer-system tests
+        private void customiseForCMSHLT3326() {
+          addSplitStreams("[customiseForCMSHLT3326]", "hltEventContentAForPP", "TestHLTPhysics", 0, 19);
+        }
 
         // CMSHLT-3132: Rename Alpaka modules incl. "CPUOnly -> SerialSync"
         private void customiseForCMSHLT3132() {
