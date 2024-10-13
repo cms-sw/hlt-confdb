@@ -83,4 +83,6 @@ The steps below describe how to prepare this request.
 
  4. Open a JIRA ticket in the CMSHLT project to request the update of the converter used online by DAQ.
     In this ticket, include FOG and DAQ as Components.
-    An example of such requests can be found in [CMSHLT-2347](https://its.cern.ch/jira/browse/CMSHLT-2347).
+    Examples of such requests can be found in
+    [CMSHLT-2347](https://its.cern.ch/jira/browse/CMSHLT-2347) and
+    [CMSHLT-3114](https://its.cern.ch/jira/browse/CMSHLT-3114).
