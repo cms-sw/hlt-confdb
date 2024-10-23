@@ -113,6 +113,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 				while (lineScanner.hasNext()) {
 					columnNames.add(lineScanner.next().trim());
 				}
+				lineScanner.close();
 			}
 			String unnamedColumns = new String();
 			for(int colNr=0;colNr<columnNames.size();colNr++){
@@ -127,12 +128,14 @@ public class PrescaleTableModel extends AbstractTableModel {
 			if(!unnamedColumns.isEmpty()){
 				String msg = "Error, the following columns are unnamed: "+unnamedColumns+"\n\nPlease fix before uploading\n\nUsually this means the first line of the file is incorrect and is not the column names, please make sure the first line of the file are the column names";
 				JOptionPane.showMessageDialog(null,msg, "Invalid Prescale File", JOptionPane.ERROR_MESSAGE);
+				tableScanner.close();
 				return false;
 			}
 			System.out.println(
 					"Header / # of prescale columns found in file: " + defaultName + " / " + columnNames.size());
 			if (columnNames.size() == 0) {
 				System.out.println("No prescale columns found in file - aborting!");				
+				tableScanner.close();
 				return false;
 			}
 			if(overrideTbl){
@@ -167,6 +170,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 					System.out.println(
 							"Column name in file not found in PrescaleService config (add there first or use override) - aborting! Label="
 									+ label);					
+					tableScanner.close();
 					return false;
 				}
 			}
@@ -201,6 +205,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 					System.out.println("Error in input file line (# of columns) - skipping path: " + pathName);
 					skippedPaths.add(pathName+" has "+prescales.size()+" columns but expected "+columnNames.size()+", please fix before uploading");
 				}
+				lineScanner.close();
 			}
 			System.out.println("# of valid path rows found in file: " + prescaleFile.size());
 			if (prescaleFile.size() == 0) {
