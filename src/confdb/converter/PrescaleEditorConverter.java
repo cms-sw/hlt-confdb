@@ -121,14 +121,14 @@ public class PrescaleEditorConverter {
 
         String basePSDirname = "/users/sharper/2024/test1/prescales";
         //first we check if the basePSDirname already exist and exit if not
-        Directory basePSDir = getDirectoryByPath(rootDir,basePSDirname,false);
+        Directory basePSDir = getDirectoryByPath(rootDir,basePSDirname,false,db);
         if(basePSDir == null){
             System.err.println("ERROR: base directory "+basePSDirname+" not found, this ");
             return;
         }
-
+        System.err.println("release"+release);
         //its easier based on how directories are created start again from the rootDir even though we have the basePSDir
-        Directory configDir = getDirectoryByPath(rootDir,basePSDirname+configName,true);
+        Directory configDir = getDirectoryByPath(rootDir,basePSDirname+configName,true,db);
 
         config.initialize(new ConfigInfo("prescales", configDir, releaseTag),release); 
 
@@ -150,6 +150,7 @@ public class PrescaleEditorConverter {
 
 	    PrescaleTableModel psTblModel = new PrescaleTableModel();
         psTblModel.initialize(config);
+        psTblModel.updatePrescaleService(config);
         psTblModel.updatePrescaleTableFromFile(pstblfile,true);
         psTblModel.updatePrescaleService(config);
         
@@ -161,7 +162,7 @@ public class PrescaleEditorConverter {
             System.out.println("labels "+psService.parameter("lvl1Labels").valueAsString());
             System.out.println("procesname "+config.processName());
         }
-        //db.insertConfiguration(config,"pstool",config.processName(),"prescale table update");
+        db.insertConfiguration(config,"pstool",config.processName(),"prescale table update");
 	}
 	catch(Exception e) {
 	    System.err.println("ERROR: " + e.getMessage());
@@ -197,7 +198,7 @@ public class PrescaleEditorConverter {
         return pathNames;
     }
 
-    public static Directory getDirectoryByPath(Directory rootDir, String targetDirName, Boolean createIfNotFound) {
+    public static Directory getDirectoryByPath(Directory rootDir, String targetDirName, Boolean createIfNotFound, ConfDB db) {
         String[] targetDirBits = targetDirName.split("/");
         Directory currentDir = rootDir;
         String foundName = "";
@@ -206,20 +207,28 @@ public class PrescaleEditorConverter {
                 continue;
             }
             foundName+="/"+part;
-            System.err.println("part = "+foundName);
+            //System.err.println("part = "+foundName);
            
-            System.err.println("curent dir: "+currentDir.name());
-            for( Directory dir : currentDir.listOfDirectories()){
-                System.err.println("curentdir child: "+dir.name());
-            }
+            //System.err.println("curent dir: "+currentDir.name());
+            //for( Directory dir : currentDir.listOfDirectories()){
+                //System.err.println("curentdir child: "+dir.name());
+            //}
             Directory child  = getChildDirectory(currentDir, foundName);
             if (child == null){
                 if(!createIfNotFound) {
                     return null;
                 }else{
                     System.err.println("create new directory: "+foundName);
-                    child = new Directory(-1,part,"", currentDir);
+                    child = new Directory(-1,foundName,"", currentDir);
                     currentDir.addChildDir(child);
+                    try {
+                        db.insertDirectory(child);
+                    } catch (Exception e) {
+                        System.err.println("ERROR: " + e.getMessage());
+                        e.printStackTrace();
+                        return null;
+                    }
+                    
                 }
             }
                 
