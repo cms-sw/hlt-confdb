@@ -1219,6 +1219,8 @@ public class ConfDbGUI {
 			treeModelCurrentConfig.nodeStructureChanged(prescaleSvc);
 	}
 
+	public void importPrescales(){}
+
 	/** open prescale editor */
 	public void openSmartPrescaleEditor() {
 
