@@ -1563,11 +1563,37 @@ public class Configuration implements IConfiguration {
 	}
 
 	/** get Path by name */
-	public Path path(String pathName) {
-		for (Path p : paths)
-			if (p.name().equals(pathName))
+	public Path path(String pathName){
+		return path(pathName,false);
+	}
+
+	public Path path(String pathName,boolean ignoreVersion) {
+		String regex = "_v\\d+$";
+		if(ignoreVersion){
+			pathName = pathName.replaceAll(regex, "");
+		}
+		for (Path p : paths){
+			String matchName = p.name();
+			if(ignoreVersion){
+				matchName = matchName.replaceAll(regex, "");
+			}
+			if (matchName.equals(pathName)){
 				return p;
+			}
+		}
 		return null;
+	}
+
+	/** sees what paths are missing compared to another configuration */
+	public ArrayList<String> pathsMissing(IConfiguration otherCfg, boolean ignoreVersion){ 
+		ArrayList<String> missingPaths = new ArrayList<String>();
+		for (int pathNr = 0; pathNr < otherCfg.pathCount(); pathNr++) {
+			Path otherCfgPath = otherCfg.path(pathNr);
+			if (path(otherCfgPath.name(),ignoreVersion) == null) {
+				missingPaths.add(otherCfgPath.name());
+			}
+		}
+		return missingPaths;
 	}
 
 	/** index of a certain Path */
@@ -1868,6 +1894,62 @@ public class Configuration implements IConfiguration {
 		return null;
 	}
 
+	/**
+	 * this allows us to import the precale service from another adapting it if necessary and checking its validity
+	 * 
+	 */
+	public void importPrescales(IConfiguration psCfg){
+		ServiceInstance pss = psCfg.service("PrescaleService");
+		if(pss==null) return;
+
+		
+		VPSetParameter psTable = (VPSetParameter) pss.parameter("prescaleTable");
+		if(psTable==null) return; //should never happen, bad prescale service	
+		
+		//now we check that the two configs have matching paths
+		//we *could* do this off the prescale service but a path not in the prescale service is valid
+		//that just means its unprescaled so better to go explicitly of the path
+		ArrayList<String> pathsMissingInPSCfg = psCfg.pathsMissing(this,true);
+		ArrayList<String> pathsExtraInPSCfg = pathsMissing(psCfg,true);
+	
+		if(!pathsMissingInPSCfg.isEmpty() || !pathsExtraInPSCfg.isEmpty()){
+			//this is an error handle later
+			return;
+		}	
+		
+		Iterator<PSetParameter> itPSet = psTable.psetIterator();
+		while (itPSet.hasNext()) {
+			PSetParameter pset = itPSet.next();
+			StringParameter pathNameParam = (StringParameter) pset.parameter("pathName");
+			String pathName = (String) pathNameParam.value();
+			Path path = path(pathName,true);
+			if(path!=null){
+				//this is a logic error and should not be possible
+			}
+			pathNameParam.setValue(path.name());
+		}
+		//logic is taken from ConfigurationTreeAction::importInstance
+		//however as this isnt an exact copy of the existing prescales service (we added path versions)
+		//we dont set the DB ID to the old version
+		ServiceInstance newPSS = service("PrescaleService");
+		if(newPSS==null){
+			newPSS = insertService(0, "PrescaleService");
+		}
+		for( int paramNr = 0; paramNr < pss.parameterCount(); paramNr++){
+			newPSS.updateParameter(paramNr, pss.parameter(paramNr).valueAsString());
+		}
+		PSetParameter psOrigin = psCfg.pset("HLTPrescalesOrigin");
+		PSetParameter oldPsOrigin = pset("HLTPrescalesOrigin");
+		if(oldPsOrigin!=null){
+			removePSet(oldPsOrigin);
+		}
+		if(psOrigin!=null){
+			
+			insertPSet(psOrigin);
+		}
+
+		setHasChanged(true);
+	}
 
 	/** generates all the output paths for streams which are eligible 
 	 * overwriting if necessary

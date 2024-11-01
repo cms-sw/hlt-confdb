@@ -295,14 +295,14 @@ public class MenuBar {
 		toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 		toolMenuReplaceItem.addActionListener(listener);
 		toolMenu.add(toolMenuReplaceItem);
-		toolMenuPSEditorItem = new JMenuItem(toolMenuPSEditor, KeyEvent.VK_P);
-		toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
-		toolMenuPSEditorItem.addActionListener(listener);
-		toolMenu.add(toolMenuPSEditorItem);
 		toolMenuPSImportItem = new JMenuItem(toolMenuPSImport);
 		toolMenuPSImportItem.setActionCommand(toolMenuPSImport);
 		toolMenuPSImportItem.addActionListener(listener);
 		toolMenu.add(toolMenuPSImportItem);
+		toolMenuPSEditorItem = new JMenuItem(toolMenuPSEditor, KeyEvent.VK_P);
+		toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
+		toolMenuPSEditorItem.addActionListener(listener);
+		toolMenu.add(toolMenuPSEditorItem);
 		toolMenuSPSEditorItem = new JMenuItem(toolMenuSPSEditor, KeyEvent.VK_S);
 		toolMenuSPSEditorItem.setActionCommand(toolMenuSPSEditor);
 		toolMenuSPSEditorItem.addActionListener(listener);

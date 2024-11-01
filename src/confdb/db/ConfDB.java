@@ -7237,7 +7237,7 @@ public class ConfDB {
 	}
 
 	/** get the release id for a release tag */
-	private String getReleaseTagForConfig(int configId) throws DatabaseException {
+	public String getReleaseTagForConfig(int configId) throws DatabaseException {
 		reconnect();
 
 		ResultSet rs = null;

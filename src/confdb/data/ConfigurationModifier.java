@@ -1007,6 +1007,14 @@ public class ConfigurationModifier implements IConfiguration {
 	public Path path(String pathName) {
 		return master.path(pathName);
 	}
+	
+	public Path path(String pathName, boolean ignoreVersion) {
+		return master.path(pathName, ignoreVersion);
+	}
+	
+	public ArrayList<String> pathsMissing(IConfiguration otherCfg, boolean ignoreVersion) {
+		return master.pathsMissing(otherCfg, ignoreVersion);
+	}
 
 	/** index of a certain Path */
 	public int indexOfPath(Path path) {

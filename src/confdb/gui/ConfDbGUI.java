@@ -1219,7 +1219,79 @@ public class ConfDbGUI {
 			treeModelCurrentConfig.nodeStructureChanged(prescaleSvc);
 	}
 
-	public void importPrescales(){}
+	public void importPrescales(){
+		String psMenuBaseLocation = new String("/users/sharper/2024/test1/prescales");
+
+		ConfDB psSourceDB = new ConfDB();
+		String dbType = new String("oracle");
+		String dbHost = new String("cmsr1-s.cern.ch, cmsr2-s.cern.ch, cmsr3-s.cern.ch");
+		String dbPort = new String("10121");
+		String dbName = new String("cms_hlt.cern.ch");
+		String dbUser = new String("cms_hlt_gdrdev_r");
+		String dbPwrd = new String("convertMe1!");
+
+		String dbUrl = psSourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
+		try{
+			psSourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);
+		}catch(DatabaseException e){
+			String msg = "When getting prescales, failed to connect to DB: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
+		}
+		ConfigInfo cfgInfo = currentConfig.configInfo();
+		System.out.println("config name "+ cfgInfo.name()+" dir "+cfgInfo.parentDir().name());
+		try{
+			Directory psDBRootDir = psSourceDB.loadConfigurationTree();
+			String psMenuLocation = psMenuBaseLocation+cfgInfo.parentDir().name()+"/"+cfgInfo.name()+"/V"+cfgInfo.version();
+			System.out.println("Prescale Menu Location: " + psMenuLocation);
+			Directory psDBDir = psDBRootDir.filter(psMenuLocation,cfgInfo.releaseTag());
+			ArrayList<ConfigInfo> psCfgInfos = psDBDir.listAllConfigurations();
+			for (ConfigInfo psCfgInfoItem : psCfgInfos){
+				System.out.println("Prescale Config: " + psCfgInfoItem.name());
+			}
+			SoftwareRelease psRelease = new SoftwareRelease(this.currentRelease);
+			Configuration psCfg = psSourceDB.loadConfiguration(psCfgInfos.get(0),psRelease);
+			ServiceInstance psService = psCfg.service("PrescaleService");
+			if (psService == null){
+				String msg = "When getting prescales, failed to find PrescaleService in configuration: " + psCfgInfos.get(0).name();
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
+				return;
+			}
+			ServiceInstance cfgPSService = currentConfig.service("PrescaleService");
+			if (cfgPSService == null){
+				cfgPSService = currentConfig.insertService(0,"PrescaleService");
+			}
+			for(int paramNr=0;paramNr<psService.parameterCount();paramNr++){
+				if(!psService.parameter(paramNr).name().equals("prescaleTable")){
+					cfgPSService.updateParameter(paramNr,psService.parameter(paramNr).valueAsString());	
+				}else{
+					VPSetParameter psTable  = (VPSetParameter) psService.parameter(paramNr);					
+					for(int psParamNr=0;psParamNr<psTable.parameterSetCount();psParamNr++){
+						PSetParameter pathPS = psTable.parameterSet(psParamNr);
+						Parameter pathName = pathPS.parameter("pathName");	
+						String pathNameStr = pathName.valueAsString().replace("\"","");					
+						Path path = currentConfig.path(pathNameStr,true);
+						if (path != null){
+							System.err.println("setting pathname "+path.name());
+							pathName.setValue(path.name());
+						}else{
+							System.err.println("path not found "+pathNameStr);
+						}
+					}
+					cfgPSService.updateParameter(paramNr,psTable.valueAsString());
+				}
+			}
+			
+		}catch(DatabaseException e){
+			String msg = "When getting prescales, failed to load configuration tree: " + e.getMessage();
+			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
+		}
+		try{
+			psSourceDB.disconnect();
+		}catch(DatabaseException e){
+			System.err.println("failed to disconnect from db: " + e.getMessage());
+		}
+	}
+		
 
 	/** open prescale editor */
 	public void openSmartPrescaleEditor() {

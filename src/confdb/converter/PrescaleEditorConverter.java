@@ -3,6 +3,7 @@ package confdb.converter;
 import java.util.HashMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.io.*;
 import java.util.Scanner;
@@ -10,6 +11,7 @@ import java.util.Scanner;
 import confdb.data.*;
 
 import confdb.db.ConfDB;
+import confdb.db.ConfDBSetups;
 import confdb.gui.*;
 
 /**
@@ -21,7 +23,40 @@ import confdb.gui.*;
  *         handles the writing of the new ps tool to the db
  */
 public class PrescaleEditorConverter {
-    /** constructor based on format, no database connection */
+    static class DBParams {
+        String dbType;
+        String dbHost;
+        String dbPort;
+        String dbName;
+        String dbUser;  
+        String dbUrl;    
+        Boolean dbProxy;  
+
+        public DBParams(ConfDBSetups dbSetups, String dbLabel) {
+            int dbIndex = dbSetups.labelIndex(dbLabel);
+            if (dbIndex == -1) {
+                System.err.println("ERROR: invalid db name '" + dbName + "'!");
+                System.exit(0);
+            }
+            this.dbType = dbSetups.type(dbIndex);
+            this.dbHost = dbSetups.host(dbIndex);
+            this.dbPort = dbSetups.port(dbIndex);
+            this.dbName = dbSetups.name(dbIndex);
+            this.dbUser = dbSetups.user(dbIndex);
+            this.dbProxy = dbSetups.proxy(dbIndex);
+            this.dbUrl = "";
+            if (dbType.equalsIgnoreCase("mysql")) {
+                this.dbUrl = "jdbc:mysql://" + this.dbHost + ":" + this.dbPort + "/" + this.dbName;
+            } else if (dbType.equalsIgnoreCase("oracle")) {
+                this.dbUrl = "jdbc:oracle:thin:@//" + this.dbHost + ":" + this.dbPort + "/" +this.dbName;
+            } else {
+                System.err.println("ERROR: Unknown db type '" + dbType + "'");
+                System.exit(0);
+            }
+        }
+    }
+
+
     public PrescaleEditorConverter() {
     }
 
@@ -29,104 +64,99 @@ public class PrescaleEditorConverter {
     // main method
     //
     public static void main(String[] args) {
-        String configId = "";
-        String configName = "";
-        String dbType = "oracle";
-        String dbHost = "cmsr1-v.cern.ch";
-        String dbPort = "10121";
-        String dbName = "cmsr.cern.ch";
-        String dbUser = "cms_hlt_gdr_r";
-        String dbPwrd = "convertme!";
+       
+        String basePSDirname = "/users/sharper/2024/test1/prescales";
+        String prescalesCfgName = "prescales";
+        
+        ConfDBSetups dbSetups = new ConfDBSetups("/conf/confdb.pseditor.properties");
+    
         String pstblfile = "";
+        String configName = ""; //name of the config to export prescales to ultimately
+        String configDBName = ""; //the DB name (as listed by the dbSetup property)) where that config is located
+        String configDBPasswd = ""; //the password for the DB where that config is located
+        String psDBName = ""; //the DB name (as listed by the dbSetup property) where the prescales will be imported to
+        String psDBPasswd = ""; //the password for the DB where the prescales will be imported to
 
-        HashMap<String, String> cnvArgs = new HashMap<String, String>();
 
         for (int iarg = 0; iarg < args.length; iarg++) {
             String arg = args[iarg];
-            if (arg.equals("-cfg") || arg.equals("--configName")) {
+            if (arg.equals("--cfg") || arg.equals("--configName")) {
                 iarg++;
                 configName = args[iarg];
-            } else if (arg.equals("-t") || arg.equals("--dbtype")) {
+            } else if(arg.equals("--cfgdb")){
                 iarg++;
-                dbType = args[iarg];
-            } else if (arg.equals("-h") || arg.equals("--dbhost")) {
+                configDBName = args[iarg];
+            }else if(arg.equals("--cfgdbpasswd")){
                 iarg++;
-                dbHost = args[iarg];
-            } else if (arg.equals("-p") || arg.equals("--dbport")) {
+                configDBPasswd = args[iarg];
+            }else if(arg.equals("--psdb")){
                 iarg++;
-                dbPort = args[iarg];
-            } else if (arg.equals("-d") || arg.equals("--dbname")) {
+                psDBName = args[iarg];
+            }else if (arg.equals("--psdbpasswd")){
                 iarg++;
-                dbName = args[iarg];
-            } else if (arg.equals("-u") || arg.equals("--dbuser")) {
-                iarg++;
-                dbUser = args[iarg];
-            } else if (arg.equals("-s") || arg.equals("--dbpwrd")) {
-                iarg++;
-                dbPwrd = args[iarg];
-            } else if (arg.equals("--pstblfile")) {
+                psDBPasswd = args[iarg];
+            }else if (arg.equals("--pstblfile")) {
                 iarg++;
                 pstblfile = args[iarg];
-            } else if (arg.startsWith("--no")) {
-                String key = arg.substring(2);
-                String val = "";
-                cnvArgs.put(key, val);
-            } else if (arg.startsWith("--")) {
-                String key = arg.substring(2);
-                String val = args[++iarg];
-                cnvArgs.put(key, val);
             } else {
                 System.err.println("ERROR: invalid option '" + arg + "'!");
                 System.exit(0);
             }
         }
 
-        if (configId.length() == 0) {
-            if (configName.length() == 0) {
-                System.err.println("ERROR: no configuration specified!");
-                System.exit(0);
-            }
-        }
-
-        String dbUrl = "";
-        if (dbType.equalsIgnoreCase("mysql")) {
-            dbUrl = "jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName;
-        } else if (dbType.equalsIgnoreCase("oracle")) {
-            dbUrl = "jdbc:oracle:thin:@//" + dbHost + ":" + dbPort + "/" + dbName;
-        } else {
-            System.err.println("ERROR: Unknwown db type '" + dbType + "'");
+        
+        if (configName.length() == 0) {
+            System.err.println("ERROR: no configuration specified!");
             System.exit(0);
         }
+        DBParams configDBParams = new DBParams(dbSetups, configDBName);
+        DBParams psDBParams = new DBParams(dbSetups, psDBName);
 
-        System.err.println("dbURl  = " + dbUrl);
-        System.err.println("dbUser = " + dbUser);
-        System.err.println("dbPwrd = " + dbPwrd);
+    
 
         try {
             Configuration config = new Configuration();
             SoftwareRelease release = new SoftwareRelease();
-            String releaseTag = new String("CMSSW_13_2_3");
+            ConverterBase cfgCnv = new ConverterBase("python", configDBParams.dbType, configDBParams.dbUrl,configDBParams.dbUser, configDBPasswd);
+            ConfDB cfgDB = cfgCnv.getDatabase();
+            int configId = cfgDB.getConfigNewId(configName);
 
-            ConverterBase cnv = new ConverterBase("python", dbType, dbUrl, dbUser, dbPwrd);
+            String releaseTag = cfgDB.getReleaseTagForConfig(configId);
+            ConverterBase psCnv = new ConverterBase("python", psDBParams.dbType, psDBParams.dbUrl, psDBParams.dbUser, psDBPasswd);
+            ConfDB psDB = psCnv.getDatabase();
 
-            ConfDB db = cnv.getDatabase();
-            db.loadSoftwareRelease(releaseTag, release);
+            // check if we need to copy the release over or not to the psDB
+            // this should only be the case when we're testing on the dev db
+            int releaseIndex = Arrays.binarySearch(psDB.getReleaseTagsSorted(),releaseTag);
+            if (releaseIndex < 0) {
+                cfgDB.loadSoftwareRelease(releaseTag, release);
+                psDB.insertRelease(releaseTag,release);
+            }
+            psDB.loadSoftwareRelease(releaseTag, release);
 
-            Directory rootDir = db.loadConfigurationTree();
+            Directory rootDir = psDB.loadConfigurationTree();
 
-            String basePSDirname = "/users/sharper/2024/test1/prescales";
+            
             // first we check if the basePSDirname already exist and exit if not
-            Directory basePSDir = getDirectoryByPath(rootDir, basePSDirname, false, db);
+            Directory basePSDir = getDirectoryByPath(rootDir, basePSDirname, false, psDB);
             if (basePSDir == null) {
                 System.err.println("ERROR: base directory " + basePSDirname + " not found, this ");
                 return;
-            }
-            System.err.println("release" + release);
+            }           
             // its easier based on how directories are created start again from the rootDir
             // even though we have the basePSDir
-            Directory configDir = getDirectoryByPath(rootDir, basePSDirname + configName, true, db);
-
-            config.initialize(new ConfigInfo("prescales", configDir, releaseTag), release);
+            Directory configDir = getDirectoryByPath(rootDir, basePSDirname + configName, true, psDB);
+            ConfigInfo cfgInfo = null;
+            for(int configInfoNr=0;configInfoNr<configDir.configInfoCount();configInfoNr++){
+                if(configDir.configInfo(configInfoNr).name().equals(prescalesCfgName)){
+                    cfgInfo = configDir.configInfo(configInfoNr);
+                    break;
+                }                
+            }
+            if (cfgInfo == null) {
+                cfgInfo = new ConfigInfo(prescalesCfgName, configDir, releaseTag);             
+            }
+            config.initialize(cfgInfo, release);
 
             ArrayList<String> pathNames = getPathNamesFromCSVFile(pstblfile);
 
@@ -134,7 +164,7 @@ public class PrescaleEditorConverter {
             for (String pathName : pathNames) {
                 if (pathName.endsWith("_v")) {
                     pathName = pathName + "1";
-                }
+               }
                 Path path = config.insertPath(config.pathCount(), pathName);
                 // System.err.println("pathName = " + pathName);
                 config.insertModuleReference(path, 0, module);
@@ -159,7 +189,12 @@ public class PrescaleEditorConverter {
                 System.out.println("labels " + psService.parameter("lvl1Labels").valueAsString());
                 System.out.println("procesname " + config.processName());
             }
-            db.insertConfiguration(config, "pstool", config.processName(), "prescale table update");
+            for(int i=0;i<config.pathCount();i++){
+                Path path = config.path(i);
+                System.err.println("path "+path.name());
+            }
+
+            psDB.insertConfiguration(config, "pstool", config.processName(), "prescale table update");
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());
             e.printStackTrace();
