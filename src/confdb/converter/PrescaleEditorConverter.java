@@ -67,31 +67,37 @@ public class PrescaleEditorConverter {
        
         String basePSDirname = "/users/sharper/2024/test1/prescales";
         String prescalesCfgName = "prescales";
-        
-        ConfDBSetups dbSetups = new ConfDBSetups("/conf/confdb.pseditor.properties");
-    
+               
         String pstblfile = "";
         String configName = ""; //name of the config to export prescales to ultimately
-        String configDBName = ""; //the DB name (as listed by the dbSetup property)) where that config is located
+        String configDBDSN = ""; //the dsn of the db where the confg is located
+        String configDBUser = ""; //the user for the DB where that config is located
         String configDBPasswd = ""; //the password for the DB where that config is located
-        String psDBName = ""; //the DB name (as listed by the dbSetup property) where the prescales will be imported to
+        String psDBDSN = ""; //the dsn of the db where the prescales will be imported to
+        String psDBUser = ""; //the name of the db where the prescales will be imported to
         String psDBPasswd = ""; //the password for the DB where the prescales will be imported to
-
+        
 
         for (int iarg = 0; iarg < args.length; iarg++) {
             String arg = args[iarg];
             if (arg.equals("--cfg") || arg.equals("--configName")) {
                 iarg++;
                 configName = args[iarg];
-            } else if(arg.equals("--cfgdb")){
+            } else if(arg.equals("--cfgdbdsn")){
                 iarg++;
-                configDBName = args[iarg];
+                configDBDSN = args[iarg];
+            } else if(arg.equals("--cfgdbuser")){
+                iarg++;
+                configDBUser = args[iarg];
             }else if(arg.equals("--cfgdbpasswd")){
                 iarg++;
                 configDBPasswd = args[iarg];
-            }else if(arg.equals("--psdb")){
+            }else if(arg.equals("--psdbdsn")){
                 iarg++;
-                psDBName = args[iarg];
+                psDBDSN = args[iarg];
+            }else if(arg.equals("--psdbuser")){
+                iarg++;
+                psDBUser = args[iarg];
             }else if (arg.equals("--psdbpasswd")){
                 iarg++;
                 psDBPasswd = args[iarg];
@@ -109,20 +115,17 @@ public class PrescaleEditorConverter {
             System.err.println("ERROR: no configuration specified!");
             System.exit(0);
         }
-        DBParams configDBParams = new DBParams(dbSetups, configDBName);
-        DBParams psDBParams = new DBParams(dbSetups, psDBName);
-
     
 
         try {
             Configuration config = new Configuration();
             SoftwareRelease release = new SoftwareRelease();
-            ConverterBase cfgCnv = new ConverterBase("python", configDBParams.dbType, configDBParams.dbUrl,configDBParams.dbUser, configDBPasswd);
+            ConverterBase cfgCnv = new ConverterBase("python", "oracle", "jdbc:oracle:thin:@//"+configDBDSN, configDBUser, configDBPasswd);
             ConfDB cfgDB = cfgCnv.getDatabase();
             int configId = cfgDB.getConfigNewId(configName);
 
             String releaseTag = cfgDB.getReleaseTagForConfig(configId);
-            ConverterBase psCnv = new ConverterBase("python", psDBParams.dbType, psDBParams.dbUrl, psDBParams.dbUser, psDBPasswd);
+            ConverterBase psCnv = new ConverterBase("python", "oracle", "jdbc:oracle:thin:@//"+psDBDSN, psDBUser, psDBPasswd);
             ConfDB psDB = psCnv.getDatabase();
 
             // check if we need to copy the release over or not to the psDB
@@ -195,6 +198,7 @@ public class PrescaleEditorConverter {
             }
 
             psDB.insertConfiguration(config, "pstool", config.processName(), "prescale table update");
+            System.out.println("PSEditorConverter: WRITE SUCCESSFUL");
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());
             e.printStackTrace();
