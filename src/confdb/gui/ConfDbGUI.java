@@ -1221,6 +1221,7 @@ public class ConfDbGUI {
 
 	public void importPrescales(){
 		String psMenuBaseLocation = new String("/users/sharper/2024/test1/prescales");
+		String psMenuName = new String("prescales");
 
 		ConfDB psSourceDB = new ConfDB();
 		String dbType = new String("oracle");
@@ -1245,9 +1246,19 @@ public class ConfDbGUI {
 			System.out.println("Prescale Menu Location: " + psMenuLocation);
 			Directory psDBDir = psDBRootDir.filter(psMenuLocation,cfgInfo.releaseTag());
 			ArrayList<ConfigInfo> psCfgInfos = psDBDir.listAllConfigurations();
+			ConfigInfo psCfgInfo = null;
 			for (ConfigInfo psCfgInfoItem : psCfgInfos){
-				System.out.println("Prescale Config: " + psCfgInfoItem.name());
+				if (psCfgInfoItem.name().equals(psMenuName)){
+					psCfgInfo = psCfgInfoItem;
+					break;
+				}				
 			}
+			if (psCfgInfo == null){
+				String msg = "When getting prescales, failed to find the prescales confg: " + psMenuName+"at location: "+psMenuLocation;
+				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
+				return;
+			}
+			System.out.println("pscfg "+psCfgInfo.name()+" "+psCfgInfo.parentDir().name()+" "+psCfgInfo.version());
 			SoftwareRelease psRelease = new SoftwareRelease(this.currentRelease);
 			Configuration psCfg = psSourceDB.loadConfiguration(psCfgInfos.get(0),psRelease);
 			ServiceInstance psService = psCfg.service("PrescaleService");
@@ -1271,7 +1282,7 @@ public class ConfDbGUI {
 						String pathNameStr = pathName.valueAsString().replace("\"","");					
 						Path path = currentConfig.path(pathNameStr,true);
 						if (path != null){
-							System.err.println("setting pathname "+path.name());
+							//System.err.println("setting pathname "+path.name());
 							pathName.setValue(path.name());
 						}else{
 							System.err.println("path not found "+pathNameStr);

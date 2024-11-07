@@ -148,9 +148,9 @@ public class PrescaleTableModel extends AbstractTableModel {
 					prescaleTable.addPrescaleColumn(i, label, 1);
 					System.out.println(" i/Label: "+i+"/"+label);
 				}
+				prescaleTable.setDefaultName(defaultName);
 				fireTableStructureChanged();				
 			}
-			
 			// Indices to map found columnNames into PrescaleTable columnNames
 			for (int i = 0; i < columnNames.size(); i++) {
 				

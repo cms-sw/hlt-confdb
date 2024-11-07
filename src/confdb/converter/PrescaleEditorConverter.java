@@ -23,39 +23,6 @@ import confdb.gui.*;
  *         handles the writing of the new ps tool to the db
  */
 public class PrescaleEditorConverter {
-    static class DBParams {
-        String dbType;
-        String dbHost;
-        String dbPort;
-        String dbName;
-        String dbUser;  
-        String dbUrl;    
-        Boolean dbProxy;  
-
-        public DBParams(ConfDBSetups dbSetups, String dbLabel) {
-            int dbIndex = dbSetups.labelIndex(dbLabel);
-            if (dbIndex == -1) {
-                System.err.println("ERROR: invalid db name '" + dbName + "'!");
-                System.exit(0);
-            }
-            this.dbType = dbSetups.type(dbIndex);
-            this.dbHost = dbSetups.host(dbIndex);
-            this.dbPort = dbSetups.port(dbIndex);
-            this.dbName = dbSetups.name(dbIndex);
-            this.dbUser = dbSetups.user(dbIndex);
-            this.dbProxy = dbSetups.proxy(dbIndex);
-            this.dbUrl = "";
-            if (dbType.equalsIgnoreCase("mysql")) {
-                this.dbUrl = "jdbc:mysql://" + this.dbHost + ":" + this.dbPort + "/" + this.dbName;
-            } else if (dbType.equalsIgnoreCase("oracle")) {
-                this.dbUrl = "jdbc:oracle:thin:@//" + this.dbHost + ":" + this.dbPort + "/" +this.dbName;
-            } else {
-                System.err.println("ERROR: Unknown db type '" + dbType + "'");
-                System.exit(0);
-            }
-        }
-    }
-
 
     public PrescaleEditorConverter() {
     }
@@ -172,10 +139,6 @@ public class PrescaleEditorConverter {
                 // System.err.println("pathName = " + pathName);
                 config.insertModuleReference(path, 0, module);
             }
-            // ServiceTemplate psServiceTemplate =
-            // release.serviceTemplate("PrescaleService");
-            // ServiceInstance psService = new
-            // ServiceInstance("PrescaleService",psServiceTemplate);
             config.insertService(0, "PrescaleService");
 
             PrescaleTableModel psTblModel = new PrescaleTableModel();
@@ -192,12 +155,9 @@ public class PrescaleEditorConverter {
                 System.out.println("labels " + psService.parameter("lvl1Labels").valueAsString());
                 System.out.println("procesname " + config.processName());
             }
-            for(int i=0;i<config.pathCount();i++){
-                Path path = config.path(i);
-                System.err.println("path "+path.name());
-            }
 
             psDB.insertConfiguration(config, "pstool", config.processName(), "prescale table update");
+            //the backend server looks for this line in the logs to make sure the update was successful
             System.out.println("PSEditorConverter: WRITE SUCCESSFUL");
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());
