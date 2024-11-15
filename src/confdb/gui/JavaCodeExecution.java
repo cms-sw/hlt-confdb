@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customiseForCMSHLT3395();
 		// customiseForCMSHLT3326();
 		// customiseForCMSHLT3132();
 		// printModuleLabels();
@@ -158,6 +159,173 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+        // CMSHLT-3395: addition of ZDC backup seeds to the HLTs of the 2024 PbPb menu
+        private void customiseForCMSHLT3395(){
+          Map<String, String> l1tSeedRenamingMap = new TreeMap<String, String>();
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_OR_BptxAND",
+            "L1_ZDC1n_OR_BptxAND OR L1_ZDC1n_Bkp1_OR_BptxAND OR L1_ZDC1n_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_XOR_MinimumBiasHF1_AND_BptxAND",
+            "L1_ZDC1n_XOR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp1_XOR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp2_XOR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp3_XOR_MinimumBiasHF1_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_AsymXOR_MinimumBiasHF1_AND_BptxAND",
+            "L1_ZDC1n_AsymXOR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp1_AsymXOR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp2_AsymXOR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp3_AsymXOR_MinimumBiasHF1_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_XOR_MinimumBiasHF2_AND_BptxAND",
+            "L1_ZDC1n_XOR_MinimumBiasHF2_AND_BptxAND OR L1_ZDC1n_Bkp1_XOR_MinimumBiasHF2_AND_BptxAND OR L1_ZDC1n_Bkp2_XOR_MinimumBiasHF2_AND_BptxAND OR L1_ZDC1n_Bkp3_XOR_MinimumBiasHF2_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_AsymXOR_MinimumBiasHF2_AND_BptxAND",
+            "L1_ZDC1n_AsymXOR_MinimumBiasHF2_AND_BptxAND OR L1_ZDC1n_Bkp1_AsymXOR_MinimumBiasHF2_AND_BptxAND OR L1_ZDC1n_Bkp2_AsymXOR_MinimumBiasHF2_AND_BptxAND OR L1_ZDC1n_Bkp3_AsymXOR_MinimumBiasHF2_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet8_ZDC1n_XOR_BptxAND",
+            "L1_SingleJet8_ZDC1n_XOR_BptxAND OR L1_SingleJet8_ZDC1n_Bkp1_XOR_BptxAND OR L1_SingleJet8_ZDC1n_Bkp2_XOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet12_ZDC1n_XOR_BptxAND",
+            "L1_SingleJet12_ZDC1n_XOR_BptxAND OR L1_SingleJet12_ZDC1n_Bkp1_XOR_BptxAND OR L1_SingleJet12_ZDC1n_Bkp2_XOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet16_ZDC1n_XOR_BptxAND",
+            "L1_SingleJet16_ZDC1n_XOR_BptxAND OR L1_SingleJet16_ZDC1n_Bkp1_XOR_BptxAND OR L1_SingleJet16_ZDC1n_Bkp2_XOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet20_ZDC1n_XOR_BptxAND",
+            "L1_SingleJet20_ZDC1n_XOR_BptxAND OR L1_SingleJet20_ZDC1n_Bkp1_XOR_BptxAND OR L1_SingleJet20_ZDC1n_Bkp2_XOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet24_ZDC1n_XOR_BptxAND",
+            "L1_SingleJet24_ZDC1n_XOR_BptxAND OR L1_SingleJet24_ZDC1n_Bkp1_XOR_BptxAND OR L1_SingleJet24_ZDC1n_Bkp2_XOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet28_ZDC1n_XOR_BptxAND",
+            "L1_SingleJet28_ZDC1n_XOR_BptxAND OR L1_SingleJet28_ZDC1n_Bkp1_XOR_BptxAND OR L1_SingleJet28_ZDC1n_Bkp2_XOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet8_ZDC1n_AsymXOR_BptxAND",
+            "L1_SingleJet8_ZDC1n_AsymXOR_BptxAND OR L1_SingleJet8_ZDC1n_Bkp1_AsymXOR_BptxAND OR L1_SingleJet8_ZDC1n_Bkp2_AsymXOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet12_ZDC1n_AsymXOR_BptxAND",
+            "L1_SingleJet12_ZDC1n_AsymXOR_BptxAND OR L1_SingleJet12_ZDC1n_Bkp1_AsymXOR_BptxAND OR L1_SingleJet12_ZDC1n_Bkp2_AsymXOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet16_ZDC1n_AsymXOR_BptxAND",
+            "L1_SingleJet16_ZDC1n_AsymXOR_BptxAND OR L1_SingleJet16_ZDC1n_Bkp1_AsymXOR_BptxAND OR L1_SingleJet16_ZDC1n_Bkp2_AsymXOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet20_ZDC1n_AsymXOR_BptxAND",
+            "L1_SingleJet20_ZDC1n_AsymXOR_BptxAND OR L1_SingleJet20_ZDC1n_Bkp1_AsymXOR_BptxAND OR L1_SingleJet20_ZDC1n_Bkp2_AsymXOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet24_ZDC1n_AsymXOR_BptxAND",
+            "L1_SingleJet24_ZDC1n_AsymXOR_BptxAND OR L1_SingleJet24_ZDC1n_Bkp1_AsymXOR_BptxAND OR L1_SingleJet24_ZDC1n_Bkp2_AsymXOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet28_ZDC1n_AsymXOR_BptxAND",
+            "L1_SingleJet28_ZDC1n_AsymXOR_BptxAND OR L1_SingleJet28_ZDC1n_Bkp1_AsymXOR_BptxAND OR L1_SingleJet28_ZDC1n_Bkp2_AsymXOR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_OR_MinimumBiasHF1_AND_BptxAND",
+            "L1_ZDC1n_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp1_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp2_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp3_OR_MinimumBiasHF1_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet8_notZDC_OR_BptxAND",
+            "L1_SingleJet8_notZDC_OR_BptxAND OR L1_SingleJet8_notZDC_Bkp1_OR_BptxAND OR L1_SingleJet8_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet12_notZDC_OR_BptxAND",
+            "L1_SingleJet12_notZDC_OR_BptxAND OR L1_SingleJet12_notZDC_Bkp1_OR_BptxAND OR L1_SingleJet12_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet16_notZDC_OR_BptxAND",
+            "L1_SingleJet16_notZDC_OR_BptxAND OR L1_SingleJet16_notZDC_Bkp1_OR_BptxAND OR L1_SingleJet16_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet20_notZDC_OR_BptxAND",
+            "L1_SingleJet20_notZDC_OR_BptxAND OR L1_SingleJet20_notZDC_Bkp1_OR_BptxAND OR L1_SingleJet20_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet24_notZDC_OR_BptxAND",
+            "L1_SingleJet24_notZDC_OR_BptxAND OR L1_SingleJet24_notZDC_Bkp1_OR_BptxAND OR L1_SingleJet24_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_SingleJet28_notZDC_OR_BptxAND",
+            "L1_SingleJet28_notZDC_OR_BptxAND OR L1_SingleJet28_notZDC_Bkp1_OR_BptxAND OR L1_SingleJet28_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_DoubleJet8_DeltaPhi2p0_NotZDC1n_AND_BptxAND",
+            "L1_DoubleJet8_DeltaPhi2p0_NotZDC1n_AND_BptxAND OR L1_DoubleJet8_DeltaPhi2p0_NotZDC1n_Bkp1_AND_BptxAND OR L1_DoubleJet8_DeltaPhi2p0_NotZDC1n_Bkp2_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_DoubleJet12_DeltaPhi2p0_NotZDC1n_AND_BptxAND",
+            "L1_DoubleJet12_DeltaPhi2p0_NotZDC1n_AND_BptxAND OR L1_DoubleJet12_DeltaPhi2p0_NotZDC1n_Bkp1_AND_BptxAND OR L1_DoubleJet12_DeltaPhi2p0_NotZDC1n_Bkp2_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_DoubleJet16_DeltaPhi2p0_NotZDC1n_AND_BptxAND",
+            "L1_DoubleJet16_DeltaPhi2p0_NotZDC1n_AND_BptxAND OR L1_DoubleJet16_DeltaPhi2p0_NotZDC1n_Bkp1_AND_BptxAND OR L1_DoubleJet16_DeltaPhi2p0_NotZDC1n_Bkp2_AND_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_DoubleJet8_DeltaPhi2p0_notZDC_OR_BptxAND",
+            "L1_DoubleJet8_DeltaPhi2p0_notZDC_OR_BptxAND OR L1_DoubleJet8_DeltaPhi2p0_notZDC_Bkp1_OR_BptxAND OR L1_DoubleJet8_DeltaPhi2p0_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_DoubleJet12_DeltaPhi2p0_notZDC_OR_BptxAND",
+            "L1_DoubleJet12_DeltaPhi2p0_notZDC_OR_BptxAND OR L1_DoubleJet12_DeltaPhi2p0_notZDC_Bkp1_OR_BptxAND OR L1_DoubleJet12_DeltaPhi2p0_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_DoubleJet16_DeltaPhi2p0_notZDC_OR_BptxAND",
+            "L1_DoubleJet16_DeltaPhi2p0_notZDC_OR_BptxAND OR L1_DoubleJet16_DeltaPhi2p0_notZDC_Bkp1_OR_BptxAND OR L1_DoubleJet16_DeltaPhi2p0_notZDC_Bkp2_OR_BptxAND"
+          );
+
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_AND_AND_NotMBHF2_BptxAND",
+            "L1_ZDC1n_AND_AND_NotMBHF2_BptxAND OR L1_ZDC1n_Bkp1_AND_AND_NotMBHF2_BptxAND OR L1_ZDC1n_Bkp2_AND_AND_NotMBHF2_BptxAND"
+          );
+
+          // remove duplication caused by a previous replacement
+	  l1tSeedRenamingMap.put(
+            "L1_ZDC1n_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp1_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp2_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp3_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp1_OR_MinimumBiasHF1_AND_BptxAND",
+            "L1_ZDC1n_OR_MinimumBiasHF1_AND_BptxAND OR L1_ZDC1n_Bkp1_OR_MinimumBiasHF1_AND_BptxAND"
+          );
+
+          replaceL1TriggerSeeds(l1tSeedRenamingMap);
+        }
 
         // CMSHLT-3326: Addition of TestHLTPhysics* streams for DAQ transfer-system tests
         private void customiseForCMSHLT3326() {
