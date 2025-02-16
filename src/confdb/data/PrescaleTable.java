@@ -37,7 +37,7 @@ public class PrescaleTable
 	public static final String PSTBLINFO_PSET_NAME = "PrescaleTableInfo";
 
 	// menu location we write the prescales to
-	public static final String PSTBL_CONFB_LOCATION = "/users/sharper/2025/test1/prescales/v1";
+	public static final String PSTBL_CONFDB_LOCATION = "/users/sharper/2025/test1/prescales/v1";
 
     //
     // construction
