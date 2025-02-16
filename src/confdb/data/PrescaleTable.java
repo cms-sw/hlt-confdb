@@ -343,5 +343,16 @@ public class PrescaleTable
 	}
 
     }
+
+	/* returns the column labels as string suitable to for a VString pset representation */
+	public  String getColumnsAsVStringStr(){
+		StringBuffer labelsAsString = new StringBuffer();
+		for (int i = 0; i <this.prescaleCount(); i++) {
+			if (labelsAsString.length() > 0)
+				labelsAsString.append(",");
+			labelsAsString.append(this.prescaleColumnName(i));
+		}
+		return labelsAsString.toString();
+	}
     
 }

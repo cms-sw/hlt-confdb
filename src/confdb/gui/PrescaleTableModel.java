@@ -1,8 +1,9 @@
 package confdb.gui;
 
 import java.util.ArrayList;
-
+import java.util.HashMap;
 import java.io.*;
+import java.security.Provider.Service;
 import java.util.Scanner;
 
 import javax.swing.JOptionPane;
@@ -50,15 +51,12 @@ public class PrescaleTableModel extends AbstractTableModel {
 			return;
 		}
 
+		boolean invalidatePSInfoPSet = hasPSEditorManagedDiff(prescaleSvc,prescaleTable);
+		System.out.println("invalidatePSInfoPSet: "+invalidatePSInfoPSet);
 		prescaleSvc.updateParameter("lvl1DefaultLabel", "string", prescaleTable.defaultName());
 
-		StringBuffer labelsAsString = new StringBuffer();
-		for (int i = 0; i < prescaleTable.prescaleCount(); i++) {
-			if (labelsAsString.length() > 0)
-				labelsAsString.append(",");
-			labelsAsString.append(prescaleTable.prescaleColumnName(i));
-		}
-		prescaleSvc.updateParameter("lvl1Labels", "vstring", labelsAsString.toString());
+		
+		prescaleSvc.updateParameter("lvl1Labels", "vstring", prescaleTable.getColumnsAsVStringStr());
 
 		VPSetParameter vpsetPrescaleTable = (VPSetParameter) prescaleSvc.parameter("prescaleTable", "VPSet");
 		if (vpsetPrescaleTable == null) {
@@ -79,15 +77,16 @@ public class PrescaleTableModel extends AbstractTableModel {
 			params.add(vPrescales);
 			vpsetPrescaleTable.addParameterSet(new PSetParameter("", params, true));
 		}
-		updatePSTblPSet(config);
+		updatePSTblPSet(config,invalidatePSInfoPSet);
 		prescaleSvc.setHasChanged();
 
 	}
 
-	protected void updatePSTblPSet(IConfiguration config){
+	protected void updatePSTblPSet(IConfiguration config,boolean invalidate){
 		/* urgh: this isnt great 
 		the goal: have a pset in the configuration that holds the name of the prescale table
-		          from the pseditor but if we subsequently change it , to mark it as modified
+		          from the pseditor but if we subsequently change it , to mark it as modified if requested
+				  to do so 
 		
 		in the pstable csv file uploaded by the pseditor, it supplies the table name
 		if that is set, we know its coming straight from the pseditor
@@ -104,15 +103,17 @@ public class PrescaleTableModel extends AbstractTableModel {
 			
 			//no table name, so we need to look for the pset in the configuration if it exists
 			//and mark it as modified
-			PSetParameter psTableNamePSet = config.pset(PrescaleTable.PSTBLINFO_PSET_NAME);
-			if (psTableNamePSet != null){
-				
-				BoolParameter modified = (BoolParameter) psTableNamePSet.parameter("modified");
-				if (modified != null) {
-					modified.setValue("true");
-				} else {
-					modified = new BoolParameter("modified", true,true);
-					psTableNamePSet.addParameter(modified);
+			if (invalidate){
+				PSetParameter psTableNamePSet = config.pset(PrescaleTable.PSTBLINFO_PSET_NAME);
+				if (psTableNamePSet != null){
+					
+					BoolParameter modified = (BoolParameter) psTableNamePSet.parameter("modified");
+					if (modified != null) {
+						modified.setValue("true");
+					} else {
+						modified = new BoolParameter("modified", true,true);
+						psTableNamePSet.addParameter(modified);
+					}
 				}
 			}
 		}else{
@@ -427,6 +428,74 @@ public class PrescaleTableModel extends AbstractTableModel {
 		for (int iPath = 0; iPath < prescaleTable.pathCount(); iPath++)
 			if (pathName.equals(prescaleTable.pathName(iPath)))
 				return true;
+		return false;
+	}
+
+	private static boolean compareParamsAsString(ServiceInstance srv, String paramName, String value) {
+		StringParameter lhs = (StringParameter) srv.parameter(paramName, "string");
+		
+		if (lhs == null) {
+			return false;
+		}
+		StringParameter rhs = new StringParameter(paramName, value, true);		
+		return lhs.valueAsString().equals(rhs.valueAsString());
+	}
+	private static boolean compareParamsAsVString(ServiceInstance srv, String paramName, String value) {
+		VStringParameter lhs = (VStringParameter) srv.parameter(paramName, "vstring");
+		
+		if (lhs == null) {
+			return false;
+		}
+		VStringParameter rhs = new VStringParameter(paramName, value, true);		
+		return lhs.valueAsString().equals(rhs.valueAsString());
+	}
+
+	/* returns true if there is a difference in the fields managed by the PSEditor
+	 * which at the time of writing was just the prescales of the Dataset paths
+	 */
+	private static boolean hasPSEditorManagedDiff(ServiceInstance prescaleSvc,PrescaleTable prescaleTable){
+		
+		if(!compareParamsAsString(prescaleSvc,"lvl1DefaultLabel",prescaleTable.defaultName())){
+			return true;
+		}
+		if(!compareParamsAsVString(prescaleSvc,"lvl1Labels",prescaleTable.getColumnsAsVStringStr())){
+			return true;
+		}
+		VPSetParameter vpsetPrescaleTable = (VPSetParameter) prescaleSvc.parameter("prescaleTable", "VPSet");
+		if (vpsetPrescaleTable == null) {
+			return true;
+		}
+		HashMap<String,String> pathPSMap = new HashMap<String,String>();
+		for(int psPSet = 0; psPSet < vpsetPrescaleTable.parameterSetCount(); psPSet++){
+			PSetParameter pset = vpsetPrescaleTable.parameterSet(psPSet);
+			String pathName = ((StringParameter)pset.parameter("pathName")).valueAsString();
+			pathName = pathName.replaceAll("^[\"']+|[\"']+$", "");
+			String prescales = ((VUInt32Parameter)pset.parameter("prescales")).valueAsString();
+			pathPSMap.put(pathName, prescales);
+		}
+
+		for (int iPath = 0; iPath < prescaleTable.pathCount(); iPath++) {
+			
+			if (!prescaleTable.isPrescaled(iPath))
+				continue;
+			String pathName = prescaleTable.pathName(iPath);
+			if(pathName.startsWith(PrimaryDataset.datasetPathNamePrefix())){
+				continue;//the pseditor does not manage the primary dataset paths
+			}
+			String pathPS = pathPSMap.get(pathName);
+			if (pathPS == null) {
+				//paths unprescaled may not be in the prescale table so this might 
+				//be just a path that is unprescaled
+				if (prescaleTable.isPrescaled(iPath)){					
+					return true;
+				}
+			}
+			VUInt32Parameter vPrescales = new VUInt32Parameter("prescales", prescaleTable.prescalesAsString(iPath), true);
+			if(!pathPS.equals(vPrescales.valueAsString())){
+				return true;
+			}
+		}
+		
 		return false;
 	}
 }

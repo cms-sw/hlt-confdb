@@ -139,7 +139,6 @@ public class PrescaleDialog extends JDialog {
 			tableModel.updatePrescaleService(config);
 		}else{
 			//clear the update and reset the it back to the config value
-			System.err.println("reset");
 			setVisible(false);
 			//tableModel.initialize(config);
 
