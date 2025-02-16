@@ -1220,7 +1220,7 @@ public class ConfDbGUI {
 	}
 
 	public void importPrescales(){
-		String psMenuBaseLocation = new String("/users/sharper/2025/test1/prescales/v1");
+		String psMenuBaseLocation = PrescaleTable.PSTBL_CONFDB_LOCATION;
 		String psMenuName = new String("prescales");
 
 		ConfDB psSourceDB = new ConfDB();

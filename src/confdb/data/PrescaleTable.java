@@ -36,6 +36,9 @@ public class PrescaleTable
 	// name of the pset we write the external tool table name
 	public static final String PSTBLINFO_PSET_NAME = "PrescaleTableInfo";
 
+	// menu location we write the prescales to
+	public static final String PSTBL_CONFB_LOCATION = "/users/sharper/2025/test1/prescales/v1";
+
     //
     // construction
     //

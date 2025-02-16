@@ -32,7 +32,7 @@ public class PrescaleEditorConverter {
     //
     public static void main(String[] args) {
        
-        String basePSDirname = "/users/sharper/2025/test1/prescales/v1";
+        String basePSDirname = PrescaleTable.PSTBL_CONFDB_LOCATION;
         String prescalesCfgName = "prescales";
                
         String pstblfile = "";
