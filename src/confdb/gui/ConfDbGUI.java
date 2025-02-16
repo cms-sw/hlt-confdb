@@ -1220,7 +1220,7 @@ public class ConfDbGUI {
 	}
 
 	public void importPrescales(){
-		String psMenuBaseLocation = new String("/users/sharper/2024/test1/prescales");
+		String psMenuBaseLocation = new String("/users/sharper/2025/test1/prescales/v1");
 		String psMenuName = new String("prescales");
 
 		ConfDB psSourceDB = new ConfDB();
@@ -1290,6 +1290,17 @@ public class ConfDbGUI {
 					}
 					cfgPSService.updateParameter(paramNr,psTable.valueAsString());
 				}
+			}
+			PSetParameter psTblInfoPSet  = (PSetParameter) psCfg.pset(PrescaleTable.PSTBLINFO_PSET_NAME);
+			if (psTblInfoPSet == null){
+				System.out.println("When getting prescales, failed to find PrescaleTableInfo in configuration: " + psCfgInfos.get(0).name());				
+				return;
+			}else{
+				PSetParameter existingPSInfoPSet = (PSetParameter) currentConfig.pset(PrescaleTable.PSTBLINFO_PSET_NAME);
+				if (existingPSInfoPSet != null){
+					currentConfig.removePSet(existingPSInfoPSet);
+				}
+				currentConfig.insertPSet(psTblInfoPSet);
 			}
 			
 		}catch(DatabaseException e){

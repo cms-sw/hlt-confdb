@@ -79,7 +79,66 @@ public class PrescaleTableModel extends AbstractTableModel {
 			params.add(vPrescales);
 			vpsetPrescaleTable.addParameterSet(new PSetParameter("", params, true));
 		}
+		updatePSTblPSet(config);
 		prescaleSvc.setHasChanged();
+
+	}
+
+	protected void updatePSTblPSet(IConfiguration config){
+		/* urgh: this isnt great 
+		the goal: have a pset in the configuration that holds the name of the prescale table
+		          from the pseditor but if we subsequently change it , to mark it as modified
+		
+		in the pstable csv file uploaded by the pseditor, it supplies the table name
+		if that is set, we know its coming straight from the pseditor
+		and then we override the pset in the configuration with the table name
+		and set it as not modified
+
+		if there is no table, we sholud look for such a pset in the configuration
+		and then if it exists, we should mark it as modified
+
+		at the end we then set the externalTableName to "" so we know that in the next update
+		is not from a csv file
+		*/		
+		if(prescaleTable.externalTableName().isEmpty()){
+			
+			//no table name, so we need to look for the pset in the configuration if it exists
+			//and mark it as modified
+			PSetParameter psTableNamePSet = config.pset(PrescaleTable.PSTBLINFO_PSET_NAME);
+			if (psTableNamePSet != null){
+				
+				BoolParameter modified = (BoolParameter) psTableNamePSet.parameter("modified");
+				if (modified != null) {
+					modified.setValue("true");
+				} else {
+					modified = new BoolParameter("modified", true,true);
+					psTableNamePSet.addParameter(modified);
+				}
+			}
+		}else{
+			PSetParameter psTableNamePSet = config.pset("PrescaleTableInfo");
+			if (psTableNamePSet == null){
+				psTableNamePSet = new PSetParameter("PrescaleTableInfo","",true);
+				config.insertPSet(psTableNamePSet);
+			}
+
+			StringParameter psTableName = (StringParameter) psTableNamePSet.parameter("tableName");
+			if (psTableName != null) {
+				psTableName.setValue(prescaleTable.externalTableName());
+			} else {
+				psTableName = new StringParameter("tableName", prescaleTable.externalTableName(), true);
+				psTableNamePSet.addParameter(psTableName);
+			}
+			BoolParameter modified = (BoolParameter) psTableNamePSet.parameter("modified");
+			if (modified != null) {
+				modified.setValue("false");
+			} else {
+				modified = new BoolParameter("modified", false,true);
+				psTableNamePSet.addParameter(modified);
+			}
+			prescaleTable.setExternalTableName("");
+		}
+		
 	}
 
 	public boolean updatePrescaleTableFromFile(String fileName,boolean overrideTbl) {
@@ -102,8 +161,24 @@ public class PrescaleTableModel extends AbstractTableModel {
 		System.out.println("Reading Input File containing Prescale Table!");
 		try {
 			Scanner tableScanner = new Scanner(new FileInputStream(fileName), "UTF-8");
+			// the first line if it starts with tablename is the table name
+			// it may not exist
+			if (tableScanner.hasNextLine()) {
+				String line = tableScanner.nextLine();				
+				if (line.startsWith("tablename:")) {					
+					String psTableName = line.substring(10);
+					psTableName = psTableName.trim();
+					prescaleTable.setExternalTableName(psTableName);
+						
+				}else{
+					//opps, first line wasnt tablename, it was the columns
+					//so we need to reset the scanner
+					prescaleTable.setExternalTableName("");
+					tableScanner.reset();
+				}
+			}	
 
-			// Header line (csv strings): dummy, followed by prescale column labels
+			// Header line (csv strings): default column, followed by prescale column labels
 			if (tableScanner.hasNextLine()) {
 				Scanner lineScanner = new Scanner(tableScanner.nextLine());
 				lineScanner.useDelimiter(",");
@@ -207,6 +282,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 				}
 				lineScanner.close();
 			}
+			tableScanner.close();	
 			System.out.println("# of valid path rows found in file: " + prescaleFile.size());
 			if (prescaleFile.size() == 0) {
 				System.out.println("No valid path rows found in file - aborting!");				

@@ -29,6 +29,13 @@ public class PrescaleTable
 	//this allows us to determine which other rows need to be edited when this one is
 	protected ArrayList<ArrayList<Integer> > rowSiblings = new ArrayList<ArrayList<Integer>>();
 
+	//if an external tool has provided the prescales, the name of the table is stored here
+	//this should be empty otherewise and its cleared on  update of the prescale service
+	protected String externalTableName = new String();
+
+	// name of the pset we write the external tool table name
+	public static final String PSTBLINFO_PSET_NAME = "PrescaleTableInfo";
+
     //
     // construction
     //
@@ -55,6 +62,13 @@ public class PrescaleTable
 	defaultName = name;
     }
     
+	public String externalTableName(){
+		return externalTableName;
+	}
+	 
+	public void setExternalTableName(String name){
+		externalTableName = name;
+	}
 
     /** number of prescale columns */
     public int prescaleCount() { return columnNames.size()-1; }

@@ -32,7 +32,7 @@ public class PrescaleEditorConverter {
     //
     public static void main(String[] args) {
        
-        String basePSDirname = "/users/sharper/2024/test1/prescales";
+        String basePSDirname = "/users/sharper/2025/test1/prescales/v1";
         String prescalesCfgName = "prescales";
                
         String pstblfile = "";
@@ -143,7 +143,7 @@ public class PrescaleEditorConverter {
 
             PrescaleTableModel psTblModel = new PrescaleTableModel();
             psTblModel.initialize(config);
-            psTblModel.updatePrescaleService(config);
+            //psTblModel.updatePrescaleService(config);
             psTblModel.updatePrescaleTableFromFile(pstblfile, true);
             psTblModel.updatePrescaleService(config);
 
@@ -175,7 +175,12 @@ public class PrescaleEditorConverter {
         try {
             Scanner tableScanner = new Scanner(new FileInputStream(filename), "UTF-8");
             if (tableScanner.hasNextLine()) {
-                tableScanner.nextLine(); // first line is the header
+                //we need to skip to the paths
+                //the first line is the table name and the second line is the column names
+                //or the first line is the column names, so we either skip one or two lines
+                if (tableScanner.nextLine().startsWith("tablename:")) {
+                    tableScanner.nextLine(); //there was a table name so also need to skip the column names names    
+                }                
             }
             while (tableScanner.hasNextLine()) {
                 String line = tableScanner.nextLine();
