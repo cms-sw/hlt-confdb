@@ -81,6 +81,24 @@ public class PrescaleTableModel extends AbstractTableModel {
 		prescaleSvc.setHasChanged();
 
 	}
+	protected static void updatePSTblPSetStringParam(PSetParameter pset,String name, String value){
+		Parameter param  = (StringParameter) pset.parameter(name);
+		if (param != null) {
+			param.setValue(value);
+		} else {
+			param = new StringParameter(name, value, true);
+			pset.addParameter(param);
+		}
+	}
+	protected static void updatePSTblPSetBoolParam(PSetParameter pset,String name, String value){
+		Parameter param  = (BoolParameter) pset.parameter(name);
+		if (param != null) {
+			param.setValue(value);
+		} else {
+			param = new BoolParameter(name, value, true);
+			pset.addParameter(param);
+		}
+	}
 
 	protected void updatePSTblPSet(IConfiguration config,boolean invalidate){
 		/* urgh: this isnt great 
@@ -99,7 +117,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 		at the end we then set the externalTableName to "" so we know that in the next update
 		is not from a csv file
 		*/		
-		if(prescaleTable.externalTableName().isEmpty()){
+		if(!prescaleTable.hasExternalTableInfo()){
 			
 			//no table name, so we need to look for the pset in the configuration if it exists
 			//and mark it as modified
@@ -122,22 +140,12 @@ public class PrescaleTableModel extends AbstractTableModel {
 				psTableNamePSet = new PSetParameter("PrescaleTableInfo","",true);
 				config.insertPSet(psTableNamePSet);
 			}
-
-			StringParameter psTableName = (StringParameter) psTableNamePSet.parameter("tableName");
-			if (psTableName != null) {
-				psTableName.setValue(prescaleTable.externalTableName());
-			} else {
-				psTableName = new StringParameter("tableName", prescaleTable.externalTableName(), true);
-				psTableNamePSet.addParameter(psTableName);
-			}
-			BoolParameter modified = (BoolParameter) psTableNamePSet.parameter("modified");
-			if (modified != null) {
-				modified.setValue("false");
-			} else {
-				modified = new BoolParameter("modified", false,true);
-				psTableNamePSet.addParameter(modified);
-			}
-			prescaleTable.setExternalTableName("");
+			updatePSTblPSetStringParam(psTableNamePSet,"tablename",prescaleTable.externalTableName());
+			updatePSTblPSetStringParam(psTableNamePSet,"tableuuid",prescaleTable.externalTableUUID());
+			updatePSTblPSetStringParam(psTableNamePSet,"dbname",prescaleTable.externalTableDBName());
+			updatePSTblPSetBoolParam(psTableNamePSet,"modified","false");
+			//now we clear this so we know that the next update is not from a csv file
+			prescaleTable.clearExternalTableInfo();
 		}
 		
 	}
@@ -162,15 +170,32 @@ public class PrescaleTableModel extends AbstractTableModel {
 		System.out.println("Reading Input File containing Prescale Table!");
 		try {
 			Scanner tableScanner = new Scanner(new FileInputStream(fileName), "UTF-8");
-			// the first line if it starts with tablename is the table name
+			// the first line if it starts with tablename is the table name and other pseditor meta data
 			// it may not exist
 			if (tableScanner.hasNextLine()) {
 				String line = tableScanner.nextLine();				
-				if (line.startsWith("tablename:")) {					
-					String psTableName = line.substring(10);
-					psTableName = psTableName.trim();
-					prescaleTable.setExternalTableName(psTableName);
-						
+				if (line.startsWith("tablename:")) {			
+					String[] fields = line.split(",");					
+					for(String field : fields){
+						String[] keyValue = field.split(":",2);
+						if(keyValue.length == 2){
+							keyValue[0] = keyValue[0].trim();
+							keyValue[1] = keyValue[1].trim();
+							switch(keyValue[0]){
+								case "tablename":
+									prescaleTable.setExternalTableName(keyValue[1]);
+									break;
+								case "tableuuid":
+									prescaleTable.setExternalTableUUID(keyValue[1]);
+									break;
+								case "dbname":
+									prescaleTable.setExternalTableDBName(keyValue[1]);
+									break;
+								default:									
+									break;
+							}
+						}
+					}
 				}else{
 					//opps, first line wasnt tablename, it was the columns
 					//so we need to reset the scanner
