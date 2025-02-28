@@ -111,7 +111,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 		and then we override the pset in the configuration with the table name
 		and set it as not modified
 
-		if there is no table, we sholud look for such a pset in the configuration
+		if there is no table, we should look for such a pset in the configuration
 		and then if it exists, we should mark it as modified
 
 		at the end we then set the externalTableName to "" so we know that in the next update

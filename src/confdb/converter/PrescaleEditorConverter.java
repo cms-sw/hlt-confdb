@@ -136,14 +136,12 @@ public class PrescaleEditorConverter {
                     pathName = pathName + "1";
                }
                 Path path = config.insertPath(config.pathCount(), pathName);
-                // System.err.println("pathName = " + pathName);
                 config.insertModuleReference(path, 0, module);
             }
             config.insertService(0, "PrescaleService");
 
             PrescaleTableModel psTblModel = new PrescaleTableModel();
             psTblModel.initialize(config);
-            //psTblModel.updatePrescaleService(config);
             psTblModel.updatePrescaleTableFromFile(pstblfile, true);
             psTblModel.updatePrescaleService(config);
 
@@ -157,7 +155,7 @@ public class PrescaleEditorConverter {
             }
 
             psDB.insertConfiguration(config, "pstool", config.processName(), "prescale table update");
-            //the backend server looks for this line in the logs to make sure the update was successful
+            //the backend server looks for this line in the logs to make sure the update was successful so this must be printed
             System.out.println("PSEditorConverter: WRITE SUCCESSFUL");
         } catch (Exception e) {
             System.err.println("ERROR: " + e.getMessage());
@@ -207,12 +205,6 @@ public class PrescaleEditorConverter {
                 continue;
             }
             foundName += "/" + part;
-            // System.err.println("part = "+foundName);
-
-            // System.err.println("curent dir: "+currentDir.name());
-            // for( Directory dir : currentDir.listOfDirectories()){
-            // System.err.println("curentdir child: "+dir.name());
-            // }
             Directory child = getChildDirectory(currentDir, foundName);
             if (child == null) {
                 if (!createIfNotFound) {

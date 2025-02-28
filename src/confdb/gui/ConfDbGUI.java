@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -1220,24 +1221,37 @@ public class ConfDbGUI {
 	}
 
 	public void importPrescales(){
-		String psMenuBaseLocation = PrescaleTable.PSTBL_CONFDB_LOCATION;
-		String psMenuName = new String("prescales");
-
+		
 		ConfDB psSourceDB = new ConfDB();
 		String dbType = new String("oracle");
 		String dbHost = new String("cmsr1-s.cern.ch, cmsr2-s.cern.ch, cmsr3-s.cern.ch");
 		String dbPort = new String("10121");
 		String dbName = new String("cms_hlt.cern.ch");
 		String dbUser = new String("cms_hlt_gdrdev_r");
-		String dbPwrd = new String("convertMe1!");
+		String dbPwrd = new String("convertMe1!");		
 
 		String dbUrl = psSourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
 		try{
 			psSourceDB.connect(dbType, dbUrl, dbUser, dbPwrd);
 		}catch(DatabaseException e){
 			String msg = "When getting prescales, failed to connect to DB: " + e.getMessage();
-			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
+			JOptionPane.showMessageDialog(frame, msg, "Prescale Import Error", JOptionPane.ERROR_MESSAGE);	
+			return;
 		}
+		//this mainly exists to make it easier to disconnect from the db if issues
+		importPrescalesWorker(psSourceDB);
+		try{
+			psSourceDB.disconnect();
+		}catch(DatabaseException e){
+			System.err.println("failed to disconnect from db: " + e.getMessage());
+		}
+	}
+
+	protected void importPrescalesWorker(ConfDB psSourceDB){
+		String psMenuBaseLocation = PrescaleTable.PSTBL_CONFDB_LOCATION;
+		String psMenuName = new String("prescales");
+		String errorPaneTitle = new String("Prescale Import Error");
+
 		ConfigInfo cfgInfo = currentConfig.configInfo();
 		System.out.println("config name "+ cfgInfo.name()+" dir "+cfgInfo.parentDir().name());
 		try{
@@ -1254,17 +1268,50 @@ public class ConfDbGUI {
 				}				
 			}
 			if (psCfgInfo == null){
-				String msg = "When getting prescales, failed to find the prescales confg: " + psMenuName+"at location: "+psMenuLocation;
-				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
+				String msg = "When getting prescales, failed to find the prescales config:\n  " + psMenuName+"\nat location:\n  "+psMenuLocation;
+				JOptionPane.showMessageDialog(frame, msg, errorPaneTitle, JOptionPane.ERROR_MESSAGE);	
 				return;
 			}
 			System.out.println("pscfg "+psCfgInfo.name()+" "+psCfgInfo.parentDir().name()+" "+psCfgInfo.version());
 			SoftwareRelease psRelease = new SoftwareRelease(this.currentRelease);
 			Configuration psCfg = psSourceDB.loadConfiguration(psCfgInfos.get(0),psRelease);
+
+			ArrayList<String> pathsMissingInPSCfg = psCfg.pathsMissing(currentConfig,true).stream().filter(
+					pathName -> currentConfig.path(pathName,true).hasPrescaler()
+				).collect(Collectors.toCollection(ArrayList::new)
+			);
+			ArrayList<String> pathsExtraInPSCfg = currentConfig.pathsMissing(psCfg,true);
+			//handle incompatible menus (only if somebody has been currently/adding removing paths)
+			if(!pathsMissingInPSCfg.isEmpty() || !pathsExtraInPSCfg.isEmpty()){
+				//this is an error handle later
+				String msg = new String("Error importing prescales, the following paths are missing or extra in the prescale service:\n");
+				if (!pathsMissingInPSCfg.isEmpty()){
+					msg+="\nMissing paths in prescale service:\n\n";
+					for(String pathName : pathsMissingInPSCfg){
+						msg+=pathName+"\n";
+					}
+				}
+				if (!pathsExtraInPSCfg.isEmpty()){
+					msg+="\nExtra paths in prescale  service:\n\n";
+					for(String pathName : pathsExtraInPSCfg){
+						msg+=pathName+"\n";
+					}
+				}
+				
+				JTextArea textArea = new JTextArea(msg);
+				JScrollPane scrollPane = new JScrollPane(textArea);  
+				//textArea.setLineWrap(true);  
+				//textArea.setWrapStyleWord(true); 
+				textArea.setColumns(80);
+				textArea.setRows(Math.min(pathsMissingInPSCfg.size()+pathsExtraInPSCfg.size()+8,50));
+				JOptionPane.showMessageDialog(null, scrollPane,errorPaneTitle,JOptionPane.ERROR_MESSAGE);
+				return;
+			}	
+
 			ServiceInstance psService = psCfg.service("PrescaleService");
 			if (psService == null){
 				String msg = "When getting prescales, failed to find PrescaleService in configuration: " + psCfgInfos.get(0).name();
-				JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
+				JOptionPane.showMessageDialog(frame, msg, errorPaneTitle, JOptionPane.ERROR_MESSAGE);	
 				return;
 			}
 			ServiceInstance cfgPSService = currentConfig.service("PrescaleService");
@@ -1302,16 +1349,15 @@ public class ConfDbGUI {
 				}
 				currentConfig.insertPSet(psTblInfoPSet);
 			}
+			resetGUI();//its just too hard to refresh everything properly, similar to do a reset
+			JOptionPane.showMessageDialog(null, "Successful Prescales Import","Prescale Import Success", JOptionPane.INFORMATION_MESSAGE);
+
 			
 		}catch(DatabaseException e){
 			String msg = "When getting prescales, failed to load configuration tree: " + e.getMessage();
 			JOptionPane.showMessageDialog(frame, msg, "", JOptionPane.ERROR_MESSAGE);	
 		}
-		try{
-			psSourceDB.disconnect();
-		}catch(DatabaseException e){
-			System.err.println("failed to disconnect from db: " + e.getMessage());
-		}
+		
 	}
 		
 

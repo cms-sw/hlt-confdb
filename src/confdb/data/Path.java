@@ -121,6 +121,19 @@ public class Path extends ReferenceContainer {
 		return this.pathType == Type.STD;
 	}
 
+	public boolean hasPrescaler(){
+		for (Reference r : entries) {
+			Referencable parent = r.parent();
+			if (parent instanceof ModuleInstance) {
+				ModuleInstance module = (ModuleInstance) parent;
+				if (module.template().toString().equals("HLTPrescaler")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/** set this path to be an endpath */
 	public boolean setAsEndPath(){
 		return setType(Type.END);
