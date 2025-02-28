@@ -297,8 +297,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 						break;
 					}
 				}
-				System.out
-						.println("Line read with " + prescales.size() + " prescale values for path '" + pathName + "'");
+				
 				if (columnNames.size() == prescales.size()) {
 					PrescaleTableRow row = new PrescaleTableRow(pathName, prescales);
 					prescaleFile.add(row);
