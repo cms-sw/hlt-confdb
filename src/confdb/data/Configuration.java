@@ -8,6 +8,10 @@ import java.util.Collections;
 
 import java.util.StringTokenizer;
 
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 /**
  * Configuration
  * -------------
@@ -1900,11 +1904,17 @@ public class Configuration implements IConfiguration {
 	 */
 	public void importPrescales(IConfiguration psCfg){
 		ServiceInstance pss = psCfg.service("PrescaleService");
-		if(pss==null) return;
-
+		if(pss==null) {
+			JOptionPane.showMessageDialog(null, "No prescale service in config, cannot import prescales","Prescale Import Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		
 		VPSetParameter psTable = (VPSetParameter) pss.parameter("prescaleTable");
-		if(psTable==null) return; //should never happen, bad prescale service	
+		if(psTable==null){
+			JOptionPane.showMessageDialog(null, "Prescale service does not have a prescaleTable, cannnot import prescales","Prescale Import Error", JOptionPane.ERROR_MESSAGE);
+			
+			return; //should never happen, bad prescale service	
+		} 
 		
 		//now we check that the two configs have matching paths
 		//we *could* do this off the prescale service but a path not in the prescale service is valid
@@ -1912,8 +1922,30 @@ public class Configuration implements IConfiguration {
 		ArrayList<String> pathsMissingInPSCfg = psCfg.pathsMissing(this,true);
 		ArrayList<String> pathsExtraInPSCfg = pathsMissing(psCfg,true);
 	
+		//handle incompatible menu
 		if(!pathsMissingInPSCfg.isEmpty() || !pathsExtraInPSCfg.isEmpty()){
 			//this is an error handle later
+			String msg = new String("Error importing prescales, the following paths are missing or extra in the prescale service:\n");
+			if (!pathsMissingInPSCfg.isEmpty()){
+				msg+="Missing paths:\n";
+				for(String pathName : pathsMissingInPSCfg){
+					msg+=pathName+"\n";
+				}
+			}
+			if (!pathsExtraInPSCfg.isEmpty()){
+				msg+="Extra paths:\n";
+				for(String pathName : pathsExtraInPSCfg){
+					msg+=pathName+"\n";
+				}
+			}
+			
+			JTextArea textArea = new JTextArea(msg);
+			JScrollPane scrollPane = new JScrollPane(textArea);  
+			//textArea.setLineWrap(true);  
+			//textArea.setWrapStyleWord(true); 
+			textArea.setColumns(80);
+			textArea.setRows(Math.min(pathsMissingInPSCfg.size()+pathsExtraInPSCfg.size()+5,50));
+			JOptionPane.showMessageDialog(null, scrollPane,"Prescale Import Error",JOptionPane.ERROR_MESSAGE);
 			return;
 		}	
 		
@@ -1925,6 +1957,7 @@ public class Configuration implements IConfiguration {
 			Path path = path(pathName,true);
 			if(path!=null){
 				//this is a logic error and should not be possible
+				System.err.println("Configuration::importPrescales: error, path "+pathName+" is in the prescale service but not in the config, something is very wrong!");
 			}
 			pathNameParam.setValue(path.name());
 		}
@@ -1949,6 +1982,7 @@ public class Configuration implements IConfiguration {
 		}
 
 		setHasChanged(true);
+		JOptionPane.showMessageDialog(null, "Successful Prescales Import","Prescale Import Success", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/** generates all the output paths for streams which are eligible 
