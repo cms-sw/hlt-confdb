@@ -320,7 +320,7 @@ class ConfigChecks {
             for(String error : errors ){
                 errStr+="\n"+error;
             }         
-            String msg = new String("The current config has streams with a DatasetPath which do not have a StreamOutputPath.\nA stream output path is named <StreamName>Output, is a FinalPath and contains only the streams output module.\nThese are automatically generated but this generation can fail if a path exists of the same name.\nPlease delete/rename the offending paths if they exist and then right click on streams and select \"Generate Output Paths\"\n");
+            String msg = new String("The current config has streams with a DatasetPath which do not have a StreamOutputPath.\nA stream output path is named <StreamName>Output, is an EndPath or FinalPath which contains the stream's output module (if it is a FinalPath, the output module is the only module allowed).\nThese are automatically generated but this generation can fail if a path exists of the same name.\nPlease delete/rename the offending paths if they exist and then right click on streams and select \"Generate Output Paths\"\n");
 			msg+=errStr;			
 			JTextArea textArea = new JTextArea(msg);
 			JScrollPane scrollPane = new JScrollPane(textArea);  

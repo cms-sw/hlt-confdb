@@ -42,6 +42,7 @@ public class MenuBar {
 	private static final String toolMenuSmartVersions = "Smart Path Versioning";
 	private static final String toolMenuSmartRenaming = "Smart Renaming";
 	private static final String toolMenuConvertToTasks = "Taskify";
+	private static final String toolMenuConvertFPsToEPs = "Convert FinalPaths to EndPaths";
 	private static final String toolMenuPSEditor = "Edit Prescales";
 	private static final String toolMenuSPSEditor = "Edit SmartPrescales";
 	private static final String toolMenuMLEditor = "Edit MessageLogger";
@@ -81,6 +82,7 @@ public class MenuBar {
 	private JMenuItem toolMenuSmartVersionsItem = null;
 	private JMenuItem toolMenuSmartRenamingItem = null;
 	private JMenuItem toolMenuConvertToTasksItem = null;
+	private JMenuItem toolMenuConvertFPsToEPsItem = null;
 	private JMenuItem toolMenuReplaceItem = null;
 	private JMenuItem toolMenuPSEditorItem = null;
 	private JMenuItem toolMenuSPSEditorItem = null;
@@ -127,6 +129,7 @@ public class MenuBar {
 		toolMenuSmartVersionsItem.setEnabled(true);
 		toolMenuSmartRenamingItem.setEnabled(true);
 		toolMenuConvertToTasksItem.setEnabled(true);
+		toolMenuConvertFPsToEPsItem.setEnabled(true);
 		toolMenuPSEditorItem.setEnabled(true);
 		toolMenuSPSEditorItem.setEnabled(true);
 		toolMenuMLEditorItem.setEnabled(true);
@@ -151,6 +154,7 @@ public class MenuBar {
 		toolMenuSmartVersionsItem.setEnabled(false);
 		toolMenuSmartRenamingItem.setEnabled(false);
 		toolMenuConvertToTasksItem.setEnabled(false);
+		toolMenuConvertFPsToEPsItem.setEnabled(false);
 		toolMenuReplaceItem.setEnabled(false);
 		toolMenuPSEditorItem.setEnabled(false);
 		toolMenuSPSEditorItem.setEnabled(false);
@@ -287,6 +291,10 @@ public class MenuBar {
 		toolMenuConvertToTasksItem.setActionCommand(toolMenuConvertToTasks);
 		toolMenuConvertToTasksItem.addActionListener(listener);
 		toolMenu.add(toolMenuConvertToTasksItem);
+		toolMenuConvertFPsToEPsItem = new JMenuItem(toolMenuConvertFPsToEPs);
+		toolMenuConvertFPsToEPsItem.setActionCommand(toolMenuConvertFPsToEPs);
+		toolMenuConvertFPsToEPsItem.addActionListener(listener);
+		toolMenu.add(toolMenuConvertFPsToEPsItem);
 		toolMenuReplaceItem = new JMenuItem(toolMenuReplace, KeyEvent.VK_R);
 		toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 		toolMenuReplaceItem.addActionListener(listener);
