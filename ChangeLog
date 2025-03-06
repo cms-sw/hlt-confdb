@@ -1,3 +1,11 @@
+2025-03-06 Sam Harper, Marino Missiroli
+    * tag V03-06-01
+	* JavaCodeExecution: add customiseForCMSHLT3326
+	* readme: added link to instructions for deployment to DAQ
+	* JavaCodeExecution: add customiseForCMSHLT3395
+	* PSEditor Updates to Confdb
+	* place OutputModules on EndPaths (not FinalPaths) in HLT configs
+
 2024-10-10 Sam Harper, Martin Grunewald, Marco Musich
     * tag V03-06-00
         * Parsing for 141X updated cfipython variant
