@@ -42,6 +42,8 @@ public class UserPermissionsManager {
 		this.admins.add("musich");
         // Mateusz Zarucki
         this.admins.add("mzarucki");
+        // Prescale Editor Tool
+        this.admins.add("pstool");
         this.restrictedDBUserNames.add("cms_hlt_v3_w");
         this.restrictedDBUserNames.add("cms_hlt_gdrdev_w");
         this.nonRestrictedPaths.add("/users");

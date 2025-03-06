@@ -43,6 +43,7 @@ public class MenuBar {
 	private static final String toolMenuSmartRenaming = "Smart Renaming";
 	private static final String toolMenuConvertToTasks = "Taskify";
 	private static final String toolMenuPSEditor = "Edit Prescales";
+	private static final String toolMenuPSImport = "Import Prescales";
 	private static final String toolMenuSPSEditor = "Edit SmartPrescales";
 	private static final String toolMenuMLEditor = "Edit MessageLogger";
 	private static final String toolMenuJavaCode = "Execute Java Code";
@@ -83,6 +84,7 @@ public class MenuBar {
 	private JMenuItem toolMenuConvertToTasksItem = null;
 	private JMenuItem toolMenuReplaceItem = null;
 	private JMenuItem toolMenuPSEditorItem = null;
+	private JMenuItem toolMenuPSImportItem = null;
 	private JMenuItem toolMenuSPSEditorItem = null;
 	private JMenuItem toolMenuMLEditorItem = null;
 	private JMenuItem toolMenuJavaCodeItem = null;
@@ -128,6 +130,7 @@ public class MenuBar {
 		toolMenuSmartRenamingItem.setEnabled(true);
 		toolMenuConvertToTasksItem.setEnabled(true);
 		toolMenuPSEditorItem.setEnabled(true);
+		toolMenuPSImportItem.setEnabled(true);
 		toolMenuSPSEditorItem.setEnabled(true);
 		toolMenuMLEditorItem.setEnabled(true);
 		toolMenuJavaCodeItem.setEnabled(true);
@@ -153,6 +156,7 @@ public class MenuBar {
 		toolMenuConvertToTasksItem.setEnabled(false);
 		toolMenuReplaceItem.setEnabled(false);
 		toolMenuPSEditorItem.setEnabled(false);
+		toolMenuPSImportItem.setEnabled(false);
 		toolMenuSPSEditorItem.setEnabled(false);
 		toolMenuMLEditorItem.setEnabled(false);
 		toolMenuJavaCodeItem.setEnabled(false);
@@ -291,6 +295,10 @@ public class MenuBar {
 		toolMenuReplaceItem.setActionCommand(toolMenuReplace);
 		toolMenuReplaceItem.addActionListener(listener);
 		toolMenu.add(toolMenuReplaceItem);
+		toolMenuPSImportItem = new JMenuItem(toolMenuPSImport);
+		toolMenuPSImportItem.setActionCommand(toolMenuPSImport);
+		toolMenuPSImportItem.addActionListener(listener);
+		toolMenu.add(toolMenuPSImportItem);
 		toolMenuPSEditorItem = new JMenuItem(toolMenuPSEditor, KeyEvent.VK_P);
 		toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
 		toolMenuPSEditorItem.addActionListener(listener);

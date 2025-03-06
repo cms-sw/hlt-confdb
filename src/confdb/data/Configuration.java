@@ -8,6 +8,10 @@ import java.util.Collections;
 
 import java.util.StringTokenizer;
 
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
 /**
  * Configuration
  * -------------
@@ -1563,11 +1567,37 @@ public class Configuration implements IConfiguration {
 	}
 
 	/** get Path by name */
-	public Path path(String pathName) {
-		for (Path p : paths)
-			if (p.name().equals(pathName))
+	public Path path(String pathName){
+		return path(pathName,false);
+	}
+
+	public Path path(String pathName,boolean ignoreVersion) {
+		String regex = "_v\\d+$";
+		if(ignoreVersion){
+			pathName = pathName.replaceAll(regex, "");
+		}
+		for (Path p : paths){
+			String matchName = p.name();
+			if(ignoreVersion){
+				matchName = matchName.replaceAll(regex, "");
+			}
+			if (matchName.equals(pathName)){
 				return p;
+			}
+		}
 		return null;
+	}
+
+	/** sees what paths are missing compared to another configuration */
+	public ArrayList<String> pathsMissing(IConfiguration otherCfg, boolean ignoreVersion){ 
+		ArrayList<String> missingPaths = new ArrayList<String>();
+		for (int pathNr = 0; pathNr < otherCfg.pathCount(); pathNr++) {
+			Path otherCfgPath = otherCfg.path(pathNr);
+			if (path(otherCfgPath.name(),ignoreVersion) == null) {
+				missingPaths.add(otherCfgPath.name());
+			}
+		}
+		return missingPaths;
 	}
 
 	/** index of a certain Path */
@@ -1867,7 +1897,6 @@ public class Configuration implements IConfiguration {
 		}
 		return null;
 	}
-
 
 	/** generates all the output paths for streams which are eligible 
 	 * overwriting if necessary

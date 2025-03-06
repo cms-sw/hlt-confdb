@@ -29,6 +29,18 @@ public class PrescaleTable
 	//this allows us to determine which other rows need to be edited when this one is
 	protected ArrayList<ArrayList<Integer> > rowSiblings = new ArrayList<ArrayList<Integer>>();
 
+	//if an external tool has provided the prescales, the name of the table is stored here
+	//this should be empty otherewise and its cleared on  update of the prescale service
+	protected String externalTableName = new String();
+	protected String externalTableUUID = new String();
+	protected String externalTableDBName = new String();
+
+	// name of the pset we write the external tool table name
+	public static final String PSTBLINFO_PSET_NAME = "PrescaleTableInfo";
+
+	// menu location we write the prescales to
+	public static final String PSTBL_CONFDB_LOCATION = "/prescales/v1";
+
     //
     // construction
     //
@@ -55,8 +67,39 @@ public class PrescaleTable
 	defaultName = name;
     }
     
+	public String externalTableName(){
+		return externalTableName;
+	}
+	public String externalTableUUID(){
+		return externalTableUUID;
+	}
+	public String externalTableDBName(){
+		return externalTableDBName;
+	}
+     
+	public void setExternalTableName(String name){
+		externalTableName = name;
+	}
+	public void setExternalTableUUID(String uuid){
+		externalTableUUID = uuid;
+	}
+	public void setExternalTableDBName(String name){
+		externalTableDBName = name;
+	}
+		
+	public boolean hasExternalTableInfo(){
+		return externalTableName.length()>0;
+	}
+	public void clearExternalTableInfo(){
+		externalTableName = "";
+		externalTableUUID = "";
+		externalTableDBName = "";
+	}
+	
+	/** get the column names */
+	public ArrayList<String> columnNames() { return columnNames; }
 
-    /** number of prescale columns */
+	/** number of prescale columns */
     public int prescaleCount() { return columnNames.size()-1; }
     
     /** get the i-th prescale column name */
@@ -329,5 +372,16 @@ public class PrescaleTable
 	}
 
     }
+
+	/* returns the column labels as string suitable to for a VString pset representation */
+	public  String getColumnsAsVStringStr(){
+		StringBuffer labelsAsString = new StringBuffer();
+		for (int i = 0; i <this.prescaleCount(); i++) {
+			if (labelsAsString.length() > 0)
+				labelsAsString.append(",");
+			labelsAsString.append(this.prescaleColumnName(i));
+		}
+		return labelsAsString.toString();
+	}
     
 }

@@ -2,7 +2,7 @@ package confdb.data;
 
 import java.io.Serializable;
 import java.util.Iterator;
-
+import java.util.ArrayList;
 /**
  * IConfiguration
  * --------------
@@ -235,6 +235,12 @@ public interface IConfiguration extends Serializable {
 
 	/** get path by name */
 	public Path path(String pathName);
+
+	/** get path by name optionally ignoring version */
+	public Path path(String pathName, boolean ignoreVersion);
+
+	/** sees what paths are missing compared to another configuration */
+	public ArrayList<String> pathsMissing(IConfiguration otherCfg, boolean ignoreVersion);
 
 	/** index of a certain Path */
 	public int indexOfPath(Path path);

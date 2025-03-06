@@ -96,6 +96,9 @@ public class ConfDBSetups {
        public Boolean proxy(int i) {
 	        return proxies.get(i);
 	}
+	public int labelIndex(String label){
+		return labels.indexOf(label);
+	}
 
 	/** retrieve type by label */
 	public String type(String label) {

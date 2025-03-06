@@ -1,8 +1,9 @@
 package confdb.gui;
 
 import java.util.ArrayList;
-
+import java.util.HashMap;
 import java.io.*;
+import java.security.Provider.Service;
 import java.util.Scanner;
 
 import javax.swing.JOptionPane;
@@ -50,15 +51,12 @@ public class PrescaleTableModel extends AbstractTableModel {
 			return;
 		}
 
+		boolean invalidatePSInfoPSet = hasPSEditorManagedDiff(prescaleSvc,prescaleTable);
+		System.out.println("invalidatePSInfoPSet: "+invalidatePSInfoPSet);
 		prescaleSvc.updateParameter("lvl1DefaultLabel", "string", prescaleTable.defaultName());
 
-		StringBuffer labelsAsString = new StringBuffer();
-		for (int i = 0; i < prescaleTable.prescaleCount(); i++) {
-			if (labelsAsString.length() > 0)
-				labelsAsString.append(",");
-			labelsAsString.append(prescaleTable.prescaleColumnName(i));
-		}
-		prescaleSvc.updateParameter("lvl1Labels", "vstring", labelsAsString.toString());
+		
+		prescaleSvc.updateParameter("lvl1Labels", "vstring", prescaleTable.getColumnsAsVStringStr());
 
 		VPSetParameter vpsetPrescaleTable = (VPSetParameter) prescaleSvc.parameter("prescaleTable", "VPSet");
 		if (vpsetPrescaleTable == null) {
@@ -79,7 +77,77 @@ public class PrescaleTableModel extends AbstractTableModel {
 			params.add(vPrescales);
 			vpsetPrescaleTable.addParameterSet(new PSetParameter("", params, true));
 		}
+		updatePSTblPSet(config,invalidatePSInfoPSet);
 		prescaleSvc.setHasChanged();
+
+	}
+	protected static void updatePSTblPSetStringParam(PSetParameter pset,String name, String value){
+		Parameter param  = (StringParameter) pset.parameter(name);
+		if (param != null) {
+			param.setValue(value);
+		} else {
+			param = new StringParameter(name, value, true);
+			pset.addParameter(param);
+		}
+	}
+	protected static void updatePSTblPSetBoolParam(PSetParameter pset,String name, String value){
+		Parameter param  = (BoolParameter) pset.parameter(name);
+		if (param != null) {
+			param.setValue(value);
+		} else {
+			param = new BoolParameter(name, value, true);
+			pset.addParameter(param);
+		}
+	}
+
+	protected void updatePSTblPSet(IConfiguration config,boolean invalidate){
+		/* urgh: this isnt great 
+		the goal: have a pset in the configuration that holds the name of the prescale table
+		          from the pseditor but if we subsequently change it , to mark it as modified if requested
+				  to do so 
+		
+		in the pstable csv file uploaded by the pseditor, it supplies the table name
+		if that is set, we know its coming straight from the pseditor
+		and then we override the pset in the configuration with the table name
+		and set it as not modified
+
+		if there is no table, we should look for such a pset in the configuration
+		and then if it exists, we should mark it as modified
+
+		at the end we then set the externalTableName to "" so we know that in the next update
+		is not from a csv file
+		*/		
+		if(!prescaleTable.hasExternalTableInfo()){
+			
+			//no table name, so we need to look for the pset in the configuration if it exists
+			//and mark it as modified
+			if (invalidate){
+				PSetParameter psTableNamePSet = config.pset(PrescaleTable.PSTBLINFO_PSET_NAME);
+				if (psTableNamePSet != null){
+					
+					BoolParameter modified = (BoolParameter) psTableNamePSet.parameter("modified");
+					if (modified != null) {
+						modified.setValue("true");
+					} else {
+						modified = new BoolParameter("modified", true,true);
+						psTableNamePSet.addParameter(modified);
+					}
+				}
+			}
+		}else{
+			PSetParameter psTableNamePSet = config.pset("PrescaleTableInfo");
+			if (psTableNamePSet == null){
+				psTableNamePSet = new PSetParameter("PrescaleTableInfo","",true);
+				config.insertPSet(psTableNamePSet);
+			}
+			updatePSTblPSetStringParam(psTableNamePSet,"tablename",prescaleTable.externalTableName());
+			updatePSTblPSetStringParam(psTableNamePSet,"tableuuid",prescaleTable.externalTableUUID());
+			updatePSTblPSetStringParam(psTableNamePSet,"dbname",prescaleTable.externalTableDBName());
+			updatePSTblPSetBoolParam(psTableNamePSet,"modified","false");
+			//now we clear this so we know that the next update is not from a csv file
+			prescaleTable.clearExternalTableInfo();
+		}
+		
 	}
 
 	public boolean updatePrescaleTableFromFile(String fileName,boolean overrideTbl) {
@@ -102,8 +170,41 @@ public class PrescaleTableModel extends AbstractTableModel {
 		System.out.println("Reading Input File containing Prescale Table!");
 		try {
 			Scanner tableScanner = new Scanner(new FileInputStream(fileName), "UTF-8");
+			// the first line if it starts with tablename is the table name and other pseditor meta data
+			// it may not exist
+			if (tableScanner.hasNextLine()) {
+				String line = tableScanner.nextLine();				
+				if (line.startsWith("tablename:")) {			
+					String[] fields = line.split(",");					
+					for(String field : fields){
+						String[] keyValue = field.split(":",2);
+						if(keyValue.length == 2){
+							keyValue[0] = keyValue[0].trim();
+							keyValue[1] = keyValue[1].trim();
+							switch(keyValue[0]){
+								case "tablename":
+									prescaleTable.setExternalTableName(keyValue[1]);
+									break;
+								case "tableuuid":
+									prescaleTable.setExternalTableUUID(keyValue[1]);
+									break;
+								case "dbname":
+									prescaleTable.setExternalTableDBName(keyValue[1]);
+									break;
+								default:									
+									break;
+							}
+						}
+					}
+				}else{
+					//opps, first line wasnt tablename, it was the columns
+					//so we need to reset the scanner
+					prescaleTable.setExternalTableName("");
+					tableScanner.reset();
+				}
+			}	
 
-			// Header line (csv strings): dummy, followed by prescale column labels
+			// Header line (csv strings): default column, followed by prescale column labels
 			if (tableScanner.hasNextLine()) {
 				Scanner lineScanner = new Scanner(tableScanner.nextLine());
 				lineScanner.useDelimiter(",");
@@ -113,6 +214,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 				while (lineScanner.hasNext()) {
 					columnNames.add(lineScanner.next().trim());
 				}
+				lineScanner.close();
 			}
 			String unnamedColumns = new String();
 			for(int colNr=0;colNr<columnNames.size();colNr++){
@@ -127,12 +229,14 @@ public class PrescaleTableModel extends AbstractTableModel {
 			if(!unnamedColumns.isEmpty()){
 				String msg = "Error, the following columns are unnamed: "+unnamedColumns+"\n\nPlease fix before uploading\n\nUsually this means the first line of the file is incorrect and is not the column names, please make sure the first line of the file are the column names";
 				JOptionPane.showMessageDialog(null,msg, "Invalid Prescale File", JOptionPane.ERROR_MESSAGE);
+				tableScanner.close();
 				return false;
 			}
 			System.out.println(
 					"Header / # of prescale columns found in file: " + defaultName + " / " + columnNames.size());
 			if (columnNames.size() == 0) {
 				System.out.println("No prescale columns found in file - aborting!");				
+				tableScanner.close();
 				return false;
 			}
 			if(overrideTbl){
@@ -145,9 +249,9 @@ public class PrescaleTableModel extends AbstractTableModel {
 					prescaleTable.addPrescaleColumn(i, label, 1);
 					System.out.println(" i/Label: "+i+"/"+label);
 				}
+				prescaleTable.setDefaultName(defaultName);
 				fireTableStructureChanged();				
 			}
-			
 			// Indices to map found columnNames into PrescaleTable columnNames
 			for (int i = 0; i < columnNames.size(); i++) {
 				
@@ -167,6 +271,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 					System.out.println(
 							"Column name in file not found in PrescaleService config (add there first or use override) - aborting! Label="
 									+ label);					
+					tableScanner.close();
 					return false;
 				}
 			}
@@ -192,8 +297,7 @@ public class PrescaleTableModel extends AbstractTableModel {
 						break;
 					}
 				}
-				System.out
-						.println("Line read with " + prescales.size() + " prescale values for path '" + pathName + "'");
+				
 				if (columnNames.size() == prescales.size()) {
 					PrescaleTableRow row = new PrescaleTableRow(pathName, prescales);
 					prescaleFile.add(row);
@@ -201,7 +305,9 @@ public class PrescaleTableModel extends AbstractTableModel {
 					System.out.println("Error in input file line (# of columns) - skipping path: " + pathName);
 					skippedPaths.add(pathName+" has "+prescales.size()+" columns but expected "+columnNames.size()+", please fix before uploading");
 				}
+				lineScanner.close();
 			}
+			tableScanner.close();	
 			System.out.println("# of valid path rows found in file: " + prescaleFile.size());
 			if (prescaleFile.size() == 0) {
 				System.out.println("No valid path rows found in file - aborting!");				
@@ -346,6 +452,74 @@ public class PrescaleTableModel extends AbstractTableModel {
 		for (int iPath = 0; iPath < prescaleTable.pathCount(); iPath++)
 			if (pathName.equals(prescaleTable.pathName(iPath)))
 				return true;
+		return false;
+	}
+
+	private static boolean compareParamsAsString(ServiceInstance srv, String paramName, String value) {
+		StringParameter lhs = (StringParameter) srv.parameter(paramName, "string");
+		
+		if (lhs == null) {
+			return false;
+		}
+		StringParameter rhs = new StringParameter(paramName, value, true);		
+		return lhs.valueAsString().equals(rhs.valueAsString());
+	}
+	private static boolean compareParamsAsVString(ServiceInstance srv, String paramName, String value) {
+		VStringParameter lhs = (VStringParameter) srv.parameter(paramName, "vstring");
+		
+		if (lhs == null) {
+			return false;
+		}
+		VStringParameter rhs = new VStringParameter(paramName, value, true);		
+		return lhs.valueAsString().equals(rhs.valueAsString());
+	}
+
+	/* returns true if there is a difference in the fields managed by the PSEditor
+	 * which at the time of writing was just the prescales of the Dataset paths
+	 */
+	private static boolean hasPSEditorManagedDiff(ServiceInstance prescaleSvc,PrescaleTable prescaleTable){
+		
+		if(!compareParamsAsString(prescaleSvc,"lvl1DefaultLabel",prescaleTable.defaultName())){
+			return true;
+		}
+		if(!compareParamsAsVString(prescaleSvc,"lvl1Labels",prescaleTable.getColumnsAsVStringStr())){
+			return true;
+		}
+		VPSetParameter vpsetPrescaleTable = (VPSetParameter) prescaleSvc.parameter("prescaleTable", "VPSet");
+		if (vpsetPrescaleTable == null) {
+			return true;
+		}
+		HashMap<String,String> pathPSMap = new HashMap<String,String>();
+		for(int psPSet = 0; psPSet < vpsetPrescaleTable.parameterSetCount(); psPSet++){
+			PSetParameter pset = vpsetPrescaleTable.parameterSet(psPSet);
+			String pathName = ((StringParameter)pset.parameter("pathName")).valueAsString();
+			pathName = pathName.replaceAll("^[\"']+|[\"']+$", "");
+			String prescales = ((VUInt32Parameter)pset.parameter("prescales")).valueAsString();
+			pathPSMap.put(pathName, prescales);
+		}
+
+		for (int iPath = 0; iPath < prescaleTable.pathCount(); iPath++) {
+			
+			if (!prescaleTable.isPrescaled(iPath))
+				continue;
+			String pathName = prescaleTable.pathName(iPath);
+			if(pathName.startsWith(PrimaryDataset.datasetPathNamePrefix())){
+				continue;//the pseditor does not manage the primary dataset paths
+			}
+			String pathPS = pathPSMap.get(pathName);
+			if (pathPS == null) {
+				//paths unprescaled may not be in the prescale table so this might 
+				//be just a path that is unprescaled
+				if (prescaleTable.isPrescaled(iPath)){					
+					return true;
+				}
+			}
+			VUInt32Parameter vPrescales = new VUInt32Parameter("prescales", prescaleTable.prescalesAsString(iPath), true);
+			if(!pathPS.equals(vPrescales.valueAsString())){
+				return true;
+			}
+		}
+		
 		return false;
 	}
 }
