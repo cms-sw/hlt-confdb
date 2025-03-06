@@ -305,6 +305,14 @@ public class Path extends ReferenceContainer {
 		return name.replaceAll("_v[0-9]+$","");
 	}
 
+	/**
+	 * Returns True if the Path contains at least one module of type HLTPrescaler, False otherwise.
+	 */
+        public boolean hasHLTPrescalerModule(){
+                ArrayList<ModuleInstance> hltPreModArray = moduleArray("HLTPrescaler");
+                return (hltPreModArray.size() > 0);
+        }
+
 	/** set the name and propagate it to all relevant modules */
 	public void setNameAndPropagate(String name) throws DataException {
 		String oldName = name();
