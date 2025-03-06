@@ -1779,7 +1779,7 @@ public class Configuration implements IConfiguration {
 		if(outPath==null){
 
 			outPath = insertPath(pathCount(),stream.outputPathName());
-			outPath.setAsFinalPath();
+			outPath.setAsEndPath();
 			insertOutputModuleReference(outPath,0,stream.outputModule());
 			return true;			
 		} else if(!outPath.isOutputPathOfStream(stream)){
@@ -1791,7 +1791,7 @@ public class Configuration implements IConfiguration {
 
 				removePath(outPath);
 				outPath = insertPath(index,stream.outputPathName());
-				outPath.setAsFinalPath();	
+				outPath.setAsEndPath();
 				insertOutputModuleReference(outPath,0,stream.outputModule());
 				return true;
 			}else{

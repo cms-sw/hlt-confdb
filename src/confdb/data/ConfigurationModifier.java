@@ -286,7 +286,7 @@ public class ConfigurationModifier implements IConfiguration {
 			Path out = new Path("output");
 			ModuleInstance outputI = modifications.outputModuleToBeAdded("out");
 			outputI.createReference(out, 0);
-			out.setAsFinalPath();
+			out.setAsEndPath();
 			paths.add(out);
 		}
 

@@ -38,6 +38,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdSmartVersions    = "Smart Path Versioning";
     private static final String cmdSmartRenaming    = "Smart Renaming";
     private static final String cmdConvertToTasks   = "Taskify";
+    private static final String cmdConvertFPsToEPs  = "Convert FinalPaths to EndPaths";
     private static final String cmdPSEditor         = "Edit Prescales";
     private static final String cmdPSImport         = "Import Prescales";
     private static final String cmdSPSEditor        = "Edit SmartPrescales";
@@ -90,6 +91,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdSmartVersions))    app.smartVersionsConfigurations();
 	if (command.equals(cmdSmartRenaming))    app.smartRenamingConfigurations();
     if (command.equals(cmdConvertToTasks))   app.convertToTasks();
+        if (command.equals(cmdConvertFPsToEPs))  app.convertFinalPathsToEndPaths();
 	if (command.equals(cmdPSEditor))         app.openPrescaleEditor();
     if (command.equals(cmdPSImport))         app.importPrescales();
 	if (command.equals(cmdSPSEditor))        app.openSmartPrescaleEditor();
@@ -97,7 +99,7 @@ public class CommandActionListener implements ActionListener
 	if (command.equals(cmdJavaCode))         app.openJavaCodeExecution();
 	if (command.equals(cmdUPEditor))         app.addUntrackedParameter();
     if (command.equals(cmdResetGUI))         app.resetGUI();
-	
+
 	if (command.equals(cmdTrack))            app.setOptionTrackInputTags(source.isSelected());
 	if (command.equals(cmdEnableClone))      app.setEnablePathCloning(source.isSelected());
 

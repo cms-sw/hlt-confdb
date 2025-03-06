@@ -336,9 +336,9 @@ public class PrescaleTable
 	while (itP.hasNext()) {
 	    Path path = itP.next();
 
-            // if path is of type FinalPath, do not display it in the PrescaleTable,
-            // as FinalPaths cannot contain EDFilters (thus, cannot contain Prescale modules)
-            if(path.isFinalPath()) continue;
+            // If the Path does not contain any HLTPrescaler modules,
+            // do not show it in the PrescaleTable
+            if(!path.hasHLTPrescalerModule()) continue;
 
 	    PrescaleTableRow row = pathToRow.remove(path.name());
 	    if (row==null)

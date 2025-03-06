@@ -1518,6 +1518,35 @@ public class ConfDbGUI {
 		
 	}
 
+	public void convertFinalPathsToEndPaths() {
+          if (currentConfig == null) {
+            return;
+          }
+
+          ArrayList<Path> pathsToRm = new ArrayList<Path>();
+          Iterator<Path> itP = currentConfig.pathIterator();
+          while (itP.hasNext()) {
+            Path p0 = itP.next();
+            if(p0 != null && p0.isFinalPath()) {
+              pathsToRm.add(p0);
+            }
+          }
+
+          Integer numChanges = 0;
+          for (Path aPath : pathsToRm) {
+            System.out.printf("\n[convertFinalPathsToEndPaths] #"+numChanges.toString()+" Path Removed: "+aPath.name());
+            currentConfig.removePath(aPath);
+            ++numChanges;
+          }
+
+          System.out.println("\n[convertFinalPathsToEndPaths] Number of FinalPaths removed: "+numChanges.toString());
+
+          if (numChanges > 0) {
+            currentConfig.generateOutputPaths();
+            System.out.println("\n[convertFinalPathsToEndPaths] EndPaths with OutputModules generated !");
+          }
+	}
+
 	/** search/replace parameters in the current configuration */
 	public void searchAndReplace() {
 		if (currentConfig.isEmpty())
