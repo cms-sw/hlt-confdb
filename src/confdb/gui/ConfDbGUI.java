@@ -1273,8 +1273,14 @@ public class ConfDbGUI {
 				return;
 			}
 			System.out.println("pscfg "+psCfgInfo.name()+" "+psCfgInfo.parentDir().name()+" "+psCfgInfo.version());
-			SoftwareRelease psRelease = new SoftwareRelease(this.currentRelease);
-			Configuration psCfg = psSourceDB.loadConfiguration(psCfgInfos.get(0),psRelease);
+			SoftwareRelease psReleaseTmp = new SoftwareRelease();
+			Configuration psCfgTmp = psSourceDB.loadConfiguration(psCfgInfos.get(0),psReleaseTmp);
+			SoftwareRelease psRelease = new SoftwareRelease(currentRelease);
+			Configuration psCfg = new Configuration(psCfgInfos.get(0),psRelease);
+			ReleaseMigrator releaseMigrator = new ReleaseMigrator(psCfgTmp,psCfg);
+			releaseMigrator.migrate();
+
+
 
 			ArrayList<String> pathsMissingInPSCfg = psCfg.pathsMissing(currentConfig,true).stream().filter(
 					pathName -> currentConfig.path(pathName,true).hasPrescaler()
