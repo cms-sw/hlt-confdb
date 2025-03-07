@@ -129,14 +129,14 @@ public class PrescaleEditorConverter {
             config.initialize(cfgInfo, release);
 
             ArrayList<String> pathNames = getPathNamesFromCSVFile(pstblfile);
-
-            ModuleInstance module = config.insertModule("HLTBool", "hltBoolTrue");
+            
             for (String pathName : pathNames) {
                 if (pathName.endsWith("_v")) {
                     pathName = pathName + "1";
                }
-                Path path = config.insertPath(config.pathCount(), pathName);
-                config.insertModuleReference(path, 0, module);
+                Path path = config.insertPath(config.pathCount(), pathName);            
+                ModuleInstance prescaler = config.insertModule("HLTPrescaler", Path.hltPrescalerLabel(pathName));
+                config.insertModuleReference(path, 0, prescaler);
             }
             config.insertService(0, "PrescaleService");
 
