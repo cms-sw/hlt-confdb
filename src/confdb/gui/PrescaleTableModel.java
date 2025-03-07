@@ -200,7 +200,8 @@ public class PrescaleTableModel extends AbstractTableModel {
 					//opps, first line wasnt tablename, it was the columns
 					//so we need to reset the scanner
 					prescaleTable.setExternalTableName("");
-					tableScanner.reset();
+					tableScanner.close();
+					tableScanner = new Scanner(new FileInputStream(fileName), "UTF-8");
 				}
 			}	
 
