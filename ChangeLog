@@ -1,3 +1,10 @@
+2025-03-06 Sam Harper
+    * tag V03-06-02
+	* bug fixes for the ps editor 
+	    * adds prescale module to the dummy paths
+		* properly migrates between dbs
+		* fixes issue reading legacy ps csv files
+
 2025-03-06 Sam Harper, Marino Missiroli
     * tag V03-06-01
 	* JavaCodeExecution: add customiseForCMSHLT3326
