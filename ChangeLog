@@ -1,6 +1,10 @@
+2025-03-18 Marco Musich
+    * tag V03-06-03
+        * use new IP aliases that point to the different hostname-v values as recommended by Oracle experts
+
 2025-03-06 Sam Harper
     * tag V03-06-02
-	* bug fixes for the ps editor 
+	* bug fixes for the ps editor
 	    * adds prescale module to the dummy paths
 		* properly migrates between dbs
 		* fixes issue reading legacy ps csv files
