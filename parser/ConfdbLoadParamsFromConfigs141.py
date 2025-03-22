@@ -135,7 +135,7 @@ def main(argv):
             input_cmsswrel = str(a)
             print("Using release " + input_cmsswrel)
         if o in ("-b","blacklist="):
-            input_blacklist.append(a.split(","))
+            input_blacklist.extend(a.split(","))
             print('Skip directories:')
             input_usingblacklist = True
         if o in ("-w","whitelist="):
