@@ -138,7 +138,7 @@ def main(argv):
             input_usingblacklist = True
         if o in ("-w","whitelist="):
             input_whitelist = []
-            input_whitelist.append(a.split(","))
+            input_whitelist.extend(a.split(","))
             print('Use directories:')
             print(input_whitelist)
             input_usingwhitelist = True
@@ -192,7 +192,7 @@ def main(argv):
     confdbjob.BeginJob()
 
 class ConfdbLoadParamsfromConfigs:
-    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile,cliarch):
+    def __init__(self,clirel,clibasepath,clibasereleasepath,cliwhitelist,cliblacklist,cliusingwhitelist,cliusingblacklist,cliverbose,clidbuser,clidbpwd,clihost,clinoload,cliaddtorelease,clicomparetorelease,clipreferfile,cliarch, dbtester=None):
 
         self.dbname = ''
         self.dbuser = clidbuser
@@ -225,7 +225,10 @@ class ConfdbLoadParamsfromConfigs:
         #
         # Reusing the connection method from the old parser - may want move this code here to
         # keep the new one self-contained...
-        if(self.noload == False):
+        if(dbtester):
+            self.dbloader = dbtester[0]
+            self.dbcursor = dbtester[1]
+        elif(self.noload == False):
             self.dbloader = ConfdbOracleModuleLoader.ConfdbOracleModuleLoader(self.verbose,self.addtorelease,self.comparetorelease)
             self.dbcursor = self.dbloader.ConfdbOracleConnect(self.dbname,self.dbuser,self.dbpwd,self.dbhost)
 
@@ -264,6 +267,57 @@ class ConfdbLoadParamsfromConfigs:
         self.outputlogfile = "parse." + str(clirel) + "." + str(clihost) + ".log"
         self.outputlogfilehandle = None
 
+    def SetupTables(self):
+        if(self.noload == False):
+            self.dbcursor.execute("SELECT name,id  FROM u_paramtypes")
+            temptuple = self.dbcursor.fetchall()
+            for temptype, tempname in temptuple:
+                self.paramtypedict[temptype] = tempname
+
+            self.dbcursor.execute("SELECT u_moduletypes.type, u_moduletypes.id FROM u_moduletypes")
+            temptuple = self.dbcursor.fetchall()
+            for temptype, tempname in temptuple:
+                self.modtypedict[temptype] = tempname
+
+        
+        self.paramtabledict = {"int32":"Int32ParamValues",
+                               "vint32":"VInt32ParamValues",
+                               "uint32":"UInt32ParamValues",
+                               "vuint32":"VUInt32ParamValues",
+                               "int64":"Int64ParamValues",
+                               "vint64":"VInt64ParamValues",
+                               "uint64":"UInt64ParamValues",
+                               "vuint64":"VUInt64ParamValues",
+                               "bool":"BoolParamValues",
+                               "double":"DoubleParamValues",
+                               "vdouble":"VDoubleParamValues",
+                               "string":"StringParamValues",
+                               "vstring":"VStringParamValues",
+                               "InputTag":"InputTagParamValues",
+                               "VInputTag":"VInputTagParamValues",
+                               "ESInputTag":"ESInputTagParamValues",
+                               "VESInputTag":"VESInputTagParamValues",
+                               "EventID":"EventIDParamValues",
+                               "VEventID":"VEventIDParamValues",
+                               "FileInPath":"FileInPathParamValues"}
+
+        self.componentrelassdict = {"u_moduletemplates":"u_modt2rele",
+                                    "u_edstemplates":"u_edst2rele",
+                                    "u_esstemplates":"u_esst2rele",
+                                    "u_esmtemplates":"u_esmt2rele",
+                                    "u_srvtemplates":"u_srvt2rele"}
+
+        self.componentrelassfielddict = {"u_moduletemplates":"id_modtemplate",
+                                         "u_edstemplates":"id_edstemplate",
+                                         "u_esstemplates":"id_esstemplate",
+                                         "u_esmtemplates":"id_esmtemplate",
+                                         "u_srvtemplates":"id_srvtemplate"}
+
+        self.componentparamtabledict = {"u_moduletemplates":"u_modtelements",
+                                        "u_edstemplates":"u_edstelements",
+                                        "u_esstemplates":"u_esstelements",
+                                        "u_esmtemplates":"u_esmtelements",
+                                        "u_srvtemplates":"u_srvtelements"}
     def BeginJob(self):
         # List of all available modules
         sealcomponenttuple = []
@@ -323,58 +377,10 @@ class ConfdbLoadParamsfromConfigs:
 
         # Do some one-time operations - get dictionaries of parameter, module,
         # and service type mappings so we don't have to do this every time
-        if(self.noload == False):
-            self.dbcursor.execute("SELECT name,id  FROM u_paramtypes")
-            temptuple = self.dbcursor.fetchall()
-            for temptype, tempname in temptuple:
-                self.paramtypedict[temptype] = tempname
-
-            self.dbcursor.execute("SELECT u_moduletypes.type, u_moduletypes.id FROM u_moduletypes")
-            temptuple = self.dbcursor.fetchall()
-            for temptype, tempname in temptuple:
-                self.modtypedict[temptype] = tempname
-
-        self.paramtabledict = {"int32":"Int32ParamValues",
-                               "vint32":"VInt32ParamValues",
-                               "uint32":"UInt32ParamValues",
-                               "vuint32":"VUInt32ParamValues",
-                               "int64":"Int64ParamValues",
-                               "vint64":"VInt64ParamValues",
-                               "uint64":"UInt64ParamValues",
-                               "vuint64":"VUInt64ParamValues",
-                               "bool":"BoolParamValues",
-                               "double":"DoubleParamValues",
-                               "vdouble":"VDoubleParamValues",
-                               "string":"StringParamValues",
-                               "vstring":"VStringParamValues",
-                               "InputTag":"InputTagParamValues",
-                               "VInputTag":"VInputTagParamValues",
-                               "ESInputTag":"ESInputTagParamValues",
-                               "VESInputTag":"VESInputTagParamValues",
-                               "EventID":"EventIDParamValues",
-                               "VEventID":"VEventIDParamValues",
-                               "FileInPath":"FileInPathParamValues"}
+        self.SetupTables()
 
         if(self.prefercfifile != ""):
             self.CreatePreferredCfiList()
-
-        self.componentrelassdict = {"u_moduletemplates":"u_modt2rele",
-                                    "u_edstemplates":"u_edst2rele",
-                                    "u_esstemplates":"u_esst2rele",
-                                    "u_esmtemplates":"u_esmt2rele",
-                                    "u_srvtemplates":"u_srvt2rele"}
-
-        self.componentrelassfielddict = {"u_moduletemplates":"id_modtemplate",
-                                         "u_edstemplates":"id_edstemplate",
-                                         "u_esstemplates":"id_esstemplate",
-                                         "u_esmtemplates":"id_esmtemplate",
-                                         "u_srvtemplates":"id_srvtemplate"}
-
-        self.componentparamtabledict = {"u_moduletemplates":"u_modtelements",
-                                        "u_edstemplates":"u_edstelements",
-                                        "u_esstemplates":"u_esstelements",
-                                        "u_esmtemplates":"u_esmtelements",
-                                        "u_srvtemplates":"u_srvtelements"}
 
         self.VerbosePrint("\n",0)
         self.VerbosePrint("*********************",0)
@@ -397,13 +403,15 @@ class ConfdbLoadParamsfromConfigs:
         self.VerbosePrint("Checking validated cfi's in: " + validatedcfisource_tree, 0)
         for validatedcfipackage in validatedcfipackagelist:
             # Apply whitelisting/blacklisting also to pacakges with validated cfi's
-            if(self.usingwhitelist == True):
+            if self.usingwhitelist == True:
                 skip = True
                 for whitelists in self.whitelist:
                     if str(whitelists) == str(validatedcfipackage):
                         skip = False
-                        if(skip == True):
-                            continue
+                        break
+                if skip:
+                    self.VerbosePrint("%s not in whitelist"%(validatedcfipackage,),1)
+                    continue
 
             skip = False
             if(self.usingblacklist == True):
@@ -1355,7 +1363,7 @@ class ConfdbLoadParamsfromConfigs:
             newparamid = -self.totalloadedparams
             returnid = newparamid
                 
-            self.VerbosePrint('Added ' + str(parametername) + ' with paramId = ' + str(newparamid),2)                            
+            self.VerbosePrint('Added "' + str(parametername) + '" with paramId = ' + str(newparamid),2)                            
             if(self.nesting != []):
                 self.VerbosePrint('The nesting is:',2)
                 self.VerbosePrint(self.nesting,2)
@@ -1449,7 +1457,7 @@ class ConfdbLoadParamsfromConfigs:
 
             self.localseq = self.localseq + 1
             
-            self.VerbosePrint('Added PSet ' + str(parametername) + ' with superId = ' + str(newparamid),2)
+            self.VerbosePrint('Added PSet "' + str(parametername) + '" with superId = ' + str(newparamid),2)
             
             returnid = newparamid
 
@@ -1857,7 +1865,8 @@ class ConfdbLoadParamsfromConfigs:
     def VerbosePrint(self,message,severity):
         if(self.verbose >= severity):
             print(str(message))
-            self.outputlogfilehandle.write(str(message) + "\n")
+            if self.outputlogfilehandle:
+                self.outputlogfilehandle.write(str(message) + "\n")
 
     def CreatePreferredCfiList(self):
 
