@@ -1396,7 +1396,7 @@ class ConfdbLoadParamsfromConfigs:
             parametertype = parametertype.split("untracked")[1].lstrip().rstrip()
 
 
-        if(psetname.find("[") != -1 and psetname.find("]") != -1):
+        if(psetname.find("VPSet[") != -1 and psetname.find("]") != -1):
             parametername = ''
 
         # Reformat representations of Booleans for python -> Oracle
