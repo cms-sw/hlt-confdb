@@ -80,7 +80,7 @@ if __name__ == "__main__":
             cursor = DummyCursor()
             parser = setupParser(DummyLoader(), cursor)
             prod = cms.EDProducer("D",
-                                  a_ = cms.VPSet(
+                                  VPSet = cms.VPSet(
                                       cms.PSet(foo = cms.PSet(bar = cms.int32(1)))))
             parser.componenttable = "u_moduletemplates"
             parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
