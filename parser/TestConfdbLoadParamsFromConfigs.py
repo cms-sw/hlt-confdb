@@ -8,13 +8,16 @@ class DummyLoader(object):
         pass
 
 class DummyCursor(object):
-    def __init__(self):
+    def __init__(self, verbose = False):
         self.lastExec_ = None
         self.inserts_ = []
+        self.verbose_ = verbose
     def execute(self, command, PLOB=None):
         self.lastExec_ = command
         if 'INSERT INTO' in command:
             self.inserts_.append(command)
+        if not self.verbose_:
+            return
         if PLOB is not None:
             print(command,"PLOB=",PLOB)
         else:
@@ -52,7 +55,7 @@ if __name__ == "__main__":
                 return True
         return False
     
-    def setupParser(dbloader, dbcursor):
+    def setupParser(dbloader, dbcursor, verbosity=0):
         db = ConfdbLoadParamsfromConfigs(
             clirel = '',
             clibasepath = '',
@@ -61,7 +64,7 @@ if __name__ == "__main__":
             cliblacklist = '',
             cliusingwhitelist = False,
             cliusingblacklist = False,
-            cliverbose = 0,
+            cliverbose = verbosity,
             clidbuser = '',
             clidbpwd = '',
             clihost = '',
@@ -80,13 +83,57 @@ if __name__ == "__main__":
             cursor = DummyCursor()
             parser = setupParser(DummyLoader(), cursor)
             prod = cms.EDProducer("D",
-                                  VPSet = cms.VPSet(
+                                  a_ = cms.VPSet(
                                       cms.PSet(foo = cms.PSet(bar = cms.int32(1)))))
             parser.componenttable = "u_moduletemplates"
             parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
             self.assertTrue(wasInserted("bar", cursor.inserts_))
             self.assertTrue(wasInserted("foo", cursor.inserts_))
             self.assertTrue(wasInserted("a_", cursor.inserts_))
+        def testVPSetWithLabelVPSet(self):
+            cursor = DummyCursor(verbose=True)
+            parser = setupParser(DummyLoader(), cursor, verbosity=3)
+            prod = cms.EDProducer("D",
+                                  VPSet = cms.VPSet(
+                                      cms.PSet(foo = cms.PSet(bar = cms.int32(1)))))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("VPSet", cursor.inserts_))
+            self.assertTrue(wasInserted("bar", cursor.inserts_))
+            #This fails because the parser drops the label because of how the parser
+            # handles seeing the string 'VPSet['
+            self.assertTrue(wasInserted("foo", cursor.inserts_))
+        def testPSetWithLabelVPSet(self):
+            cursor = DummyCursor(verbose=False)
+            parser = setupParser(DummyLoader(), cursor)
+            prod = cms.EDProducer("D",
+                                  VPSet = cms.PSet(
+                                    foo = cms.PSet(bar = cms.int32(1))))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("VPSet", cursor.inserts_))
+            self.assertTrue(wasInserted("bar", cursor.inserts_))
+            self.assertTrue(wasInserted("foo", cursor.inserts_))
+        def testPSetWithLabelVPSetHoldingAVPSet(self):
+            cursor = DummyCursor(verbose=False)
+            parser = setupParser(DummyLoader(), cursor)
+            prod = cms.EDProducer("D",
+                                  VPSet = cms.PSet(
+                                      a_ = cms.VPSet( cms.PSet(
+                                    foo = cms.PSet(bar = cms.int32(1))))))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("VPSet", cursor.inserts_))
+            self.assertTrue(wasInserted("bar", cursor.inserts_))
+            self.assertTrue(wasInserted("foo", cursor.inserts_))
+        def testvstringWithLabelVPSet(self):
+            cursor = DummyCursor(verbose=False)
+            parser = setupParser(DummyLoader(), cursor)
+            prod = cms.EDProducer("D",
+                                  VPSet = cms.vstring("foo", "bar"))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("VPSet", cursor.inserts_))
         def testPSetRecursion(self):
             cursor = DummyCursor()
             parser = setupParser(DummyLoader(), cursor)
@@ -117,7 +164,47 @@ if __name__ == "__main__":
             parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
             self.assertTrue(wasInserted("b_", cursor.inserts_))
             self.assertFalse(wasInserted("a_", cursor.inserts_))
-        def testVPSetTemplate(self):
+        def testRequiredPSetTemplate(self):
+            cursor = DummyCursor()
+            parser = setupParser(DummyLoader(), cursor)
+            prod = cms.EDProducer("D",
+                                  a_ = cms.required.PSetTemplate(d_ = cms.required.int32, e_ = cms.double(3.2)),
+                                  b_ = cms.string("value"))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("b_", cursor.inserts_))
+            self.assertFalse(wasInserted("a_", cursor.inserts_))
+        def testOptionalPSetTemplate(self):
+            cursor = DummyCursor()
+            parser = setupParser(DummyLoader(), cursor)
+            prod = cms.EDProducer("D",
+                                  a_ = cms.optional.PSetTemplate(d_ = cms.required.int32, e_ = cms.double(3.2)),
+                                  b_ = cms.string("value"))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("b_", cursor.inserts_))
+            self.assertFalse(wasInserted("a_", cursor.inserts_))
+        def testRequiredVPSetTemplate(self):
+            cursor = DummyCursor()
+            parser = setupParser(DummyLoader(), cursor)
+            prod = cms.EDProducer("D",
+                                  a_ = cms.required.VPSetTemplate(cms.PSetTemplate(d_ = cms.required.int32, e_ = cms.double(3.2))),
+                                  b_ = cms.string("value"))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("b_", cursor.inserts_))
+            self.assertFalse(wasInserted("a_", cursor.inserts_))
+        def testOptionalVPSetTemplate(self):
+            cursor = DummyCursor()
+            parser = setupParser(DummyLoader(), cursor)
+            prod = cms.EDProducer("D",
+                                  a_ = cms.optional.VPSetTemplate(cms.PSetTemplate(d_ = cms.required.int32, e_ = cms.double(3.2))),
+                                  b_ = cms.string("value"))
+            parser.componenttable = "u_moduletemplates"
+            parser.FindParamsFromPython("Sub","Pkg", {"foo":prod}, "EDProducer", True)
+            self.assertTrue(wasInserted("b_", cursor.inserts_))
+            self.assertFalse(wasInserted("a_", cursor.inserts_))
+        def testVPSetWithTemplate(self):
             cursor = DummyCursor()
             parser = setupParser(DummyLoader(), cursor)
             prod = cms.EDProducer("D",
