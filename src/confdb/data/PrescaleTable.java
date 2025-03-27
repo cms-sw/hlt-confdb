@@ -29,6 +29,8 @@ public class PrescaleTable
 	//this allows us to determine which other rows need to be edited when this one is
 	protected ArrayList<ArrayList<Integer> > rowSiblings = new ArrayList<ArrayList<Integer>>();
 
+	protected boolean requirePathsToHavePrescaler = true;
+
 	//if an external tool has provided the prescales, the name of the table is stored here
 	//this should be empty otherewise and its cleared on  update of the prescale service
 	protected String externalTableName = new String();
@@ -50,6 +52,16 @@ public class PrescaleTable
     {
 	initialize(config);
     }
+
+	/** constructor with option to require paths to have prescaler 
+	 * neeed by smart prescaler
+	 */ 
+	public PrescaleTable(IConfiguration config, boolean requirePathsToHavePrescaler)
+	{
+		this.requirePathsToHavePrescaler = requirePathsToHavePrescaler;
+		initialize(config);
+	}
+	 
     
     /** NULL CONSTRUCTOR. To allow different construction in subclass. */
     protected PrescaleTable() {} 
@@ -338,7 +350,10 @@ public class PrescaleTable
 
             // If the Path does not contain any HLTPrescaler modules,
             // do not show it in the PrescaleTable
-            if(!path.hasHLTPrescalerModule()) continue;
+			// okay but turns out this is used by the smart prescale service
+			// which CAN have paths without prescale modules in it
+			// so this needs to be optional
+            if(this.requirePathsToHavePrescaler && !path.hasHLTPrescalerModule()) continue;
 
 	    PrescaleTableRow row = pathToRow.remove(path.name());
 	    if (row==null)
