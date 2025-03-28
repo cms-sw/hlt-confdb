@@ -281,7 +281,7 @@ class SmartPrescaleTableModel extends AbstractTableModel {
 	public void initialize(IConfiguration config, ModuleInstance module, SmartPrescaleTable smartPrescaleTable) {
 		this.config = config;
 		this.module = module;
-		prescaleTable = new PrescaleTable(config);
+		prescaleTable = new PrescaleTable(config,false);
 		this.smartPrescaleTable = smartPrescaleTable;
 		fireTableStructureChanged();
 		fireTableDataChanged();
