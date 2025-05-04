@@ -173,7 +173,6 @@ public class SmartPrescaleDialog extends JDialog {
 	private void updateMainPanel() {
 		module = config.module((String) jComboBoxModule.getSelectedItem());
 		int i = jComboBoxModule.getSelectedIndex();
-		System.out.println(module.name() + " " + smartPrescaleTable.get(i).module.name() + " " + i);
 		smartTableModel.updateSmartPrescaleWindow(module, smartPrescaleTable.get(i));
 	}
 
@@ -290,8 +289,8 @@ class SmartPrescaleTableModel extends AbstractTableModel {
 	/** update the SmartPrescale Window */
 	public void updateSmartPrescaleWindow(ModuleInstance module, SmartPrescaleTable smartPrescaleTable) {
 		this.module = module;
-		this.smartPrescaleTable = smartPrescaleTable;
-		prescaleTable = new PrescaleTable(config);
+		this.smartPrescaleTable = smartPrescaleTable;		
+		prescaleTable = new PrescaleTable(config,false);
 		fireTableStructureChanged();
 		fireTableDataChanged();
 	}
