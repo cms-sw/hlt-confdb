@@ -45,6 +45,8 @@ public class MenuBar {
 	private static final String toolMenuConvertFPsToEPs = "Convert FinalPaths to EndPaths";
 	private static final String toolMenuPSEditor = "Edit Prescales";
 	private static final String toolMenuPSImport = "Import Prescales";
+	private static final String toolMenuPSImportSocks = "Import Prescales (socks tunnel)";
+	private static final String toolMenuPSImportDirTun = "Import Prescales (direct tunnel)";
 	private static final String toolMenuSPSEditor = "Edit SmartPrescales";
 	private static final String toolMenuMLEditor = "Edit MessageLogger";
 	private static final String toolMenuJavaCode = "Execute Java Code";
@@ -87,6 +89,8 @@ public class MenuBar {
 	private JMenuItem toolMenuReplaceItem = null;
 	private JMenuItem toolMenuPSEditorItem = null;
 	private JMenuItem toolMenuPSImportItem = null;
+	private JMenuItem toolMenuPSImportSocksItem = null;
+	private JMenuItem toolMenuPSImportDirTunItem = null;
 	private JMenuItem toolMenuSPSEditorItem = null;
 	private JMenuItem toolMenuMLEditorItem = null;
 	private JMenuItem toolMenuJavaCodeItem = null;
@@ -134,6 +138,8 @@ public class MenuBar {
 		toolMenuConvertFPsToEPsItem.setEnabled(true);
 		toolMenuPSEditorItem.setEnabled(true);
 		toolMenuPSImportItem.setEnabled(true);
+		toolMenuPSImportSocksItem.setEnabled(true);
+		toolMenuPSImportDirTunItem.setEnabled(true);
 		toolMenuSPSEditorItem.setEnabled(true);
 		toolMenuMLEditorItem.setEnabled(true);
 		toolMenuJavaCodeItem.setEnabled(true);
@@ -161,6 +167,8 @@ public class MenuBar {
 		toolMenuReplaceItem.setEnabled(false);
 		toolMenuPSEditorItem.setEnabled(false);
 		toolMenuPSImportItem.setEnabled(false);
+		toolMenuPSImportSocksItem.setEnabled(false);
+		toolMenuPSImportDirTunItem.setEnabled(false);
 		toolMenuSPSEditorItem.setEnabled(false);
 		toolMenuMLEditorItem.setEnabled(false);
 		toolMenuJavaCodeItem.setEnabled(false);
@@ -307,6 +315,14 @@ public class MenuBar {
 		toolMenuPSImportItem.setActionCommand(toolMenuPSImport);
 		toolMenuPSImportItem.addActionListener(listener);
 		toolMenu.add(toolMenuPSImportItem);
+		toolMenuPSImportSocksItem = new JMenuItem(toolMenuPSImportSocks);
+		toolMenuPSImportSocksItem.setActionCommand(toolMenuPSImportSocks);
+		toolMenuPSImportSocksItem.addActionListener(listener);
+		toolMenu.add(toolMenuPSImportSocksItem);
+		toolMenuPSImportDirTunItem = new JMenuItem(toolMenuPSImportDirTun);
+		toolMenuPSImportDirTunItem.setActionCommand(toolMenuPSImportDirTun);
+		toolMenuPSImportDirTunItem.addActionListener(listener);
+		toolMenu.add(toolMenuPSImportDirTunItem);
 		toolMenuPSEditorItem = new JMenuItem(toolMenuPSEditor, KeyEvent.VK_P);
 		toolMenuPSEditorItem.setActionCommand(toolMenuPSEditor);
 		toolMenuPSEditorItem.addActionListener(listener);
