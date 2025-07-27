@@ -1232,7 +1232,7 @@ public class ConfDbGUI {
 	}
 
 	public void importPrescalesDirectTunnel(){
-		importPrescalesFromDB("Offline Dev (direct tunnel)","cms_hlt_gdrdev_r","convertMe1!","10212");
+		importPrescalesFromDB("Offline Dev (direct tunnel)","cms_hlt_gdrdev_r","convertMe1!","10122");
 	}
 
 	public void importPrescalesFromDB(String dbLabel,String dbUser,String dbPwrd, String dbPort){

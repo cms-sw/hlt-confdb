@@ -42,7 +42,7 @@ public class CommandActionListener implements ActionListener
     private static final String cmdPSEditor         = "Edit Prescales";
     private static final String cmdPSImport         = "Import Prescales";    
     private static final String cmdPSImportSocks    = "Import Prescales (socks tunnel)";
-    private static final String cmdPSImportDirTun   = "Import Prescales (direct tunnel)";
+    private static final String cmdPSImportDirTun   = "Import Prescales (direct tunnel - port 10122)";
     private static final String cmdSPSEditor        = "Edit SmartPrescales";
     private static final String cmdMLEditor         = "Edit MessageLogger";
     private static final String cmdJavaCode         = "Execute Java Code";

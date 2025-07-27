@@ -45,8 +45,9 @@ public class MenuBar {
 	private static final String toolMenuConvertFPsToEPs = "Convert FinalPaths to EndPaths";
 	private static final String toolMenuPSEditor = "Edit Prescales";
 	private static final String toolMenuPSImport = "Import Prescales";
+	/* remove for now as socks is tricksy */
 	private static final String toolMenuPSImportSocks = "Import Prescales (socks tunnel)";
-	private static final String toolMenuPSImportDirTun = "Import Prescales (direct tunnel)";
+	private static final String toolMenuPSImportDirTun = "Import Prescales (direct tunnel - port 10122)";
 	private static final String toolMenuSPSEditor = "Edit SmartPrescales";
 	private static final String toolMenuMLEditor = "Edit MessageLogger";
 	private static final String toolMenuJavaCode = "Execute Java Code";
@@ -314,11 +315,13 @@ public class MenuBar {
 		toolMenuPSImportItem = new JMenuItem(toolMenuPSImport);
 		toolMenuPSImportItem.setActionCommand(toolMenuPSImport);
 		toolMenuPSImportItem.addActionListener(listener);
-		toolMenu.add(toolMenuPSImportItem);
+		toolMenu.add(toolMenuPSImportItem);		
 		toolMenuPSImportSocksItem = new JMenuItem(toolMenuPSImportSocks);
 		toolMenuPSImportSocksItem.setActionCommand(toolMenuPSImportSocks);
 		toolMenuPSImportSocksItem.addActionListener(listener);
+		/* disable for now as socks is tricksy 
 		toolMenu.add(toolMenuPSImportSocksItem);
+		*/
 		toolMenuPSImportDirTunItem = new JMenuItem(toolMenuPSImportDirTun);
 		toolMenuPSImportDirTunItem.setActionCommand(toolMenuPSImportDirTun);
 		toolMenuPSImportDirTunItem.addActionListener(listener);
