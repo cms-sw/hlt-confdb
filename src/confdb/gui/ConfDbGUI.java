@@ -37,6 +37,7 @@ import confdb.gui.treetable.*;
 
 import confdb.db.ConfDBV1;
 import confdb.db.ConfDB;
+import confdb.db.ConfDBSetups;
 import confdb.db.DatabaseException;
 import confdb.db.OracleDatabaseConnector;
 
@@ -1221,14 +1222,35 @@ public class ConfDbGUI {
 	}
 
 	public void importPrescales(){
+		//we need only read access and the read only password is well known at this point
+		//so having it in the source code doesnt really matter as its been there for a long time in other places
+		importPrescalesFromDB("Offline Dev", "cms_hlt_gdrdev_r","convertMe1!",null);
+	}
+
+	public void importPrescalesSocks(){
+		importPrescalesFromDB("Offline Dev (socks tunnel)","cms_hlt_gdrdev_r","convertMe1!",null);
+	}
+
+	public void importPrescalesDirectTunnel(){
+		importPrescalesFromDB("Offline Dev (direct tunnel)","cms_hlt_gdrdev_r","convertMe1!","10122");
+	}
+
+	public void importPrescalesFromDB(String dbLabel,String dbUser,String dbPwrd, String dbPort){
 		
+		ConfDBSetups dbSetups = new ConfDBSetups();
+		int labelIdx = dbSetups.labelIndex(dbLabel);
+		if (labelIdx < 0) {
+			JOptionPane.showMessageDialog(frame, "No Prescale DB Setup found for '"+dbLabel+"',\ncan not import prescales.", "Prescale Import Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
 		ConfDB psSourceDB = new ConfDB();
-		String dbType = new String("oracle");
-		String dbHost = new String("cmsr1-s.cern.ch, cmsr2-s.cern.ch, cmsr3-s.cern.ch");
-		String dbPort = new String("10121");
-		String dbName = new String("cms_hlt.cern.ch");
-		String dbUser = new String("cms_hlt_gdrdev_r");
-		String dbPwrd = new String("convertMe1!");		
+		String dbType = dbSetups.type(labelIdx);
+		String dbHost = dbSetups.host(labelIdx);
+		if (dbPort == null || dbPort.isEmpty()) {
+			dbPort = dbSetups.port(labelIdx);
+		}		
+		String dbName = dbSetups.name(labelIdx);
 
 		String dbUrl = psSourceDB.setDbParameters(dbPwrd, dbName, dbHost, dbPort);
 		try{

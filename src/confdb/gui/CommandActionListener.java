@@ -40,7 +40,9 @@ public class CommandActionListener implements ActionListener
     private static final String cmdConvertToTasks   = "Taskify";
     private static final String cmdConvertFPsToEPs  = "Convert FinalPaths to EndPaths";
     private static final String cmdPSEditor         = "Edit Prescales";
-    private static final String cmdPSImport         = "Import Prescales";
+    private static final String cmdPSImport         = "Import Prescales";    
+    private static final String cmdPSImportSocks    = "Import Prescales (socks tunnel)";
+    private static final String cmdPSImportDirTun   = "Import Prescales (direct tunnel - port 10122)";
     private static final String cmdSPSEditor        = "Edit SmartPrescales";
     private static final String cmdMLEditor         = "Edit MessageLogger";
     private static final String cmdJavaCode         = "Execute Java Code";
@@ -94,6 +96,8 @@ public class CommandActionListener implements ActionListener
         if (command.equals(cmdConvertFPsToEPs))  app.convertFinalPathsToEndPaths();
 	if (command.equals(cmdPSEditor))         app.openPrescaleEditor();
     if (command.equals(cmdPSImport))         app.importPrescales();
+    if (command.equals(cmdPSImportSocks))    app.importPrescalesSocks();
+    if (command.equals(cmdPSImportDirTun))   app.importPrescalesDirectTunnel();
 	if (command.equals(cmdSPSEditor))        app.openSmartPrescaleEditor();
 	if (command.equals(cmdMLEditor))         app.openMessageLoggerEditor();
 	if (command.equals(cmdJavaCode))         app.openJavaCodeExecution();
