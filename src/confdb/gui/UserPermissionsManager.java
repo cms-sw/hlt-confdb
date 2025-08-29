@@ -36,8 +36,6 @@ public class UserPermissionsManager {
 		this.admins.add("sdonato");
 		// Sam Harper
 		//this.admins.add("sharper");
-		// Marino Missiroli
-		this.admins.add("missirol");
 		// Marco Musich
 		this.admins.add("musich");
         // Mateusz Zarucki
