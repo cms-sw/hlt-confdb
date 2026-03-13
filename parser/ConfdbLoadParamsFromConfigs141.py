@@ -84,6 +84,7 @@ def main(argv):
       "RecoLocalTracker",
       "RecoLuminosity",
       "RecoMET",
+      "RecoML",
       "RecoMuon",
       "RecoPPS",
       "RecoParticleFlow",
