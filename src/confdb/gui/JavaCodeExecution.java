@@ -36,6 +36,7 @@ public class JavaCodeExecution {
 
 	public void execute() {
 		System.out.println("\n[JavaCodeExecution] start:");
+		// customizeNGTDemonstratorMenu();
 		// customiseForCMSHLT3395();
 		// customiseForCMSHLT3326();
 		// customiseForCMSHLT3132();
@@ -2388,4 +2389,228 @@ public class JavaCodeExecution {
 			}
 		}
 	}
+
+    // Add custom PSet entries to GlobalTag ESSource's toGet VPSet
+    // This handles the GlobalTag ESSource which is of type PoolDBESSource
+    private void customiseNGTForGlobalTagToGet() {
+
+       String logLabel = "[customiseForGlobalTagToGet]";
+       System.out.println("\n" + logLabel + " Starting customization...");
+
+       Integer numChanges = 0;
+
+       // Find the GlobalTag ESSource in the configuration
+       ESSourceInstance globalTagESSource = config.essource("GlobalTag");
+
+       if (globalTagESSource == null) {
+           System.out.println(logLabel + " ERROR: GlobalTag ESSource not found!");
+           return;
+       }
+
+       System.out.println(logLabel + " Found GlobalTag ESSource: " + globalTagESSource.name());
+
+       // Get or create the 'toGet' VPSet parameter within the ESSource
+       VPSetParameter toGetVPSet = (VPSetParameter) globalTagESSource.parameter("toGet");
+
+       if (toGetVPSet == null) {
+           System.out.println(logLabel + " WARNING: 'toGet' VPSet not found in GlobalTag ESSource!");
+           // Optionally create it
+           toGetVPSet = new VPSetParameter("toGet", "", true);
+           globalTagESSource.addParameter(toGetVPSet);
+           System.out.println(logLabel + " Created new 'toGet' VPSet in GlobalTag");
+       }
+
+       // Define the PSets to add to GlobalTag.toGet
+       String[][] psetsToAdd = {
+           {"EcalLaserAPDPNRatiosRcd", "50"},
+           {"SiStripDetVOffRcd", "50"}
+       };
+
+       for (String[] psetInfo : psetsToAdd) {
+           String record = psetInfo[0];
+           String refreshTime = psetInfo[1];
+
+           // Create a new PSet for this record
+           PSetParameter newPSet = new PSetParameter("", "", true);
+
+           // Add the record parameter (string type)
+           StringParameter recordParam = new StringParameter("record", record, true);
+           newPSet.addParameter(recordParam);
+
+           // Add the refreshTime parameter (uint64 type)
+           UInt64Parameter refreshParam = new UInt64Parameter("refreshTime", Long.parseLong(refreshTime), true);
+           newPSet.addParameter(refreshParam);
+
+           // Check if this entry already exists to avoid duplicates
+           boolean entryExists = false;
+           for (int i = 0; i < toGetVPSet.parameterSetCount(); i++) {
+               PSetParameter existingPSet = toGetVPSet.parameterSet(i);
+               Parameter existingRecord = existingPSet.parameter("record");
+               if (existingRecord != null && existingRecord.valueAsString().equals(record)) {
+                   entryExists = true;
+                   System.out.println(logLabel + " Entry for record '" + record + "' already exists, skipping...");
+                   break;
+               }
+           }
+
+           // Add the new PSet if it doesn't already exist
+           if (!entryExists) {
+               toGetVPSet.addParameterSet(newPSet);
+               System.out.println(logLabel + " Added PSet for record: '" + record + "' (refreshTime: " + refreshTime + ")");
+               numChanges++;
+           }
+       }
+
+       // Mark the configuration as changed
+       if (numChanges > 0) {
+           globalTagESSource.setHasChanged();
+       }
+       System.out.println(logLabel + " Completed. Total PSets added: " + numChanges);
+    }
+
+    // Customize prescales for HLT_TestData_v and Dataset_TestDataRaw
+    private void customizeNGTPrescales() {
+
+       String logLabel = "[customizePrescales]";
+       System.out.println("\n" + logLabel + " Starting prescale customization...");
+
+       // Get the PrescaleService from the configuration
+       ServiceInstance prescaleSvc = config.service("PrescaleService");
+       if (prescaleSvc == null) {
+           System.out.println(logLabel + " ERROR: PrescaleService not found!");
+           return;
+       }
+
+       System.out.println(logLabel + " Found PrescaleService");
+
+       // Get the prescaleTable VPSet
+       VPSetParameter prescaleTable = (VPSetParameter) prescaleSvc.parameter("prescaleTable");
+       if (prescaleTable == null) {
+           System.out.println(logLabel + " ERROR: prescaleTable VPSet not found!");
+           return;
+       }
+
+       System.out.println(logLabel + " Found prescaleTable with " + prescaleTable.parameterSetCount() + " entries");
+
+       int pathChanges = 0;
+       // Iterate through all prescale entries
+       for (int i = 0; i < prescaleTable.parameterSetCount(); i++) {
+           PSetParameter pset = prescaleTable.parameterSet(i);
+
+           // Get the pathName parameter
+           StringParameter pathNameParam = (StringParameter) pset.parameter("pathName");
+           if (pathNameParam == null)
+               continue;
+
+           String pathName = (String) pathNameParam.value();
+
+           // Get the prescales parameter
+           VUInt32Parameter prescalesParam = (VUInt32Parameter) pset.parameter("prescales");
+           if (prescalesParam == null)
+               continue;
+
+           // Check if this is HLT_TestData_v (change prescale from 110 to 1)
+           if (pathName.matches("HLT_TestData_v.*")) {
+               System.out.println(logLabel + " Found HLT_TestData_v path: " + pathName);
+
+               // Get current prescales and modify the columns
+               ArrayList<Long> prescales = new ArrayList<Long>();
+               for (int j = 0; j < prescalesParam.vectorSize(); j++) {
+                   Long prescale = (Long) prescalesParam.value(j);
+                   // Change columns from 110 to 1
+                   if (prescale == 110L) {
+                       prescale = 1L;
+                       System.out.println(logLabel + " Changed HLT_TestData_v prescale[" + j + "] from 110 to 1");
+                   }
+                   prescales.add(prescale);
+               }
+
+               //Update the prescales parameter
+               StringBuilder prescalesStr = new StringBuilder();
+               for (int j = 0; j < prescales.size(); j++) {
+                  if (j > 0) prescalesStr.append(",");
+                  prescalesStr.append(prescales.get(j));
+               }
+               prescalesParam.setValue(prescalesStr.toString());
+               pathChanges++;
+           }
+       }
+       // Mark the PrescaleService as changed if we made modifications
+       if (pathChanges > 0) {
+           prescaleSvc.setHasChanged();
+           System.out.println(logLabel + " Updated " + pathChanges + " HLT path(s)");
+       } else {
+           System.out.println(logLabel + " WARNING: No matching paths found");
+       }
+
+       // now change the prescale of the dataset path
+       prescaleAwayTestDataRaw(prescaleTable, prescaleSvc, logLabel);
+
+       System.out.println(logLabel + " Completed");
+    }
+
+    // Add Dataset_TestDataRaw to prescale table if missing
+    private void prescaleAwayTestDataRaw(VPSetParameter prescaleTable,
+                                        ServiceInstance prescaleSvc,
+                                        String logLabel) {
+       final String datasetName = "Dataset_TestDataRaw";
+
+       // Check whether the dataset already exists
+       boolean found = false;
+       for (int i = 0; i < prescaleTable.parameterSetCount(); i++) {
+           PSetParameter pset = prescaleTable.parameterSet(i);
+           StringParameter pathNameParam = (StringParameter) pset.parameter("pathName");
+
+           if (pathNameParam != null &&
+               datasetName.equals(pathNameParam.value())) {
+               found = true;
+               break;
+           }
+       }
+
+       if (found) {
+           System.out.println(logLabel + " Entry for " + datasetName + " already exists.");
+           return;
+       }
+
+       System.out.println(logLabel + " Adding new prescale entry for " + datasetName);
+
+       // Retrieve number of prescale columns
+       VStringParameter labels = (VStringParameter) prescaleSvc.parameter("lvl1Labels");
+       int nColumns = (labels != null) ? labels.vectorSize() : 1;
+
+       // Create a vector filled with zeros
+       StringBuilder prescaleValues = new StringBuilder();
+       for (int i = 0; i < nColumns; i++) {
+           if (i > 0) prescaleValues.append(",");
+           prescaleValues.append("0");
+       }
+
+       // Create new parameter set
+       PSetParameter newEntry = new PSetParameter("prescaleTable");
+       newEntry.addParameter(new StringParameter("pathName", datasetName, true));
+       newEntry.addParameter(new VUInt32Parameter("prescales", prescaleValues.toString(), true));
+
+       // Add the new entry to the prescale table
+       prescaleTable.addParameterSet(newEntry);
+
+       // Mark the service as modified
+       prescaleSvc.setHasChanged();
+       System.out.println(logLabel + " Added " + datasetName + " with prescales: [" + prescaleValues + "]");
+    }
+
+    // full customization function for the NGT demonstrator menu
+    private void customizeNGTDemonstratorMenu() {
+
+       String logLabel = "[customizeNGTDemonstratorMenu]";
+       System.out.println("\n" + logLabel + " Starting NGT demonstrator menu customization...");
+
+       // customise the Global Tag
+       customiseNGTForGlobalTagToGet();
+
+       // customise the prescales
+       customizeNGTPrescales();
+
+       System.out.println(logLabel + " Completed");
+    }
 }
