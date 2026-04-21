@@ -326,7 +326,7 @@ public class ConfigurationTreeActions {
 		ConfigurationTreeModel model = (ConfigurationTreeModel) tree.getModel();
 		Configuration config = (Configuration) model.getRoot();
 
-		if (templateName.indexOf(":") > 0) {
+		if (templateName.indexOf(":") > 0 && !templateName.matches("^[a-zA-Z_][a-zA-Z0-9_]*::.*")) {
 			String[] s = templateName.split(":");
 			Template template = config.release().esmoduleTemplate(s[1]);
 			Instance original = null;
